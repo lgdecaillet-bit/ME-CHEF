@@ -12,7 +12,7 @@
 > `### #N · Título` · fecha · estado · texto con el porqué · qué reemplaza · qué archivos
 > de `fases/` cambian.
 
-Vigentes: **#1–#3, #5–#49**. Reemplazadas: #4 (por #29).
+Vigentes: **#1–#3, #5–#50**. Reemplazadas: #4 (por #29).
 
 ---
 
@@ -445,6 +445,34 @@ arreglos comparten PR — como aquí — se dice en el PR y se acepta que el his
   decidir si el inventario se normaliza a una fila por (ingrediente, unidad, origen).
 - BUG-9 (`redondear` hacia abajo en la lista de mercado): no falta nada técnico, falta
   el «adelante» de Luciano porque cambia números que ve el usuario.
+
+
+### #50 · El redondeo de la lista de mercado va siempre hacia arriba
+Fecha: 2026-09-09 · **vigente**
+Había un solo redondeo amable, `redondear`, al más cercano, y se usaba para todo. Está
+bien para una receta — «nadie mide 137 g de cebolla» — y está mal para la lista de
+mercado: necesitar 12 salía como «compra 10» (BUG-9).
+
+**Los dos errores del redondeo no cuestan lo mismo.** Comprar de más deja medio paquete en
+la despensa. Comprar de menos obliga a volver a la tienda, que es justo lo que la app
+promete evitar. Cuando un sesgo es asimétrico, la función tiene que ir en la dirección
+barata, no en la neutra.
+
+Quedan **dos funciones**, no una con un parámetro: `redondear` (al más cercano, para
+recetas) y `redondearParaComprar` (hacia arriba, para la lista). Un booleano en la firma
+se olvida; dos nombres distintos obligan a elegir. Es la misma regla que llevó a hacer
+`comensales` obligatorio en #49.
+
+**Y `cantidadNecesaria` deja de redondearse.** Es lo que las recetas piden de verdad;
+redondearla al más cercano era la misma mentira en el otro campo, y además rompía la
+resta que ve el usuario. Ahora `necesaria − en casa` es exactamente lo que falta, y el
+redondeo amable se aplica solo al último paso, el de comprar. Solo se le quita el ruido de
+la coma flotante con `toFixed(2)`, igual que en `totalEstimado`.
+
+Misma familia que el arreglo de BUG-1 (un ingrediente sin cantidad conocida cuenta como
+cero y se compra): ante la duda, la app prefiere que sobre comida a que falte.
+
+**Archivos de `fases/` que cambian:** `fase-1-motor-y-datos.md` § 1.1, fila de BUG-9.
 
 ---
 

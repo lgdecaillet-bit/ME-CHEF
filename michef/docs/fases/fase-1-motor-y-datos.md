@@ -89,7 +89,7 @@ se abren PRs separados.
 | BUG-6 | `Restriccion.valor` para `tiempo_max` se parsea con zod (`z.coerce.number().positive()`). Si no parsea: la restricción se ignora **y se loguea** `restriccion_invalida`. Nunca silencio. |
 | BUG-7 | ✅ **hecho**, tal cual. Hay además un test de ejecución que comprueba que `cantidadPorPorcion` no reaparece: la causa original era un `...i`, y **TypeScript no avisa de las propiedades de más que llegan por un spread** — comprobado rompiéndolo. |
 | BUG-8 | ⏳ registrado, sin arreglar. `fusionarEscaneo` y `descontarCocinado` tienen el mismo `new Map` con claves repetidas que tenía BUG-4: seis huevos de factura más seis de escaneo quedan en seis al sacar una foto. **Antes de arreglarlo hay que decidir** si el inventario se normaliza a una fila por (ingrediente, unidad, origen) o si estas funciones agrupan como hace `listaDeMercado`. |
-| BUG-9 | ⏳ registrado, sin arreglar. `listaDeMercado` aplica `redondear` a la cantidad a comprar, y `redondear` va al más cercano: si hacen falta 12, manda a comprar 10. En una lista de mercado el redondeo tiene que ir hacia arriba. Técnicamente es un `Math.ceil`; falta el «adelante» porque cambia números que ve el usuario. |
+| BUG-9 | ✅ **hecho** (decisión #50). Función nueva `redondearParaComprar`, hacia arriba, solo para la lista; `redondear` sigue al más cercano para las recetas. Dos nombres en vez de un booleano, para que haya que elegir. `cantidadNecesaria` deja de redondearse: es lo que las recetas piden, y así `necesaria − en casa` cuadra con lo que falta. |
 
 Además, en este PR:
 

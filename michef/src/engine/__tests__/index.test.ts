@@ -17,6 +17,7 @@ describe('la frontera pública del motor', () => {
     'porcionesDelHogar',
     'escalarReceta',
     'redondear',
+    'redondearParaComprar',
     'fusionarEscaneo',
     'descontarCocinado',
     'porVencerse',

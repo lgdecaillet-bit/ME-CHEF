@@ -42,6 +42,7 @@
  * Cada bug lleva escrito qué le pasa al usuario, que es lo que decide su orden.
  * ─────────────────────────────────────────────────────────────────────────────
  */
+import fc from 'fast-check';
 import { descontarCocinado, fusionarEscaneo } from '../inventory';
 import { listaDeMercado } from '../groceries';
 import { recetasConLoQueHay } from '../coverage';
@@ -473,26 +474,47 @@ describe('BUG-8 · fusionar o cocinar borra las filas repetidas del inventario',
   });
 });
 
-describe('BUG-9 · la lista de mercado redondea hacia abajo lo que hay que comprar', () => {
-  // Dónde: groceries.ts, `listaDeMercado`, los dos `redondear(...)`.
-  // Qué pasa: `redondear` redondea al más CERCANO — «nadie mide 137 g de
-  // cebolla» — y eso está bien para presentar una receta. Aplicado a la cantidad
-  // a comprar, redondea hacia abajo: si hacen falta 12, manda a comprar 10.
-  // Por qué importa: una lista de mercado que se queda corta obliga a volver a la
-  // tienda, que es justo lo que la app promete evitar. El redondeo amable tiene
-  // que ir hacia arriba en la lista, y al más cercano en la receta.
+describe('BUG-9 · ARREGLADO · la lista de mercado redondea hacia arriba', () => {
+  // Dónde estaba: groceries.ts, `listaDeMercado`, los dos `redondear(...)`.
+  // Qué pasaba: `redondear` va al más CERCANO — «nadie mide 137 g de cebolla» —
+  // y eso está bien para presentar una receta. Aplicado a la cantidad a comprar,
+  // redondeaba hacia abajo: si hacían falta 12, mandaba a comprar 10.
+  // Por qué importaba: una lista de mercado que se queda corta obliga a volver a
+  // la tienda, que es justo lo que la app promete evitar.
   // Se descubrió el 2026-09-09 al escribir otro test, que falló esperando 12 y
   // recibiendo 10.
-  //
-  // CONDICIÓN PARA ARREGLARLO (decisión #49): ninguna técnica — es un
-  // `Math.ceil` en vez de un `Math.round`, con su propia función. Falta solo el
-  // «adelante» de Luciano (#34), porque cambia números que ya ve el usuario.
-  it.failing('si hacen falta 12, no manda a comprar 10', () => {
+  // Arreglo: `redondearParaComprar`, el mismo redondeo amable con `Math.ceil`.
+  // Y `cantidadNecesaria` deja de redondearse: es lo que las recetas piden de
+  // verdad, y redondearla hacia abajo era la misma mentira en el otro campo.
+  it('si hacen falta 12, no manda a comprar 10', () => {
     const semana = [
       { receta: receta({ ingredientes: [ingrediente('huevo', 12)] }), porciones: 1 },
     ];
-    // Se afirma el invariante, no el número exacto: 12 y 15 son dos arreglos
-    // válidos, 10 no lo es en ninguna versión correcta.
-    expect(listaDeMercado(semana, [])[0]?.cantidadAComprar).toBeGreaterThanOrEqual(12);
+    const linea = listaDeMercado(semana, [])[0];
+    expect(linea?.cantidadNecesaria).toBe(12);
+    expect(linea?.cantidadAComprar).toBe(15);
+  });
+
+  it('PROPIEDAD · nunca manda a comprar menos de lo que falta', () => {
+    // Es el invariante entero del arreglo, y es el que hay que conservar si algún
+    // día cambian los tramos del redondeo.
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 5000 }),
+        fc.integer({ min: 0, max: 5000 }),
+        (necesita, tiene) => {
+          const semana = [
+            {
+              receta: receta({ ingredientes: [ingrediente('arroz', necesita)] }),
+              porciones: 1,
+            },
+          ];
+          const inventario = [item({ ingredienteId: 'arroz', cantidad: tiene })];
+          const linea = listaDeMercado(semana, inventario)[0];
+          if (!linea) return necesita <= tiene; // no hay línea: es que alcanzaba
+          return linea.cantidadEnCasa + linea.cantidadAComprar >= necesita;
+        }
+      )
+    );
   });
 });

@@ -65,6 +65,20 @@ describe('listaDeMercado', () => {
     expect(listaDeMercado(semana, [])[0]?.cantidadAComprar).toBe(240);
   });
 
+  it('lo necesario se dice tal cual, sin redondeo amable', () => {
+    // `cantidadNecesaria` es lo que las recetas piden. Redondearlo al más
+    // cercano lo dejaba por debajo de la verdad (arreglo de BUG-9), y además
+    // rompe la resta que ve el usuario: necesitas 137, tienes 100, faltan 37.
+    const semana = [
+      { receta: receta({ ingredientes: [ingrediente('cebolla', 137)] }), porciones: 1 },
+    ];
+    const inventario = [item({ ingredienteId: 'cebolla', cantidad: 100 })];
+    const linea = listaDeMercado(semana, inventario)[0];
+    expect(linea?.cantidadNecesaria).toBe(137);
+    expect(linea?.cantidadEnCasa).toBe(100);
+    expect(linea?.cantidadAComprar).toBe(40); // 37 hacia arriba, al múltiplo de 5
+  });
+
   it('una semana sin recetas da una lista vacía', () => {
     expect(listaDeMercado([], [item()])).toEqual([]);
   });
