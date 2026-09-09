@@ -150,9 +150,12 @@ Abierto, sin urgencia:
   usa el Postgres local de Supabase.
 - En D6, verificar si `@sentry/wizard` necesita `SENTRY_URL=https://de.sentry.io` por ser
   la organización de región EU.
-- **Node 22.12.0 y metro 0.84.5 pide `^22.13.0`.** Hoy es solo un aviso `EBADENGINE`;
-  puede volverse error si CI (D5) usa otra versión. La actualización de Node la corre
-  Luciano, no el agente.
+- ~~Node 22.12.0 y metro pide `^22.13.0`~~ **Resuelto el 2026-09-09:** `fnm` ya estaba en
+  la máquina, así que se instaló **Node 22.23.2** (última LTS de la línea Jod) y quedó
+  por defecto. npm pasó a 10.9.8. Sin `EBADENGINE`. Se eligió la línea 22 y no la 24,
+  aunque fnm ya tenía 24.15.0, para no cambiar de major mientras entra `better-sqlite3`
+  en D2 (módulo nativo). **En D5, `actions/setup-node` debe fijar `22.23.2`.** Queda
+  para D2 decidir si se añade `.node-version` al repo para que fnm y CI lean lo mismo.
 - En D2: `.gitattributes` con `* text=auto eol=lf` (git avisa LF→CRLF en cada `add`), y
   decidir si se fijan todas las versiones de `package.json` (hoy vienen con `~` del
   scaffold; `drizzle-orm` sí quedó fijada exacta).

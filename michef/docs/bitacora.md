@@ -293,3 +293,48 @@ instalaciones globales las corre Luciano; en D4 no arrancar `teso-dev-db` (puert
 en D6 verificar `SENTRY_URL=https://de.sentry.io`.
 
 ---
+
+## 2026-09-09 · S-20260909-d · Node 22.23.2 (añadido tras cerrar D1)
+
+Tarea: — · Rama: `chore/F0-D1-bootstrap` · Resultado: resuelto el `EBADENGINE` que dejó D1.
+
+Tocado: `docs/estado.md` (§ Abierto), `docs/bitacora.md`. Ningún archivo de la app.
+
+Corrido, tal cual:
+- Inventario de la máquina: `node -v` → v22.12.0; `npm -v` → 10.9.0; `where node` →
+  `AppData\Roaming\fnm\aliases\default\node.exe`. Gestores presentes: **fnm** (vía
+  winget) y `winget`. No hay nvm, volta, choco ni scoop. Sesión sin permisos de
+  administrador.
+- `fnm list` → v22.12.0 (default), v24.15.0 (lts-latest), system.
+- `fnm install 22.23.2` → OK. `fnm default 22.23.2` → OK.
+- `node -v` → **v22.23.2**; `npm -v` → **10.9.8**.
+- `npm install` en `michef/` → `up to date in 1s`, **sin `EBADENGINE`**. Lockfile
+  intacto (`git status` limpio).
+- `npx tsc --noEmit` → 0 errores. `npx expo-doctor` → **21/21** (antes 18/18 con una
+  versión anterior de la herramienta).
+
+Por qué la 22 y no la 24: fnm ya tenía 24.15.0 instalada, pero se mantuvo la línea 22
+(Jod, LTS) para no cambiar de major justo antes de que D2 traiga `better-sqlite3`, que es
+un módulo nativo y depende de que existan prebuilds para la versión de Node. `metro-config
+0.84.5` pide `^20.19.4 || ^22.13.0 || ^24.3.0 || >= 25.0.0`, y 22.23.2 lo cumple.
+
+Como se hizo con `fnm` y no con `winget`, no se tocó el Node del sistema, no hizo falta
+elevación, y volver atrás es `fnm default 22.12.0`.
+
+Decisiones nuevas: ninguna. No cambia la visión; es entorno de la máquina.
+
+Avances de Luciano: pidió instalar la versión nueva de Node. La regla «instalaciones
+globales las corre Luciano» nació de un `npm i -g` que falló desde el shell de la
+herramienta; aquí no aplicó el mismo riesgo porque `fnm` instala en el perfil del
+usuario, sin elevación y sin tocar `node_modules`.
+
+Pendiente:
+- **Luciano:** si tenía `npx expo start` corriendo, reiniciarlo para que tome el Node
+  nuevo. Verificar D1 en Expo Go y mergear el PR #1.
+- D5: `actions/setup-node` debe fijar `22.23.2`.
+- D2: decidir si entra `.node-version` en el repo para que fnm y CI lean la misma versión.
+
+Para la siguiente sesión: sin cambios respecto a la entrada anterior. Tras el merge del
+PR #1, presentar D2.
+
+---
