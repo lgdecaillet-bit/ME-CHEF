@@ -338,3 +338,54 @@ Para la siguiente sesión: sin cambios respecto a la entrada anterior. Tras el m
 PR #1, presentar D2.
 
 ---
+
+## 2026-09-09 · S-20260909-d · D1 mergeado; `COMANDOS.md`; `.env`; secreto corregido
+
+Tarea: cierre de D1 · Rama: `main` · Resultado: **Fase 0 tiene D0, D0.5 y D1 cerrados.**
+
+Tocado:
+- `COMANDOS.md` (nuevo, en la raíz): chuleta de comandos para Luciano, que no escribe
+  comandos de memoria. Diez secciones. **Regla permanente añadida a `estado.md`:** cada
+  paso que introduzca un comando nuevo lo añade ahí antes de darse por cerrado.
+- `michef/.env.example`: documentado por secciones. Explica qué va (`EXPO_PUBLIC_*`,
+  públicos por diseño, viajan en el bundle) y qué no (los cuatro tokens, `service_role`,
+  keys de modelos). Lleva la URL de Supabase ya puesta porque es pública y deriva del ref.
+- `michef/.env` (no versionado, ignorado): creado desde la plantilla. Luciano pegó la
+  `anon key`.
+- `docs/estado.md`, `docs/bitacora.md`.
+
+Corrido, tal cual:
+- Verificación del `.env` **sin mostrar valores**: `EXPO_PUBLIC_SUPABASE_URL` es una URL;
+  `EXPO_PUBLIC_SUPABASE_ANON_KEY` empieza por `sb_publishable_` (llave pública correcta,
+  no la `sb_secret_`); `EXPO_PUBLIC_SENTRY_DSN` vacía, como toca hasta D6.
+- `git check-ignore michef/.env` → ignorado por `michef/.gitignore:47`. No puede subir.
+- `gh secret list` → los cuatro nombres correctos. **No existe ningún
+  `SUPABASE_SERVICE_ROLE_KEY`, y es correcto que no exista.**
+- **Corrección:** Luciano detectó que en `SUPABASE_PROJECT_ID` había pegado la URL
+  completa en vez del Reference ID. Como un secreto de GitHub no se puede leer, no se
+  comprueba: se sobreescribe. `echo "npswkfpomhinewxsmiic" | gh secret set
+  SUPABASE_PROJECT_ID` → marca de tiempo 09:00:34 frente a 07:03 de los otros tres.
+  Verificado contra `npx supabase projects list`: ME-CHEF, ref `npswkfpomhinewxsmiic`,
+  `us-east-1`, `ACTIVE_HEALTHY`. **Qué habría roto:** el `supabase link` del CI en D5,
+  con un error que no apunta a la causa.
+- Luciano verificó la app en Expo Go: ve «ME CHEF», sin pestañas ni logo de Expo.
+- `gh pr merge 1 --squash --delete-branch` → `2ba0d81` en `main`. `git fetch --prune` →
+  solo queda `main`. `michef-starter/` ya no existe en el árbol.
+- `npx tsc --noEmit` desde `main` → 0 errores.
+
+Decisiones nuevas: ninguna.
+
+Avances de Luciano: verificó D1 en el iPhone; pegó la `anon key` en `.env`; detectó el
+error del secreto. Pidió expresamente que exista un archivo de comandos porque no los
+escribe de memoria — de ahí `COMANDOS.md` y su regla de mantenimiento.
+
+Pendiente: D2 espera presentación y «adelante».
+
+Para la siguiente sesión: `main` está limpio y al día. Presentar **D2** (tooling) con la
+tabla de paquetes y versiones, las reglas de ESLint y dependency-cruiser, los umbrales de
+cobertura y los scripts de `package.json`; incluir `.gitattributes` con `eol=lf` y decidir
+si se fijan todas las versiones. Añadir `npm run gates` a `COMANDOS.md`. No instalar nada
+sin «adelante». Recordar: en D4 no arrancar `teso-dev-db` (puerto 54322); en D5
+`actions/setup-node` fija `22.23.2`; en D6 verificar `SENTRY_URL=https://de.sentry.io`.
+
+---

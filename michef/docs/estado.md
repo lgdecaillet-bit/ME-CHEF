@@ -10,10 +10,10 @@ Actualizado: 2026-09-09 · por sesión S-20260909-d
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D1 hecho** (`chore/F0-D1-bootstrap`, PR abierto, espera merge de Luciano). Siguiente: presentar D2 |
+| **Paso actual** | **D1 mergeado** en `main` (`2ba0d81`, PR #1, 2026-09-09). Siguiente: presentar D2 |
 | **Decisiones vigentes** | hasta **#43** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `chore/F0-D1-bootstrap` — mergear a `main` y borrar. D2 sale de `main` |
+| **Rama de trabajo** | `main`, limpio y al día. D2 abre `chore/F0-D2-tooling` |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -58,7 +58,7 @@ desde el primer PR de código.
 | — | Docs de planificación: roadmap, protocolos, diseño, fases 0–6 | Claude | ✅ hecho |
 | D0 | Cuentas y herramientas | **Luciano** | ✅ hecho (detalle abajo) |
 | D0.5 | `estado.md`, `bitacora.md`, `decisiones.md` numerado, protocolo en `CLAUDE.md`, `revisor.md` | Claude | ✅ hecho |
-| D1 | `chore/bootstrap`: migrar starter a `michef/`, limpiar scaffold | Claude | ✅ hecho (PR espera merge) |
+| D1 | `chore/bootstrap`: migrar starter a `michef/`, limpiar scaffold | Claude | ✅ mergeado (PR #1, `2ba0d81`) |
 | D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ⏳ espera presentación + «adelante» |
 | D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ⏳ |
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ⏳ |
@@ -132,8 +132,8 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 ## Siguiente paso concreto
 
 1. ~~Primer commit en `main`~~ hecho: `a5bfa0c` (sesión c). `research/` fuera.
-2. ~~D1 `chore/bootstrap`~~ construido y revisado (`APROBADO` tras instalar `drizzle-orm`).
-   **Falta que Luciano lo verifique en Expo Go y mergee el PR.**
+2. ~~D1 `chore/bootstrap`~~ **mergeado**: Luciano verificó «ME CHEF» en Expo Go, se hizo
+   squash merge en `main` (`2ba0d81`) y se borró la rama.
 3. Claude presenta **D2** (tooling: ESLint, Prettier, Husky, lint-staged, commitlint,
    dependency-cruiser, knip, gitleaks, Jest + RNTL + fast-check + better-sqlite3) con la
    tabla de paquetes y versiones, las reglas de ESLint y depcruise, los umbrales de
