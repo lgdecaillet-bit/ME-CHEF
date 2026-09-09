@@ -155,7 +155,7 @@ describe('escalarReceta', () => {
       ingredientes: [ingrediente('arroz', 80), ingrediente('leche', 200, 'ml')],
     });
     const escalada = escalarReceta(r, 3);
-    expect(escalada.map((i) => i.cantidadPorPorcion)).toEqual([240, 600]);
+    expect(escalada.map((i) => i.cantidadTotal)).toEqual([240, 600]);
   });
 
   it('conserva el ingrediente y su unidad', () => {
@@ -172,7 +172,7 @@ describe('escalarReceta', () => {
       receta({ ingredientes: [ingrediente('cebolla', 45.7)] }),
       3
     );
-    expect(escalada[0]?.cantidadPorPorcion).toBe(140);
+    expect(escalada[0]?.cantidadTotal).toBe(140);
   });
 
   it('escalar por cero deja cero, no negativo', () => {
@@ -180,7 +180,7 @@ describe('escalarReceta', () => {
       receta({ ingredientes: [ingrediente('arroz', 80)] }),
       0
     );
-    expect(escalada[0]?.cantidadPorPorcion).toBe(0);
+    expect(escalada[0]?.cantidadTotal).toBe(0);
   });
 
   it('una receta sin ingredientes devuelve lista vacía', () => {
@@ -194,7 +194,7 @@ describe('escalarReceta', () => {
       receta({ ingredientes: [ingrediente('arroz', 100)] }),
       -2
     );
-    expect(escalada[0]?.cantidadPorPorcion).toBe(-200);
+    expect(escalada[0]?.cantidadTotal).toBe(-200);
   });
 
   it('PROPIEDAD · conserva un ingrediente por cada uno de la receta, con su unidad', () => {

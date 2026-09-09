@@ -222,7 +222,10 @@ describe('descontarCocinado', () => {
           const antes = new Map(inventario.map((i) => [i.ingredienteId, i.cantidad]));
           return despues.every((d) => {
             const previo = antes.get(d.ingredienteId);
-            return previo != null && d.cantidad <= previo;
+            // Todas las filas de esta propiedad entran con cantidad conocida, así
+            // que salir sin ella también sería un fallo: la exigencia es que siga
+            // siendo un número Y que no haya crecido.
+            return previo != null && d.cantidad != null && d.cantidad <= previo;
           });
         }
       )

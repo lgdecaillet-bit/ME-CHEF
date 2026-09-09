@@ -729,3 +729,170 @@ saltarsela desde `anon`, y comprobar que el intento falla. Una política que no 
 nada se ve idéntica a una que funciona.
 
 ---
+
+## 2026-09-09 · S-20260909-g · Cuatro de los siete bugs, arreglados
+
+Tarea: adelanto de Fase 1 · Rama: `fix/F1-motor-cuatro-bugs` · Resultado: **166 tests**,
+cobertura 100 % en motor, datos e IA, cuatro bugs cerrados y tres que siguen abiertos con
+la condición escrita.
+
+**De dónde salió.** Luciano preguntó, textualmente, por qué los bugs se dejaban ahí
+puestos y qué sentido tenía. La mitad de la respuesta del plan se sostenía — el test se
+escribe antes del arreglo, porque si no, no puede desmentirlo — y la otra mitad no:
+esperar a una fase futura no añade nada cuando el bug tiene una sola respuesta correcta y
+ningún llamador. Quedó como **decisión #49**, con el criterio de tres condiciones.
+
+**Arreglados**, y por qué estos cuatro y no los siete:
+
+- **BUG-1**, el más grave. `ItemInventario.cantidad` pasa a opcional: `undefined` es
+  «está, no sé cuánto» y `0` es «no queda». El filtro final mira la confianza, no la
+  cantidad. Arrastró un cambio en la base de datos — `inventario.cantidad` deja de ser
+  NOT NULL — porque arreglar solo el motor habría dejado el ítem vivo en memoria y roto
+  al guardarlo, en el teléfono, lejos de aquí. Hay un test en `schema.test.ts` que
+  vigila esa columna.
+- **BUG-4**. Las filas repetidas del inventario se suman. La clave del acumulador lleva la
+  unidad: dos filas del mismo ingrediente en gramos y mililitros NO se suman, porque eso
+  necesita densidades que no existen (BUG-3). Lo que no se puede comparar cuenta como cero
+  y se compra.
+- **BUG-5**, las alergias. `recetasConLoQueHay` recibe los comensales y excluye su
+  `noCome` siempre. El comportamiento por defecto de una función de seguridad no podía
+  seguir siendo «inseguro salvo que quien llama se acuerde».
+- **BUG-7**. `escalarReceta` devuelve `IngredienteEscalado`, con `cantidadTotal`.
+  Encadenar dos escalados ya no compila. Se arregló ahora precisamente porque **no hay
+  llamadores**: cambiar esta firma con pantallas encima costaría diez veces más.
+
+**Siguen abiertos, con la condición escrita:** BUG-2 y BUG-3 esperan un catálogo de
+ingredientes con unidad canónica y densidad; BUG-6 espera la frontera donde validar.
+Arreglarlos hoy sería inventarse las conversiones.
+
+**Cómo se comprobó que los arreglos arreglan algo** (decisión #47, otra vez):
+
+1. Con el motor ya arreglado y `bugs.test.ts` todavía sin tocar, los cinco `it.failing` de
+   BUG-1, 4, 5 y 7 dieron «Failing test passed even though it was supposed to fail», y
+   BUG-2, 3 y 6 siguieron verdes. Es decir: el mecanismo distingue exactamente los que se
+   arreglaron de los que no. Solo después se convirtieron en tests normales.
+2. Los dos guardianes nuevos se probaron rompiéndolos. Devolver `.notNull()` a la columna
+   pone rojo el test del esquema. Reintroducir el `...i` de `escalarReceta` pone rojos los
+   dos tests de BUG-7 — y **`tsc` no dice absolutamente nada**, que es justo lo que
+   afirmaba el comentario: TypeScript no comprueba las propiedades de más que llegan por
+   un spread. Sin ese test de ejecución, el bug volvería en silencio.
+3. El gate se quedó corto de cobertura al primer intento (`coverage.ts` 93,3 % y
+   `groceries.ts` 94,1 % de ramas). Las dos ramas destapadas eran casos reales — un
+   comensal sin alergias, y un ítem sin cantidad conocida llegando a la lista de mercado —
+   así que se cubrieron con tests, no bajando el umbral.
+
+**Hallazgo lateral, sin tocar.** Un test propio falló esperando 12 y recibiendo 10:
+`redondear` redondea al más cercano, y la lista de mercado lo aplica a la cantidad a
+comprar. Si hacen falta 12, manda a comprar 10. Para una lista de mercado el redondeo
+debería ir hacia arriba. Se cambió el test de números para no mezclar dos asuntos, y queda
+anotado en `estado.md` como posible **bug 8**, sin registrar: falta el «adelante» (#34).
+
+También: knip avisó de que el ignore de `drizzle-kit` había dejado de ser cierto — D3
+empezó a importar `drizzle-kit/api` de verdad — y se retiró. Es exactamente la regla que
+el propio `knip.config.js` se impone: un ignore que ya no aplica se borra.
+
+Corrido, tal cual: `npm run gates` verde · 166 tests, 8 suites · cobertura 100 % en
+`engine`, `db` y `ai` · `npm run knip` limpio · `npx prettier --check .` limpio ·
+`npm run reglas` las nueve disparan.
+
+Decisiones nuevas: **#49**.
+
+Avances de Luciano: mergeó nada en esta vuelta; el PR #4 de D3 lo cerró Claude por
+squash, como en D1, al no haber CI todavía.
+
+Pendiente: **Luciano:** mergear el PR de esta rama. Decidir si el bug 8 se registra.
+D4 sigue esperando presentación y «adelante».
+
+Para la siguiente sesión: el criterio de la decisión #49 aplica también a D4 y D5. Un
+hallazgo con una sola respuesta correcta y sin llamadores se arregla en el acto; uno que
+necesite un dato que no existe se registra **con la condición escrita** de qué tiene que
+existir. Nunca «para luego» a secas.
+
+---
+
+## 2026-09-09 · S-20260909-g · Segunda vuelta: la alergia seguía siendo opcional
+
+Tarea: correcciones del revisor sobre `fix/F1-motor-cuatro-bugs` · Resultado: **171
+tests**, cobertura 100 %, dos bugs nuevos registrados y el plan de Fase 1 puesto al día.
+
+**El hallazgo, y es el mismo error de siempre con otra cara.** El revisor devolvió
+`CAMBIOS`. Lo primero: el arreglo de BUG-5 dejaba `comensales` como parámetro **opcional
+y en sexto lugar**. El comentario de encima decía, palabra por palabra, que «el
+comportamiento por defecto de una función de seguridad no puede ser inseguro salvo que
+quien llama se acuerde» — y el código implementaba exactamente eso. El revisor lo
+demostró llamando como llamaría una pantalla distraída, sin el argumento: la receta con
+maní sale. El comportamiento de antes del arreglo, a un argumento olvidado de distancia.
+
+Peor todavía: es el mismo caso que BUG-7, y recibió el tratamiento contrario. En BUG-7 se
+argumentó que cambiar la firma era gratis por no haber llamadores, y se hizo imposible el
+mal uso. En BUG-5, con cero llamadores igual, se dejó opcional. Corregido: `comensales`
+es obligatorio y va en cuarto lugar, delante de `restricciones` y `cuantas`. Se
+reescribieron las 23 llamadas de los tests. **Comprobado:** la llamada del revisor ahora
+da `TS2554: Expected 4-6 arguments, but got 3`.
+
+**Dos bugs nuevos, reproducidos con números antes de registrarlos:**
+
+- **BUG-8.** `fusionarEscaneo` y `descontarCocinado` llevan el mismo `new Map` con claves
+  repetidas que tenía BUG-4, y no se vio al arreglar BUG-4. Medido: seis huevos de
+  factura más seis de escaneo quedan en **seis** al sacar una foto, y en cuatro al
+  cocinar dos. El arreglo de BUG-4 declara que tener el mismo ingrediente en varias filas
+  es lo normal, y las dos funciones vecinas lo destruyen en silencio.
+- **BUG-9.** `redondear` va al más cercano y la lista de mercado lo aplica a la cantidad
+  a comprar: si hacen falta 12, manda a comprar 10. Salió solo, porque un test propio
+  falló esperando 12 y recibiendo 10.
+
+Los dos quedan como `it.failing` **con la condición escrita** de qué hace falta para
+arreglarlos, que es lo que pide la #49. Sus aserciones afirman el invariante que cualquier
+arreglo correcto cumple — no se pierde cantidad; no se compra de menos — y no la forma
+del resultado, porque BUG-8 depende de una decisión de diseño que aún no está tomada.
+
+**Lo demás que trajo la revisión:**
+
+- El test del NULL en la base comprobaba el **metadato** de Drizzle, no que SQLite
+  aceptara el NULL. Añadido el `insert` de verdad. Y quedó escrito, en #49 y en el
+  propio test, que la base devuelve `null` y el motor usa `undefined`: el repositorio de
+  Fase 1 tiene que normalizar. No hay riesgo en ejecución porque todo el motor compara
+  con `== null`, pero no estaba dicho en ninguna parte.
+- El registro de BUG-2 no contaba su radio de daño real. Con la clave `(ingrediente,
+  unidad)` que introdujo el arreglo de BUG-4, **hoy ningún líquido visto en la foto
+  descuenta de la lista de mercado**. Es conservador y se acepta, pero es lo que decide
+  su prioridad, y ahora está escrito.
+- Un ítem registrado en 0 que la cámara ve se borra igual. Chocan dos reglas y no había
+  test que dijera cuál gana. Añadido, fijando que gana «0 significa que se acabó».
+- `fase-1-motor-y-datos.md` § 1.1 seguía diciendo que había que arreglar los siete, y
+  describía BUG-1 y BUG-4 de una forma que ya no es la real. Reescrito. La #49 no decía
+  qué archivos de `fases/` cambiaba, como pide la cabecera de `decisiones.md`; añadido.
+- «Nunca dos bugs en un commit» es inútil tal cual en este repo: todos los PR se cierran
+  con squash y los commits intermedios desaparecen. La granularidad que sobrevive es un
+  PR por bug. Corregido en el plan y anotado en #49.
+- La tabla «Tareas tomadas» de `estado.md` estaba vacía con la tarea viva. Añadida.
+
+**Lo que el revisor miró y encontró bien**, por dejarlo dicho: los cinco `it.failing`
+convertidos existían en `72a0d1a`, o sea antes del arreglo, con el mismo cuerpo — no
+reescritos para encajar. La clave `${id}|${unidad}` no puede colisionar con `Unidad`
+cerrado a `'g'|'ml'`, y lo probó con el id malicioso `'a|g'`. Los tres `.failing` que
+quedaban siguen reproduciendo su bug, uno por uno. Y ninguna aserción de las nuevas es
+trivialmente cierta salvo dos que están a propósito, como guardias contra el
+sobrearreglo.
+
+Corrido, tal cual: `npm run gates` verde · 171 tests, 8 suites · cobertura 100 % en
+`engine`, `db` y `ai` · `npm run knip` limpio · `npx prettier --check .` limpio ·
+`npm run reglas` las nueve disparan.
+
+Decisiones nuevas: ninguna. **#49 ampliada** con la regla de que una función de seguridad
+no tiene parámetros de seguridad opcionales, la normalización `null → undefined`, y la
+corrección de la granularidad de commits.
+
+Avances de Luciano: ninguno en esta vuelta.
+
+Pendiente: **Luciano:** mergear el PR. Decidir si se arreglan BUG-8 y BUG-9, que son los
+dos más baratos que quedan. D4 sigue esperando presentación y «adelante».
+
+Para la siguiente sesión: **el revisor encontró en el arreglo el mismo defecto que el
+arreglo decía cerrar.** No basta con arreglar el bug: hay que comprobar que el arreglo no
+se puede saltar por descuido. La pregunta concreta que lo destapó fue «¿qué pasa si
+alguien llama a esto y se olvida de este argumento?». En D4 la misma pregunta se traduce
+en «¿qué pasa si alguien crea una tabla y se olvida de la política RLS?» — y la
+respuesta no puede ser «pasa».
+
+---

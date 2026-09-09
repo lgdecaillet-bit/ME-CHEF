@@ -61,20 +61,35 @@ válida), pero su rama de código queda apagada por flag hasta que haya developm
 
 ## Qué se construye, paso a paso
 
-### 1.1 · `fix/engine-bugs` — los siete bugs, uno por commit
+### 1.1 · Los bugs del motor — **cuatro hechos, cinco pendientes**
+
+> **Actualizado el 2026-09-09 por la decisión #49.** Este paso ya no empieza de cero.
+> BUG-1, BUG-4, BUG-5 y BUG-7 se arreglaron el mismo día que se registraron, en la rama
+> `fix/F1-motor-cuatro-bugs`, porque tenían una sola respuesta correcta y ningún llamador
+> que romper. Sus tests ya no son `.failing`. Lo de abajo describe **el arreglo real**, que
+> en dos casos no coincide con lo que este documento planeaba; donde difiere, manda el
+> código y aquí queda dicho por qué.
+>
+> Aparecieron además **BUG-8 y BUG-9**, registrados y sin arreglar, esperando el
+> «adelante» de Luciano.
 
 Cada bug: primero se quita `.failing` del test (queda rojo) → se arregla → verde → commit.
-Nunca dos bugs en un commit.
+Nunca dos bugs en un commit. **Salvedad de la #49:** cuando varios arreglos van en un solo
+PR, ese PR se cierra con squash y los commits intermedios desaparecen, así que la
+granularidad útil es de un PR por bug, no de un commit por bug. Si se quiere la traza,
+se abren PRs separados.
 
 | Id | Arreglo |
 |---|---|
-| BUG-1 | `fusionarEscaneo`: un ítem sin cantidad entra con `cantidad: null` (nuevo tipo `cantidad: number \| null` en `ItemInventario`) y **se conserva**. El filtro final pasa a `(i.cantidad === null \|\| i.cantidad > 0) && i.confianza > 0.1`. La lista de mercado trata `null` como "no sé cuánto hay" → no resta. |
+| BUG-1 | ✅ **hecho.** Como se planeó, salvo que el tipo quedó `cantidad?: number` (opcional) y no `number \| null`: es lo idiomático en TypeScript y todo el motor compara con `== null`, que cubre los dos. La columna `inventario.cantidad` dejó de ser NOT NULL, con un test que la vigila. **Consecuencia pendiente:** al leer de la base vuelve `null`, así que el repositorio de 1.3 tiene que normalizar `null → undefined`. |
 | BUG-2 | `fusionarEscaneo` recibe `unidadDe: (id) => Unidad` (viene del catálogo). Si no la sabe, `'g'` **y** confianza × 0,8 — no se calla el problema. |
 | BUG-3 | `listaDeMercado`: si dos recetas piden el mismo ingrediente en unidades distintas, lanza `UnidadIncoherenteError` con los dos ids. El motor no adivina conversiones: el catálogo canónico tiene una `unidad_base` por ingrediente y la receta tiene que respetarla. Es un dato mal formado, no un caso de negocio. |
-| BUG-4 | `enCasa` se construye con `reduce` sumando cantidades del mismo ingrediente (ignorando `null`). |
-| BUG-5 | `recetasConLoQueHay` recibe `comensales: Comensal[]`. Antes de filtrar por disponibilidad, une todos los `noCome` en un set y **excluye** cualquier receta que toque uno. Se hace antes que todo lo demás: una alergia no es ranking, es exclusión. |
+| BUG-4 | ✅ **hecho**, y con más de lo planeado: la clave del acumulador es `(ingrediente, unidad)`, no solo el ingrediente. Sumar gramos con mililitros necesita densidades que aún no existen (BUG-3), así que lo que no se puede comparar cuenta como cero y se compra. Es la lectura conservadora de «nunca inventar». |
+| BUG-5 | ✅ **hecho.** `comensales: Comensal[]` es **obligatorio y va en cuarto lugar**, delante de `restricciones` y `cuantas`. El primer intento lo dejó opcional al final y el revisor lo tumbó: con un valor por defecto bastaba olvidar el argumento para volver al comportamiento roto, y el compilador callaba. Ahora no compila. |
 | BUG-6 | `Restriccion.valor` para `tiempo_max` se parsea con zod (`z.coerce.number().positive()`). Si no parsea: la restricción se ignora **y se loguea** `restriccion_invalida`. Nunca silencio. |
-| BUG-7 | `escalarReceta` devuelve `IngredienteEscalado[]` con campo `cantidadTotal`. `cantidadPorPorcion` deja de existir en la salida. El tipo lo impide. |
+| BUG-7 | ✅ **hecho**, tal cual. Hay además un test de ejecución que comprueba que `cantidadPorPorcion` no reaparece: la causa original era un `...i`, y **TypeScript no avisa de las propiedades de más que llegan por un spread** — comprobado rompiéndolo. |
+| BUG-8 | ⏳ registrado, sin arreglar. `fusionarEscaneo` y `descontarCocinado` tienen el mismo `new Map` con claves repetidas que tenía BUG-4: seis huevos de factura más seis de escaneo quedan en seis al sacar una foto. **Antes de arreglarlo hay que decidir** si el inventario se normaliza a una fila por (ingrediente, unidad, origen) o si estas funciones agrupan como hace `listaDeMercado`. |
+| BUG-9 | ⏳ registrado, sin arreglar. `listaDeMercado` aplica `redondear` a la cantidad a comprar, y `redondear` va al más cercano: si hacen falta 12, manda a comprar 10. En una lista de mercado el redondeo tiene que ir hacia arriba. Técnicamente es un `Math.ceil`; falta el «adelante» porque cambia números que ve el usuario. |
 
 Además, en este PR:
 

@@ -165,10 +165,15 @@ npm run test:watch
 ```
 
 **Un test se pone rojo y dice «Failing test passed».**
-No es un fallo: es un aviso bueno. Significa que arreglaste uno de los siete errores
-conocidos del motor, y ese test estaba registrado como «falla a propósito». Hay que ir a
+No es un fallo: es un aviso bueno. Significa que arreglaste uno de los errores conocidos
+del motor, y ese test estaba registrado como «falla a propósito». Hay que ir a
 `michef/src/engine/__tests__/bugs.test.ts`, quitarle el `.failing` a ese test, y ya queda
 como un test normal que protege el arreglo.
+
+Quedan **tres** así: BUG-2, BUG-3 y BUG-6. Los otros cuatro ya se arreglaron y sus tests
+son normales. Los tres que faltan necesitan antes un catálogo de ingredientes (con la
+unidad natural de cada uno y su densidad) y un sitio donde validar lo que entra; por eso
+esperan, no por olvido.
 
 **Arreglar en vez de comprobar.** Estos dos corrigen solos lo que se puede corregir solo:
 

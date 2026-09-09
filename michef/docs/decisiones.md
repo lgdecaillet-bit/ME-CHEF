@@ -12,7 +12,7 @@
 > `### #N · Título` · fecha · estado · texto con el porqué · qué reemplaza · qué archivos
 > de `fases/` cambian.
 
-Vigentes: **#1–#3, #5–#48**. Reemplazadas: #4 (por #29).
+Vigentes: **#1–#3, #5–#49**. Reemplazadas: #4 (por #29).
 
 ---
 
@@ -377,6 +377,74 @@ sabiendas, porque el coste de tener el linter caído es mayor.
 se arregla, se vuelven a encender de una en una.
 Misma familia que #44 y #46: tres cesiones al ecosistema de Expo, todas con su condición
 de revisión escrita.
+
+
+### #49 · Un bug se arregla en cuanto se registra, si tiene una sola respuesta correcta
+Fecha: 2026-09-09 · **vigente**
+El plan decía que los siete bugs del motor se registraban en D3 y se arreglaban en Fase 1.
+Luciano preguntó para qué servía dejarlos ahí puestos, y la respuesta honesta partió los
+siete en dos grupos.
+
+**Lo que sí se sostiene del plan:** el test se escribe ANTES del arreglo, siempre. Un test
+escrito a la vez que el arreglo toma la forma de lo que se acaba de hacer, sea correcta o
+no, y no puede desmentirlo. El rojo del día del arreglo es el recibo. Esta parte no cambia.
+
+**Lo que no se sostenía:** esperar a una fase futura no añade nada cuando el bug tiene una
+única respuesta correcta y **ningún llamador que romper**. Al contrario, cuesta: cambiar la
+firma de `escalarReceta` hoy es gratis y con pantallas encima será caro; y mientras tanto
+`main` contiene una función de recetas que ignora las alergias.
+
+**El criterio que queda, para el resto del proyecto.** Un bug registrado se arregla en el
+acto si se cumplen las tres:
+1. tiene una sola respuesta correcta, sin decisión de diseño pendiente;
+2. no hay que inventarse ningún dato que aún no exista;
+3. no hay llamadores cuya rotura sea cara.
+Si falla alguna, el bug se queda como `it.failing` **con la condición escrita** de qué tiene
+que existir para poder arreglarlo. Nunca «para luego» a secas.
+
+**Aplicado:** BUG-1, BUG-4, BUG-5 y BUG-7 arreglados. BUG-2 y BUG-3 esperan al catálogo de
+ingredientes (unidad canónica y densidad); BUG-6 espera a la frontera de validación.
+
+**Archivos de `fases/` que cambian:** `fase-1-motor-y-datos.md` § 1.1, reescrito para
+describir el arreglo real y no el planeado, y para incorporar BUG-8 y BUG-9.
+
+**Efectos colaterales aceptados en este arreglo, todos deliberados:**
+- `ItemInventario.cantidad` pasa a opcional. `undefined` es «está, no sé cuánto» y `0` es
+  «no queda»: confundirlos era BUG-1. La columna `inventario.cantidad` deja de ser
+  NOT NULL para poder guardarlo, con dos tests que lo vigilan (el metadato de Drizzle y
+  un `insert` real con NULL sobre SQLite).
+  **La frontera normaliza:** al leer de la base vuelve `null` y el motor usa `undefined`.
+  Los dos significan lo mismo y el motor compara con `== null`, así que no hay riesgo en
+  ejecución; pero el repositorio que llegue en Fase 1 § 1.3 tiene que convertir
+  `null → undefined` al construir un `ItemInventario`. Se eligió `?: number` y no
+  `number | null` — que era lo que decía el plan — por ser lo idiomático en TypeScript.
+- Al sumar el inventario, la clave lleva la unidad. Dos filas del mismo ingrediente en
+  unidades distintas no se suman: eso necesita densidades (BUG-3). Lo que no se puede
+  comparar cuenta como cero y se compra. Quedarse corto de mercado es peor que comprar
+  de más, y es la lectura conservadora de «nunca inventar».
+- `escalarReceta` devuelve `IngredienteEscalado`, tipo nuevo. Encadenar dos escalados
+  ya no compila.
+- `recetasConLoQueHay` recibe `comensales` **obligatorio y en cuarto lugar**. El primer
+  intento lo dejó opcional al final, y el revisor lo tumbó con razón: un valor por
+  defecto deja el mismo agujero que dice cerrar, porque basta olvidar el argumento para
+  volver al comportamiento roto y el compilador no dice nada. Un hogar sin comensales
+  registrados pasa `[]`, que es una afirmación explícita. **Regla general que se lleva
+  de aquí:** una función de seguridad no tiene parámetros de seguridad opcionales.
+
+**Corrección al plan que esta decisión obliga a hacer.** `fase-1-motor-y-datos.md` § 1.1
+decía «nunca dos bugs en un commit». Sigue siendo buena idea, pero es inútil tal cual:
+todos los PR de este repo se cierran con **squash**, así que los commits intermedios
+desaparecen al mergear. La granularidad que sobrevive es **un PR por bug**. Cuando varios
+arreglos comparten PR — como aquí — se dice en el PR y se acepta que el historial de
+`main` los vea como uno.
+
+**Bugs que este criterio deja registrados sin arreglar**, cada uno con su condición:
+- BUG-2, BUG-3: falta el catálogo de ingredientes con unidad canónica y densidad.
+- BUG-6: falta la frontera donde validar.
+- BUG-8 (`new Map` en `fusionarEscaneo` y `descontarCocinado`, el mismo de BUG-4): falta
+  decidir si el inventario se normaliza a una fila por (ingrediente, unidad, origen).
+- BUG-9 (`redondear` hacia abajo en la lista de mercado): no falta nada técnico, falta
+  el «adelante» de Luciano porque cambia números que ve el usuario.
 
 ---
 

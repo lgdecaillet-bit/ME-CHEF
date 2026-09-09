@@ -33,16 +33,30 @@ export function listaDeMercado(
   }
 
   // Solo cuenta como "ya lo tengo" lo que es confiable. Un posible no resta.
-  const enCasa = new Map(
-    inventario
-      .filter((i) => i.confianza >= UMBRAL_CONFIABLE)
-      .map((i) => [i.ingredienteId, i.cantidad])
-  );
+  //
+  // Arreglo de BUG-4: las filas repetidas se SUMAN. El inventario tiene una fila
+  // por origen (escaneo, factura, manual), así que el mismo ingrediente dos
+  // veces es lo normal, no el caso raro. Antes `new Map(...)` se quedaba con la
+  // última y la app te mandaba a comprar lo que ya tenías.
+  //
+  // La clave lleva la unidad: dos filas del mismo ingrediente en unidades
+  // distintas NO se suman. Convertir entre gramos y mililitros necesita la
+  // densidad del ingrediente, que es dato que aún no existe (BUG-3). Mientras
+  // tanto, lo que no se puede comparar cuenta como cero y se compra: quedarse
+  // corto de mercado es peor que comprar de más.
+  const enCasa = new Map<string, number>();
+  for (const i of inventario) {
+    if (i.confianza < UMBRAL_CONFIABLE) continue;
+    // Sin cantidad conocida no hay nada que restar: cuenta como cero.
+    if (i.cantidad == null) continue;
+    const clave = `${i.ingredienteId}|${i.unidad}`;
+    enCasa.set(clave, (enCasa.get(clave) ?? 0) + i.cantidad);
+  }
   const preciosPorId = new Map(precios.map((p) => [p.ingredienteId, p]));
 
   const lineas: LineaMercado[] = [];
   for (const [ingredienteId, { cantidad, unidad }] of necesario) {
-    const tengo = enCasa.get(ingredienteId) ?? 0;
+    const tengo = enCasa.get(`${ingredienteId}|${unidad}`) ?? 0;
     const comprar = redondear(Math.max(0, cantidad - tengo), unidad);
     if (comprar === 0) continue;
 

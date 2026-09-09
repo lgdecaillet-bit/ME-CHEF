@@ -5,7 +5,7 @@
  * Resuelve el problema de "cocino para tres" sin IA: cada comensal tiene su
  * factor y las cantidades se escalan por la suma.
  */
-import type { Comensal, Receta, RecetaIngrediente } from './types';
+import type { Comensal, IngredienteEscalado, Receta } from './types';
 
 /** Porciones del hogar = suma de los factores de sus comensales. */
 export function porcionesDelHogar(comensales: Comensal[]): number {
@@ -14,10 +14,17 @@ export function porcionesDelHogar(comensales: Comensal[]): number {
   return Math.round(suma * 10) / 10; // evita ruido de coma flotante
 }
 
-export function escalarReceta(receta: Receta, porciones: number): RecetaIngrediente[] {
+/**
+ * Cantidades para TODO el hogar. Devuelve `IngredienteEscalado`, con el total en
+ * un campo que se llama `cantidadTotal`: antes devolvía `RecetaIngrediente` con
+ * el total metido en `cantidadPorPorcion`, y encadenar dos escalados
+ * multiplicaba dos veces sin que el tipo dijera nada (BUG-7).
+ */
+export function escalarReceta(receta: Receta, porciones: number): IngredienteEscalado[] {
   return receta.ingredientes.map((i) => ({
-    ...i,
-    cantidadPorPorcion: redondear(i.cantidadPorPorcion * porciones, i.unidad),
+    ingredienteId: i.ingredienteId,
+    cantidadTotal: redondear(i.cantidadPorPorcion * porciones, i.unidad),
+    unidad: i.unidad,
   }));
 }
 

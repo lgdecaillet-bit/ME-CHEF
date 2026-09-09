@@ -5,15 +5,15 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-09 · por sesión S-20260909-f
+Actualizado: 2026-09-09 · por sesión S-20260909-g
 
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D3 hecho** (`test/F0-D3-motor`, PR abierto). Siguiente: D4, Supabase como código |
-| **Decisiones vigentes** | hasta **#48** |
+| **Paso actual** | D3 **mergeado** (PR #4, `72a0d1a`). En curso: `fix/F1-motor-cuatro-bugs`, adelanto de Fase 1 |
+| **Decisiones vigentes** | hasta **#49** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `test/F0-D3-motor` — espera merge. D4 sale de `main` |
+| **Rama de trabajo** | `fix/F1-motor-cuatro-bugs` — espera merge. D4 sale de `main` |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -40,12 +40,14 @@ Se vacía al cambiar de día.
 | S-20260909-d | D1 · chore/bootstrap | cerrada |
 | S-20260909-e | D2 · tooling de calidad | cerrada |
 | S-20260909-f | D3 · tests del motor | cerrada |
+| S-20260909-g | arreglo de BUG-1, 4, 5 y 7 (adelanto de Fase 1) | abierta |
 
 ## Tareas tomadas
 
 | Tarea | Rama | Sesión | Desde | Estado |
 |---|---|---|---|---|
 | D0.5 · memoria del proyecto | `main` (solo docs, pre-Git-flow) | S-20260909-a | 2026-09-09 | **hecha** |
+| Arreglo de BUG-1, 4, 5 y 7 | `fix/F1-motor-cuatro-bugs` | S-20260909-g | 2026-09-09 | en revisión, espera merge |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -61,8 +63,8 @@ desde el primer PR de código.
 | D0 | Cuentas y herramientas | **Luciano** | ✅ hecho (detalle abajo) |
 | D0.5 | `estado.md`, `bitacora.md`, `decisiones.md` numerado, protocolo en `CLAUDE.md`, `revisor.md` | Claude | ✅ hecho |
 | D1 | `chore/bootstrap`: migrar starter a `michef/`, limpiar scaffold | Claude | ✅ mergeado (PR #1, `2ba0d81`) |
-| D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ✅ hecho (PR espera merge) |
-| D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ✅ hecho (PR espera merge) |
+| D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ✅ mergeado (PR #2 y #3) |
+| D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ✅ mergeado (PR #4, `72a0d1a`) |
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ⏳ espera presentación + «adelante» |
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ⏳ |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init`, secretos EAS | Claude + Luciano | ⏳ |
@@ -138,11 +140,16 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    squash merge en `main` (`2ba0d81`) y se borró la rama.
 3. ~~D2 tooling~~ mergeado (PR #2), más el arreglo del mensaje del hook (PR #3).
    gitleaks 8.30.1 instalado y probado.
-4. ~~D3 tests del motor~~ hecho y **revisado dos veces**: el revisor devolvió `CAMBIOS`
-   y encontró cuatro registros de bug que nunca se habrían puesto rojos y dos propiedades
-   que no podían fallar. Corregido y verificado rompiendo el motor a propósito.
-   **157 tests, cobertura 100 % en motor, datos e IA.** Espera merge.
-5. Claude presenta **D4** (`chore/supabase`): `supabase init`, migración 0001 con el
+4. ~~D3 tests del motor~~ **mergeado** (PR #4, `72a0d1a`) tras dos vueltas de revisión.
+5. ~~¿Por qué se dejan los bugs sin arreglar?~~ Luciano lo preguntó y la respuesta honesta
+   partió los siete en dos (decisión #49). Rama `fix/F1-motor-cuatro-bugs`: BUG-1, 4, 5
+   y 7 arreglados, **171 tests**, cobertura 100 %. El revisor devolvió `CAMBIOS` — la
+   alergia había quedado como parámetro opcional, o sea con el mismo agujero que decía
+   cerrar — y encontró **BUG-8**, que ya está registrado. Corregido todo. Espera merge.
+
+   **Decisión que le toca a Luciano:** BUG-8 y BUG-9 son los dos arreglos más baratos que
+   quedan. BUG-9 es un `Math.ceil`. BUG-8 necesita antes decidir la forma del inventario.
+6. Claude presenta **D4** (`chore/supabase`): `supabase init`, migración 0001 con el
    esquema actual, migración 0002 con **RLS en todas las tablas**, tests pgTAP que
    comprueban que `anon` NO puede escribir en `precio` ni leer `cache_modelo`, esqueleto
    del `ai-proxy` (401 sin JWT, 200 en `/health`, 501 en cualquier tarea) con `deno test`,
@@ -187,11 +194,17 @@ Abierto, sin urgencia:
 - ~~`inventory.ts` con `ahora: Date = new Date()`~~ cubierto en D3: los tests pasan la
   fecha siempre, y hay dos que ejercitan el valor por defecto a propósito. Fase 1 sigue
   debiendo quitar el default.
-- **Los 7 bugs del motor están registrados, no arreglados.** Viven en
-  `src/engine/__tests__/bugs.test.ts` como `it.failing`. **Fase 1 los arregla**, y por
-  orden de daño: BUG-1 (la foto pierde lo que no cuenta) y BUG-5 (las alergias no llegan
-  al filtro) primero. Al arreglar uno, su test se pone rojo con el mensaje «Failing test
-  passed»: hay que quitarle el `.failing`.
+- **De los 7 bugs del motor, 4 están arreglados y 3 siguen registrados**
+  (decisión #49). Viven en `src/engine/__tests__/bugs.test.ts`.
+  - **Arreglados:** BUG-1 (la foto perdía lo que no contaba), BUG-4 (las filas
+    repetidas del inventario), BUG-5 (las alergias no llegaban al filtro) y BUG-7
+    (el campo que decía «por porción» y traía el total). Sus tests ya no son
+    `.failing`: son tests de regresión normales.
+  - **Abiertos, como `.failing`:** BUG-2 y BUG-3 necesitan un catálogo de
+    ingredientes con unidad canónica y densidad; BUG-6 necesita una frontera donde
+    validar. Sin esos datos, arreglarlos sería inventarse las conversiones.
+  - Al arreglar uno, su test se pone rojo con «Failing test passed»: hay que
+    quitarle el `.failing`.
 - **ESLint: siete reglas de `import/*` apagadas** en D3, registrado como **decisión
   #48**. Tres de ellas (`no-duplicates`, `no-named-as-default`,
   `no-named-as-default-member`) son de estilo y **no las cubre nadie**: se pierden a
@@ -200,6 +213,27 @@ Abierto, sin urgencia:
   o negativo pasa tal cual y contamina la lista de mercado; `redondear(NaN)` da NaN;
   `escalarReceta` con porciones negativas da cantidades negativas. Hay tests que fijan
   ese comportamiento para que el cambio de Fase 1 (zod en la frontera) sea deliberado.
+- **Dos bugs nuevos, registrados y sin arreglar. Esperan «adelante» (#34).**
+  - **BUG-8**, el más grave de los dos: `fusionarEscaneo` y `descontarCocinado`
+    llevan el mismo `new Map` con claves repetidas que tenía BUG-4. Medido: seis
+    huevos de factura más seis de escaneo quedan en **seis** al sacar una foto, y
+    en cuatro al cocinar dos. Sacar una foto de la nevera borra inventario real.
+    Lo encontró el revisor mirando el arreglo de BUG-4. **Antes de arreglarlo hay
+    que decidir** si el inventario se normaliza a una fila por (ingrediente,
+    unidad, origen).
+  - **BUG-9**: `redondear` va al más cercano, y la lista de mercado lo aplica a
+    la cantidad a comprar: si hacen falta 12, manda a comprar 10. Debería ir
+    hacia arriba — quedarse corto obliga a volver a la tienda. Técnicamente es un
+    `Math.ceil`; falta el «adelante» porque cambia números que ve el usuario.
+- **Límite conocido, sin registrar como bug:** `LineaMercado.cantidadEnCasa` es un
+  `number`, así que un ingrediente que está pero sin cantidad conocida sale como
+  `0`. El número a comprar es correcto; el «0» es una media verdad que llegará a
+  la pantalla de Fase 3 («tienes 0 g de arroz» sobre un arroz que está en la
+  despensa). Decidir en Fase 3, al diseñar esa pantalla, antes de pintar la cifra.
+- **Ningún líquido visto en la foto descuenta hoy de la lista de mercado.** Es
+  consecuencia de BUG-2 (todo entra en gramos) más el arreglo de BUG-4 (la clave
+  lleva la unidad). No inventa nada y por eso se acepta, pero sube la prioridad
+  de BUG-2. Anotado también en su registro.
 
 ---
 
