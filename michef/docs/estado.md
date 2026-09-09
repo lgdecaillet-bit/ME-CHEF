@@ -5,12 +5,12 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-09 · por sesión S-20260909-b
+Actualizado: 2026-09-09 · por sesión S-20260909-c
 
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D0 cerrado** (0.1–0.9 verificados el 2026-09-09). Siguiente: commit de documentos y luego D1 |
+| **Paso actual** | **D0 cerrado** y **primer commit en `main`** (`a5bfa0c`, 2026-09-09). Siguiente: presentar D1 |
 | **Decisiones vigentes** | hasta **#43** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | `main` todavía. Primer PR será D1 (`chore/bootstrap`) |
@@ -36,7 +36,7 @@ Se vacía al cambiar de día.
 |---|---|---|
 | S-20260909-a | planificación + D0.5 | cerrada |
 | S-20260909-b | acompañar D0 paso a paso + rename a ME CHEF | cerrada |
-| S-20260909-c | leer bitácora de b, preparar primer commit sin `research/` (espera «adelante») | abierta |
+| S-20260909-c | primer commit y push a `main` sin `research/` | cerrada |
 
 ## Tareas tomadas
 
@@ -59,7 +59,7 @@ desde el primer PR de código.
 | — | Docs de planificación: roadmap, protocolos, diseño, fases 0–6 | Claude | ✅ hecho |
 | D0 | Cuentas y herramientas | **Luciano** | ✅ hecho (detalle abajo) |
 | D0.5 | `estado.md`, `bitacora.md`, `decisiones.md` numerado, protocolo en `CLAUDE.md`, `revisor.md` | Claude | ✅ hecho |
-| D1 | `chore/bootstrap`: migrar starter a `michef/`, limpiar scaffold | Claude | ⏳ espera D0 + «adelante» |
+| D1 | `chore/bootstrap`: migrar starter a `michef/`, limpiar scaffold | Claude | ⏳ espera presentación + «adelante» |
 | D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ⏳ |
 | D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ⏳ |
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ⏳ |
@@ -119,10 +119,8 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 ## Bloqueos
 
 - **D1 no empieza** hasta que Luciano reporte D0 verificado (0.1–0.9) y diga «adelante» a D1.
-- **Nada está commiteado.** `michef/`, `michef-starter/` y `research/` son untracked, y
-  el 2026-09-09 se reescribieron 392 archivos con el rename a ME CHEF. Si se pierde el
-  working tree, se pierde todo. **El commit lo hace Luciano desde su sesión central**, no
-  un agente. `research/` queda fuera del repo (decisión #43).
+- ~~Nada está commiteado~~ **Resuelto el 2026-09-09:** `a5bfa0c` en `origin/main` con
+  `michef/` y `michef-starter/`; `research/` fuera por `.gitignore` (decisión #43).
 
 ---
 
@@ -134,9 +132,7 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 
 ## Siguiente paso concreto
 
-1. **Luciano, desde su sesión central:** primer commit en `main`. Sube `michef/` y
-   `michef-starter/`; **`research/` no sube** (decisión #43) — el `.gitignore` de la raíz
-   debe excluirlo entero, junto a `node_modules/`, `.env` y `.env.local`.
+1. ~~Primer commit en `main`~~ hecho: `a5bfa0c` (sesión c). `research/` fuera.
 2. Claude presenta **D1** (`chore/bootstrap`) para aprobación: lista exacta de archivos a
    mover de `michef-starter/` a `michef/`, qué se borra del scaffold, y el texto de los
    cambios a `CLAUDE.md`. No se ejecuta nada sin «adelante» (decisión #34).

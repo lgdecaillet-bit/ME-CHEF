@@ -176,3 +176,44 @@ Pendiente:
 
 Para la siguiente sesión: D0 está cerrado, no hay que rehacerlo. El siguiente paso es el
 commit de documentos (lo hace Luciano) y después presentar D1 para aprobación.
+
+## 2026-09-09 · S-20260909-c · Primer commit en `main`, `research/` fuera
+
+Tarea: commit y push de documentos y scaffold · Rama: `main` (solo docs + scaffold,
+pre-Git-flow) · Resultado: `a5bfa0c` en `origin/main`, 88 archivos, 15.461 líneas.
+
+Tocado:
+- `.gitignore` en la raíz (nuevo): `research/`, `node_modules/`, `.env`, `.env.local`,
+  `.env*.local`.
+- `docs/estado.md`: sesión `c` registrada; bloqueo «nada commiteado» resuelto; siguiente
+  paso → D1.
+- `docs/bitacora.md`: esta entrada.
+
+Corrido:
+- Auditoría previa: `find` de `.env*` → solo `michef-starter/.env.example`. Escaneo de
+  patrones de secretos (`sk-ant-`, `AIza`, `sbp_`, `eyJhbGciOi`, `sntrys_`,
+  `service_role`) en `michef/` y `michef-starter/` → 0 reales (3 menciones de
+  `service_role` en prosa de docs).
+- `git add .gitignore michef michef-starter` → 88 staged; `research/` 0; `node_modules` 0.
+- `git commit` → `a5bfa0c docs: scaffold SDK 57, starter, planificación de fases y
+  memoria del proyecto`.
+- `git push origin main` → `3a280e0..a5bfa0c main -> main`.
+- Git avisó «LF will be replaced by CRLF» en ~55 archivos: `core.autocrlf=true` en
+  Windows. El repo guarda LF; es ruido, no error. **Para D2:** añadir `.gitattributes`
+  con `* text=auto eol=lf` para que Prettier, lint-staged y CI vean lo mismo.
+
+Decisiones nuevas: ninguna. Se aplicó #43.
+
+Avances de Luciano: confirmó que el commit lo hace esta sesión (la «central» que
+mencionaba la sesión b) y que solo sube el contenido de la aplicación. «Go» = adelante.
+
+Pendiente:
+- `michef-starter/` está en el repo hasta que D1 lo migre y lo borre (según plan).
+- D1 espera presentación y «adelante».
+
+Para la siguiente sesión: `main` ya cuenta la verdad. Presentar D1 (`chore/bootstrap`)
+con la lista exacta de archivos a mover, borrar y editar, y el texto de los cambios a
+`CLAUDE.md`. No ejecutar sin «adelante». Recordar: instalaciones globales de npm las corre
+Luciano; en D4 no arrancar `teso-dev-db` (puerto 54322); en D6 verificar `SENTRY_URL`.
+
+---
