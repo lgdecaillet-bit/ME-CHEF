@@ -191,6 +191,29 @@ cd C:\Users\Luciano\Desktop\ME-CHEF
 gh secret list
 ```
 
+**Un secreto de GitHub no se puede leer nunca**, ni siquiera por ti. `gh secret list` solo
+te dice el nombre y cuándo se guardó por última vez. Si dudas de lo que hay dentro de uno,
+no hay forma de mirarlo: se sobreescribe y ya. Sobreescribir es seguro y se puede repetir
+las veces que haga falta.
+
+Corregir uno cuyo valor **no es secreto** (como el identificador del proyecto):
+
+```powershell
+cd C:\Users\Luciano\Desktop\ME-CHEF
+echo "npswkfpomhinewxsmiic" | gh secret set SUPABASE_PROJECT_ID
+```
+
+Corregir uno cuyo valor **sí es secreto** (los tres tokens). Este comando te abre un
+espacio para pegar el valor sin que quede escrito en el historial de la terminal. Pegas,
+pulsas `Enter`, y luego `Ctrl` + `Z` y `Enter` otra vez para cerrar:
+
+```powershell
+gh secret set SUPABASE_ACCESS_TOKEN
+```
+
+Los nombres válidos son exactamente estos cuatro, sin variaciones:
+`EXPO_TOKEN`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SENTRY_AUTH_TOKEN`.
+
 Comprobar que sigues conectado a las cuentas:
 
 ```powershell
