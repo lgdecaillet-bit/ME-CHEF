@@ -219,6 +219,32 @@ si no hay tests, un CI verde no significa nada.
 
 ### D4 · `chore/supabase` — Supabase como código
 
+> **✅ HECHO el 2026-09-09** (rama `chore/F0-D4-supabase`, decisiones #51 y #52).
+> Lo de abajo es el plan original. En lo que el resultado se apartó de él:
+>
+> · Las tablas hijas de `receta` **no** quedaron con lectura abierta: heredan la
+>   condición de «publicada». Con lectura abierta, el contenido de un borrador
+>   seguía siendo legible y el candado principal no servía de nada.
+> · Se añadió `security_invoker = on` a las dos vistas, que el plan no
+>   contemplaba. Sin eso, una vista se salta el RLS de sus tablas base.
+> · Los tests pgTAP son **20**, no cuatro: a los de comportamiento se sumaron
+>   cuatro estructurales, porque un `select` sobre una tabla cerrada no da error,
+>   devuelve cero filas, y sobre una tabla vacía eso es indistinguible de no
+>   tener candado (decisión #51).
+> · El archivo de tests del proxy se llama `ai-proxy.test.ts` y no
+>   `ai-proxy-test.ts`: Deno solo descubre `*.test.ts` o `*_test.ts`.
+> · Los índices de la migración 0001 llevan nombre. `if not exists` no existe
+>   para un índice anónimo, y sin él la migración no era repetible.
+> · Hay tres scripts más de los previstos — `supabase:start`, `supabase:stop`,
+>   `supabase:reset` — porque son los que Luciano necesita para ver la base.
+> · **No se hizo `supabase link`.** D4 se queda entero en local; enlazar y
+>   empujar migraciones al proyecto real espera a que exista CI (D5) que las
+>   verifique antes. Empujar a mano a la base que tendrá datos, sin red, es
+>   justo lo que la Fase 0 existe para evitar.
+> · `deno` no está instalado en la máquina: `scripts/probar-supabase.js` lo usa
+>   si está en el PATH y si no lo corre en un contenedor. Docker ya hacía falta
+>   para Supabase, así que no añade ningún requisito.
+
 **Qué pasa.** `supabase/schema.sql` deja de ser un archivo que se pega en un panel y pasa
 a ser migraciones versionadas que corren en local, en CI y en producción con el mismo
 comando.

@@ -74,9 +74,21 @@ guardar.
 
 ### 6. Base de datos compartida
 
-En el panel de Supabase, SQL Editor, pega y ejecuta `supabase/schema.sql`.
-Crea el catálogo compartido (ingredientes, productos, precios, recetas) con
-pgvector activado.
+**Ya no se pega nada en ningún panel.** El esquema son migraciones versionadas y se
+aplican con la CLI. En local, con Docker Desktop abierto:
+
+```bash
+npm run supabase:start     # levanta Postgres y aplica las migraciones
+npm run supabase:test      # comprueba que los candados deniegan lo que deben
+npm run supabase:stop      # cuando termines
+```
+
+Las tablas se ven en http://localhost:54323.
+
+Pegar el SQL a mano en el panel era el modo anterior y **ya no vale**: creaba el
+catálogo sin ninguna regla de acceso, con lo que la clave que viaja dentro de la app
+podía escribir precios y leer el caché de modelos. Las reglas viven en la migración
+`0002_rls.sql` y sin ella el esquema está abierto.
 
 ### 7. Primer build a TestFlight (cuando estés listo)
 
@@ -120,7 +132,8 @@ src/
     coverage.ts        tres recetas con lo que hay
   ai/                  clientes que llaman al proxy, nunca a los modelos
 supabase/
-  schema.sql           catálogo compartido, sin identidad
+  migrations/          el catálogo y sus candados, versionados
+  tests/database/      pgTAP: que `anon` NO pueda lo que no debe
   functions/ai-proxy/  proxy de modelos: aquí viven las keys
 eval/                  harness de las 200 fotos (Promptfoo)
 ```
