@@ -229,6 +229,16 @@ gh secret set SUPABASE_ACCESS_TOKEN
 Los nombres válidos son exactamente estos cuatro, sin variaciones:
 `EXPO_TOKEN`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SENTRY_AUTH_TOKEN`.
 
+Comprobar que el buscador de secretos está instalado y visible:
+
+```powershell
+gitleaks version
+```
+
+Debe responder `8.30.1` o superior. Si dice que no encuentra el comando cuando
+acabas de instalarlo, **cierra la terminal y abre una nueva**: la que tienes
+abierta se quedó con la lista de programas de antes de la instalación.
+
 Comprobar que sigues conectado a las cuentas:
 
 ```powershell
@@ -256,6 +266,7 @@ saltártelo. Está prohibido en las reglas del proyecto y anula la única red qu
 | `Unexpected console statement` | Se quedó un `console.log` | Bórralo, o usa el registro del proyecto |
 | `subject may not be empty` | El mensaje no tiene el formato | Escríbelo como abajo |
 | `Hay un secreto en lo que ibas a commitear` | Una contraseña iba a subirse | Sácala a `.env`. Si ya se subió antes, hay que revocarla |
+| `AVISO: gitleaks no está instalado` | Falta la herramienta, o el PATH está viejo | `winget install Gitleaks.Gitleaks` y **abre una terminal nueva** |
 | Se para en `gates` al hacer push | Algo se rompió | Corre `npm run gates` y mira cuál falló |
 
 **El formato del mensaje.** Empieza siempre con una palabra, dos puntos, y qué hiciste:

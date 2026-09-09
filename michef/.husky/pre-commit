@@ -1,5 +1,12 @@
 # Rápido a propósito (< 5 s): solo mira lo que estás commiteando.
 # Formatea, arregla lo que puede, y busca secretos en lo staged.
+#
+# OJO: husky ejecuta este archivo con `sh -e`, que aborta en el primer comando
+# que devuelve distinto de cero. Sin el `|| CODIGO=$?` de abajo, el script moría
+# justo después de que gitleaks encontrara algo y **nunca llegaba a explicar por
+# qué**: el commit quedaba bloqueado con un escueto «script failed (code 1)».
+# Bloquear sin decir por qué es media protección: la otra media es que sepas
+# qué hacer. Comprobado con un secreto de prueba.
 
 cd michef && npx lint-staged || exit 1
 cd ..
@@ -10,30 +17,37 @@ if command -v gitleaks >/dev/null 2>&1; then
   # `gitleaks protect` está obsoleto desde 8.19; el subcomando actual es
   # `gitleaks git --staged`. Se prueba el nuevo y se cae al viejo si no existe,
   # para no romper con cualquier versión que haya instalada.
+  CODIGO=0
   if gitleaks git --help >/dev/null 2>&1; then
-    SALIDA=$(gitleaks git --staged --redact --no-banner 2>&1)
+    SALIDA=$(gitleaks git --staged --redact --no-banner 2>&1) || CODIGO=$?
   else
-    SALIDA=$(gitleaks protect --staged --redact --no-banner 2>&1)
+    SALIDA=$(gitleaks protect --staged --redact --no-banner 2>&1) || CODIGO=$?
   fi
-  CODIGO=$?
 
-  if [ $CODIGO -ne 0 ]; then
-    echo "$SALIDA"
+  if [ "$CODIGO" -ne 0 ]; then
+    echo "$SALIDA" >&2
     # Distinguir «hay una fuga» de «la herramienta se rompió»: si el hook grita
     # «secreto» cada vez que gitleaks falla por otra cosa, dejas de leerlo.
     if echo "$SALIDA" | grep -qiE "leaks? found|secret"; then
-      echo ""
-      echo "Hay un secreto en lo que ibas a commitear."
-      echo "NO uses --no-verify. Saca el valor a un .env o a GitHub Secrets."
-      echo "Si ya se subió alguna vez: revoca la credencial primero."
+      echo "" >&2
+      echo "  Hay un secreto en lo que ibas a commitear." >&2
+      echo "" >&2
+      echo "  Qué hacer:" >&2
+      echo "   1. Saca el valor del archivo. Si es público va en michef/.env;" >&2
+      echo "      si es un token, va en GitHub Secrets y en ningún archivo." >&2
+      echo "   2. Vuelve a hacer el commit." >&2
+      echo "" >&2
+      echo "  NO uses --no-verify: está prohibido en CLAUDE.md." >&2
+      echo "  Si esa credencial ya se subió alguna vez, revócala primero:" >&2
+      echo "  git no olvida, y quien tenga el repo la tiene." >&2
     else
-      echo ""
-      echo "gitleaks falló, pero no por una fuga. Revisa el mensaje de arriba."
+      echo "" >&2
+      echo "  gitleaks falló, pero NO por una fuga. Lee el mensaje de arriba." >&2
     fi
     exit 1
   fi
 else
-  echo "AVISO: gitleaks no está instalado, no se revisaron secretos."
-  echo "       Instálalo con:  winget install Gitleaks.Gitleaks"
-  echo "       El CI lo revisa igual y bloqueará el PR (paso D5)."
+  echo "AVISO: gitleaks no está instalado, no se revisaron secretos." >&2
+  echo "       Instálalo con:  winget install Gitleaks.Gitleaks" >&2
+  echo "       El CI lo revisa igual y bloqueará el PR (paso D5)." >&2
 fi
