@@ -164,6 +164,25 @@ Y estos tres, que no entran en `gates` porque tardan más:
 npm run test:watch
 ```
 
+**El commit dice «AVISO: gitleaks no está instalado».**
+Sí está instalado (8.30.1), pero winget no lo dejó en el PATH, así que el enganche no
+encuentra el programa y **deja pasar el commit sin revisar secretos**. Se arregla una sola
+vez, con esto:
+
+```powershell
+$dir = (Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Filter gitleaks.exe -Recurse | Select-Object -First 1).DirectoryName
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";$dir", "User")
+```
+
+Después **cierra y vuelve a abrir la terminal**, y comprueba que responde:
+
+```powershell
+gitleaks version
+```
+
+Tiene que decir `8.30.1`. Mientras diga «no se reconoce», el aviso del commit seguirá
+saliendo y nadie estará revisando tus commits en local.
+
 **Un test se pone rojo y dice «Failing test passed».**
 No es un fallo: es un aviso bueno. Significa que arreglaste uno de los errores conocidos
 del motor, y ese test estaba registrado como «falla a propósito». Hay que ir a

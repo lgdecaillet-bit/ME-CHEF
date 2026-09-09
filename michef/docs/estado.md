@@ -121,6 +121,23 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 
 ## Bloqueos
 
+- **El enganche de pre-commit no está revisando secretos, desde D2.** gitleaks 8.30.1
+  **sí está instalado** — `winget list` lo confirma — pero winget no creó el enlace en
+  `WinGet\Links`, así que el ejecutable no está en el PATH y el enganche cae en su rama
+  de aviso: imprime «gitleaks no está instalado» y **deja pasar el commit**. O sea que
+  los PR #3 y #4 se commitearon sin revisión local de secretos.
+  - **Comprobado a mano el 2026-09-09** con la ruta completa del ejecutable:
+    `gitleaks git` sobre los 10 commits del repo → **no leaks found**. El árbol de
+    trabajo da 573 hallazgos, de los cuales 572 están en `research/` (ignorado, 2,6 GB
+    de datos crudos) y **uno** en `michef/.env`, que es el archivo real de Luciano:
+    está sin seguir por git e ignorado por `michef/.gitignore:47`. Es exactamente donde
+    debe estar una clave. **Nada se ha filtrado.**
+  - Lo arregla Luciano con el comando de `COMANDOS.md` § «El commit dice AVISO», y hay
+    que reabrir la terminal. No bloquea el trabajo, pero cuanto antes.
+  - El enganche funciona: la rama de aviso es deliberada (un enganche que se cae por no
+    tener una herramienta es peor). Lo que falló fue dar por instalado lo que estaba
+    instalado pero inalcanzable. **Comprobar la herramienta, no el instalador.**
+
 - **D1 no empieza** hasta que Luciano reporte D0 verificado (0.1–0.9) y diga «adelante» a D1.
 - ~~Nada está commiteado~~ **Resuelto el 2026-09-09:** `a5bfa0c` en `origin/main` con
   `michef/` y `michef-starter/`; `research/` fuera por `.gitignore` (decisión #43).
