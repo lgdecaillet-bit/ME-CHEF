@@ -28,7 +28,9 @@ export const hogar = sqliteTable('hogar', {
 /** Quien come. El factor de porción resuelve las familias sin IA. */
 export const comensal = sqliteTable('comensal', {
   id: text('id').primaryKey(),
-  hogarId: text('hogar_id').notNull().references(() => hogar.id),
+  hogarId: text('hogar_id')
+    .notNull()
+    .references(() => hogar.id),
   nombre: text('nombre'),
   /** 1.0 adulto · 1.4 adolescente · 0.7 niño · 1.8 intake alto */
   factorPorcion: real('factor_porcion').notNull().default(1),
@@ -44,7 +46,9 @@ export const comensal = sqliteTable('comensal', {
  */
 export const objetivo = sqliteTable('objetivo', {
   id: text('id').primaryKey(),
-  hogarId: text('hogar_id').notNull().references(() => hogar.id),
+  hogarId: text('hogar_id')
+    .notNull()
+    .references(() => hogar.id),
   tipo: text('tipo').notNull().$type<'calorias' | 'macros' | 'habito' | 'gasto'>(),
   valor: real('valor'),
   unidad: text('unidad'), // kcal/dia, g/dia, porciones/dia, CHF/semana
@@ -56,15 +60,23 @@ export const objetivo = sqliteTable('objetivo', {
 /** Un plan agrupa bloques de máximo 4 semanas. */
 export const plan = sqliteTable('plan', {
   id: text('id').primaryKey(),
-  hogarId: text('hogar_id').notNull().references(() => hogar.id),
-  objetivoId: text('objetivo_id').notNull().references(() => objetivo.id),
-  bocetoAprobado: integer('boceto_aprobado', { mode: 'boolean' }).notNull().default(false),
+  hogarId: text('hogar_id')
+    .notNull()
+    .references(() => hogar.id),
+  objetivoId: text('objetivo_id')
+    .notNull()
+    .references(() => objetivo.id),
+  bocetoAprobado: integer('boceto_aprobado', { mode: 'boolean' })
+    .notNull()
+    .default(false),
   creadoEn: integer('creado_en', { mode: 'timestamp' }).notNull(),
 });
 
 export const semana = sqliteTable('semana', {
   id: text('id').primaryKey(),
-  planId: text('plan_id').notNull().references(() => plan.id),
+  planId: text('plan_id')
+    .notNull()
+    .references(() => plan.id),
   numero: integer('numero').notNull(), // 1..4 dentro del bloque
   detallada: integer('detallada', { mode: 'boolean' }).notNull().default(false),
   aprobada: integer('aprobada', { mode: 'boolean' }).notNull().default(false),
@@ -74,28 +86,40 @@ export const semana = sqliteTable('semana', {
 /** Un slot. Es lo único que une el plan con el catálogo compartido. */
 export const comidaPlanificada = sqliteTable('comida_planificada', {
   id: text('id').primaryKey(),
-  semanaId: text('semana_id').notNull().references(() => semana.id),
+  semanaId: text('semana_id')
+    .notNull()
+    .references(() => semana.id),
   dia: integer('dia').notNull(), // 0 = lunes
-  tipo: text('tipo').notNull().$type<'desayuno' | 'almuerzo' | 'comida' | 'in_the_middle'>(),
+  tipo: text('tipo')
+    .notNull()
+    .$type<'desayuno' | 'almuerzo' | 'comida' | 'in_the_middle'>(),
   recetaId: text('receta_id').notNull(), // → catálogo compartido
   porciones: real('porciones').notNull(), // Σ factores de los comensales
-  estado: text('estado').notNull().$type<'pendiente' | 'cocinada' | 'saltada' | 'reemplazada'>(),
+  estado: text('estado')
+    .notNull()
+    .$type<'pendiente' | 'cocinada' | 'saltada' | 'reemplazada'>(),
 });
 
 /** La foto se descarta al confirmar. Quedan las líneas. */
 export const factura = sqliteTable('factura', {
   id: text('id').primaryKey(),
-  hogarId: text('hogar_id').notNull().references(() => hogar.id),
+  hogarId: text('hogar_id')
+    .notNull()
+    .references(() => hogar.id),
   tiendaId: text('tienda_id'), // → catálogo compartido
   fecha: integer('fecha', { mode: 'timestamp' }).notNull(),
   total: real('total'),
   moneda: text('moneda'),
-  subidaAPrecios: integer('subida_a_precios', { mode: 'boolean' }).notNull().default(false),
+  subidaAPrecios: integer('subida_a_precios', { mode: 'boolean' })
+    .notNull()
+    .default(false),
 });
 
 export const lineaFactura = sqliteTable('linea_factura', {
   id: text('id').primaryKey(),
-  facturaId: text('factura_id').notNull().references(() => factura.id),
+  facturaId: text('factura_id')
+    .notNull()
+    .references(() => factura.id),
   textoOriginal: text('texto_original').notNull(),
   productoId: text('producto_id'), // → catálogo compartido; null = sin mapear
   cantidad: real('cantidad'),
@@ -109,7 +133,9 @@ export const lineaFactura = sqliteTable('linea_factura', {
  */
 export const inventario = sqliteTable('inventario', {
   id: text('id').primaryKey(),
-  hogarId: text('hogar_id').notNull().references(() => hogar.id),
+  hogarId: text('hogar_id')
+    .notNull()
+    .references(() => hogar.id),
   ingredienteId: text('ingrediente_id').notNull(), // → catálogo compartido
   cantidad: real('cantidad').notNull(), // gramos o mililitros
   estado: text('estado').$type<'cerrado' | 'abierto' | 'resto'>(),
@@ -125,10 +151,18 @@ export const inventario = sqliteTable('inventario', {
  */
 export const restriccion = sqliteTable('restriccion', {
   id: text('id').primaryKey(),
-  hogarId: text('hogar_id').notNull().references(() => hogar.id),
-  tipo: text('tipo').notNull().$type<
-    'excluir_ingrediente' | 'tiempo_max' | 'mas_variedad' | 'mas_calorias' | 'sin_equipo'
-  >(),
+  hogarId: text('hogar_id')
+    .notNull()
+    .references(() => hogar.id),
+  tipo: text('tipo')
+    .notNull()
+    .$type<
+      | 'excluir_ingrediente'
+      | 'tiempo_max'
+      | 'mas_variedad'
+      | 'mas_calorias'
+      | 'sin_equipo'
+    >(),
   valor: text('valor').notNull(),
   origen: text('origen'), // qué rechazó y cuándo
   permanente: integer('permanente', { mode: 'boolean' }).notNull().default(true),
@@ -138,7 +172,9 @@ export const restriccion = sqliteTable('restriccion', {
 /** Una sesión de foto de nevera. Las fotos NO se guardan. */
 export const escaneo = sqliteTable('escaneo', {
   id: text('id').primaryKey(),
-  hogarId: text('hogar_id').notNull().references(() => hogar.id),
+  hogarId: text('hogar_id')
+    .notNull()
+    .references(() => hogar.id),
   fecha: integer('fecha', { mode: 'timestamp' }).notNull(),
   tomas: integer('tomas').notNull().default(1),
   calidadLuz: real('calidad_luz'),
@@ -147,7 +183,9 @@ export const escaneo = sqliteTable('escaneo', {
 
 export const itemDetectado = sqliteTable('item_detectado', {
   id: text('id').primaryKey(),
-  escaneoId: text('escaneo_id').notNull().references(() => escaneo.id),
+  escaneoId: text('escaneo_id')
+    .notNull()
+    .references(() => escaneo.id),
   ingredienteId: text('ingrediente_id'),
   cantidad: real('cantidad'),
   /** seguro = pasó las dos pasadas · posible = pasó una. Solo `seguro` genera recetas. */
@@ -160,7 +198,9 @@ export const itemDetectado = sqliteTable('item_detectado', {
 /** Timestamps. La materia prima de los patrones de horario. */
 export const evento = sqliteTable('evento', {
   id: text('id').primaryKey(),
-  hogarId: text('hogar_id').notNull().references(() => hogar.id),
+  hogarId: text('hogar_id')
+    .notNull()
+    .references(() => hogar.id),
   tipo: text('tipo').notNull(),
   contexto: text('contexto', { mode: 'json' }),
   ocurridoEn: integer('ocurrido_en', { mode: 'timestamp' }).notNull(),
@@ -168,7 +208,9 @@ export const evento = sqliteTable('evento', {
 
 export const resena = sqliteTable('resena', {
   id: text('id').primaryKey(),
-  hogarId: text('hogar_id').notNull().references(() => hogar.id),
+  hogarId: text('hogar_id')
+    .notNull()
+    .references(() => hogar.id),
   recetaId: text('receta_id').notNull(),
   estrellas: integer('estrellas'),
   texto: text('texto'),

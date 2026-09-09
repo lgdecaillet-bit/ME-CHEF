@@ -389,3 +389,75 @@ sin «adelante». Recordar: en D4 no arrancar `teso-dev-db` (puerto 54322); en D
 `actions/setup-node` fija `22.23.2`; en D6 verificar `SENTRY_URL=https://de.sentry.io`.
 
 ---
+
+## 2026-09-09 · S-20260909-e · D2 · tooling de calidad
+
+Tarea: F0-D2 · Rama: `chore/F0-D2-tooling` · Resultado: `npm run gates` existe y está
+verde en 12 s. Los enganches rechazan de verdad: probado con un commit real.
+
+Tocado (nuevos): `eslint.config.js`, `.prettierrc`, `.prettierignore`, `.gitattributes`,
+`commitlint.config.js`, `.lintstagedrc.json`, `.dependency-cruiser.cjs`, `jest.config.js`,
+`knip.config.js`, `scripts/secrets-bundle.js`, `.husky/{pre-commit,commit-msg,pre-push}`,
+`src/engine/__tests__/humo.test.ts`.
+Modificados: `package.json` (14 scripts), `tsconfig.json` (`types: [jest, node]`),
+`.gitignore` (+`coverage/`), `COMANDOS.md` (§ 5 reescrita, § 7b nueva).
+
+Corrido, tal cual:
+- **ESLint 10.10.0 no sirve.** Se instaló como se presentó y `npm ls eslint` devolvió
+  cuatro `invalid`: `eslint-plugin-import` pide `<= ^9`, `eslint-plugin-react` pide
+  `<= ^9.7`, y `eslint-plugin-expo` se trajo su propia copia de la 9.39.5 anidada. Se
+  bajó a **9.39.5** y quedó en 0 conflictos. La declaración `eslint >=8.10` de
+  `eslint-config-expo` es engañosa: sus plugins son más estrictos que ella.
+- `npm audit` → **18 moderadas, 0 altas, 0 críticas.** Todas internas de Expo.
+- `better-sqlite3@13.0.3` compila y corre en Node 22.23.2 (prueba: crear tabla, insertar,
+  leer). Sin necesidad de herramientas de compilación de Windows.
+- **Primer `eslint .`** → 7 errores. Dos en el motor: `!= null` y `== null` en
+  `inventory.ts:32` y `:86`. **No eran bugs, la regla estaba mal escrita:** `x != null`
+  comprueba null e indefinido a la vez, y forzar `!==` habría introducido un bug. Se
+  cambió a `eqeqeq: ['error','always',{null:'ignore'}]`. Los otros cinco eran `console`
+  en `scripts/`, que es su interfaz: override añadido.
+- **`depcruise`** → 0 errores, 4 avisos de `no-orphans`. Se **eliminó esa regla**: el
+  código muerto es trabajo de knip, y duplicarlo hacía que la orden imprimiera ruido en
+  cada ejecución. Ahora depcruise solo habla de arquitectura y todas sus reglas son
+  `error`: si imprime algo, es una violación real.
+- **`knip`** → primero pidió quitar 15 ignores redundantes; luego marcó el motor entero
+  como no usado. Se pasó de `knip.json` a `knip.config.js` para poder documentar **cuándo
+  deja de hacer falta cada ignore**, y se declararon como entradas las fronteras públicas
+  de cada capa (`engine/index.ts`, `db/schema.ts`, `ai/client.ts`). Salida limpia, código 0.
+- **`prettier --write .` tocó 16 documentos**: 556 líneas insertadas y 481 borradas, solo
+  por añadir líneas en blanco tras los títulos y realinear tablas. **Se revirtió y se
+  añadió `*.md` a `.prettierignore`:** los documentos son la memoria del proyecto y ese
+  ruido ahogaría el cambio real en cada diff futuro. También se excluyó `assets/`
+  (generado por Expo) y `docs/producto.html` (1 MB escrito a mano).
+- **Cobertura:** los umbrales objetivo (motor 100 % líneas / 95 % ramas) hacen fallar el
+  gate hoy porque **no hay tests todavía**. Quedan escritos en `jest.config.js` como
+  `OBJETIVO`, y `ACTIVO` apunta a cero. **D3 cambia esa línea.** Un umbral imposible de
+  cumplir no protege: obliga a saltarse el gate, y saltarlo una vez enseña a saltarlo
+  siempre.
+- **Husky no arrancaba:** `.git can't be found`, porque el repo está en `ME-CHEF/` y el
+  proyecto npm en `ME-CHEF/michef/`. Resuelto con `prepare: cd .. && husky michef/.husky`
+  y un `cd michef` al principio de cada enganche.
+- **Prueba de los enganches, con commits reales:**
+  1. Archivo con `console.log`, `git commit` → **rechazado** por `no-console`, y
+     lint-staged revirtió al estado original. `git log` confirma que no se commiteó.
+  2. Mensaje `arreglando cositas` → **rechazado** por commitlint (`type may not be
+     empty`).
+- `npm run gates` → **verde en 12,4 s** (objetivo: menos de 60).
+- `npx prettier --check .` → limpio. `npm run knip` → limpio.
+
+Decisiones nuevas: ninguna que cambie la visión. Cuatro de implementación, todas
+documentadas dentro del archivo que afectan: ESLint 9 en vez de 10; `no-orphans` fuera de
+depcruise; markdown fuera de Prettier; umbrales de cobertura diferidos a D3.
+
+Avances de Luciano: «adelante» a D2 con la lista presentada.
+
+Pendiente:
+- **Luciano:** `winget install Gitleaks.Gitleaks`, y mergear el PR.
+- D3 espera presentación y «adelante».
+
+Para la siguiente sesión: si el PR está mergeado, presentar **D3**. Recordar que D3 sube
+los umbrales de cobertura (`ACTIVO` → `OBJETIVO` en `jest.config.js`) y registra los 7
+bugs como `test.failing` antes de arreglarlos en Fase 1. Y añadir a `COMANDOS.md` lo que
+salga nuevo.
+
+---

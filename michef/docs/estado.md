@@ -5,15 +5,15 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-09 · por sesión S-20260909-d
+Actualizado: 2026-09-09 · por sesión S-20260909-e
 
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D1 mergeado** en `main` (`2ba0d81`, PR #1, 2026-09-09). Siguiente: presentar D2 |
+| **Paso actual** | **D2 hecho** (`chore/F0-D2-tooling`, PR abierto). Siguiente: D3, tests del motor |
 | **Decisiones vigentes** | hasta **#43** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `main`, limpio y al día. D2 abre `chore/F0-D2-tooling` |
+| **Rama de trabajo** | `chore/F0-D2-tooling` — espera merge. D3 sale de `main` |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -38,6 +38,7 @@ Se vacía al cambiar de día.
 | S-20260909-b | acompañar D0 paso a paso + rename a ME CHEF | cerrada |
 | S-20260909-c | primer commit y push a `main` sin `research/` | cerrada |
 | S-20260909-d | D1 · chore/bootstrap | cerrada |
+| S-20260909-e | D2 · tooling de calidad | cerrada |
 
 ## Tareas tomadas
 
@@ -59,8 +60,8 @@ desde el primer PR de código.
 | D0 | Cuentas y herramientas | **Luciano** | ✅ hecho (detalle abajo) |
 | D0.5 | `estado.md`, `bitacora.md`, `decisiones.md` numerado, protocolo en `CLAUDE.md`, `revisor.md` | Claude | ✅ hecho |
 | D1 | `chore/bootstrap`: migrar starter a `michef/`, limpiar scaffold | Claude | ✅ mergeado (PR #1, `2ba0d81`) |
-| D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ⏳ espera presentación + «adelante» |
-| D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ⏳ |
+| D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ✅ hecho (PR espera merge) |
+| D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ⏳ espera presentación + «adelante» |
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ⏳ |
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ⏳ |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init`, secretos EAS | Claude + Luciano | ⏳ |
@@ -134,14 +135,25 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 1. ~~Primer commit en `main`~~ hecho: `a5bfa0c` (sesión c). `research/` fuera.
 2. ~~D1 `chore/bootstrap`~~ **mergeado**: Luciano verificó «ME CHEF» en Expo Go, se hizo
    squash merge en `main` (`2ba0d81`) y se borró la rama.
-3. Claude presenta **D2** (tooling: ESLint, Prettier, Husky, lint-staged, commitlint,
-   dependency-cruiser, knip, gitleaks, Jest + RNTL + fast-check + better-sqlite3) con la
-   tabla de paquetes y versiones, las reglas de ESLint y depcruise, los umbrales de
-   cobertura y los scripts de `package.json`. No se ejecuta nada sin «adelante» (#34).
+3. ~~D2 tooling~~ hecho. **Falta que Luciano instale gitleaks y mergee el PR.**
+4. Claude presenta **D3** (tests del motor): ejemplos y una propiedad invariante por
+   función con `fast-check`, los 7 bugs conocidos como `test.failing`, y el test del
+   esquema Drizzle con `better-sqlite3`. **D3 sube los umbrales de cobertura**: en
+   `jest.config.js`, cambiar `ACTIVO` de `D2_SIN_TESTS_TODAVIA` a `OBJETIVO`
+   (motor 100 % líneas / 95 % ramas). No se ejecuta nada sin «adelante» (#34).
 
 Propuesto aparte, dos minutos, cuando Luciano quiera: **regla de rama básica en `main`**
 (solo PRs, sin push directo, sin force-push). No depende de que exista CI; los checks
 requeridos se añaden en D5.
+
+**Lo que tiene que hacer Luciano para cerrar D2:**
+
+```powershell
+winget install Gitleaks.Gitleaks
+```
+
+Sin él, el enganche de pre-commit avisa y deja pasar. El CI lo revisará igual en D5,
+pero entonces el aviso llega tarde y con un PR abierto.
 
 Abierto, sin urgencia:
 - El casing del nombre quedó en versales, `ME CHEF`, 1.059 veces en prosa. Si se prefiere
@@ -156,9 +168,18 @@ Abierto, sin urgencia:
   aunque fnm ya tenía 24.15.0, para no cambiar de major mientras entra `better-sqlite3`
   en D2 (módulo nativo). **En D5, `actions/setup-node` debe fijar `22.23.2`.** Queda
   para D2 decidir si se añade `.node-version` al repo para que fnm y CI lean lo mismo.
-- En D2: `.gitattributes` con `* text=auto eol=lf` (git avisa LF→CRLF en cada `add`), y
-  decidir si se fijan todas las versiones de `package.json` (hoy vienen con `~` del
-  scaffold; `drizzle-orm` sí quedó fijada exacta).
+- ~~`.gitattributes`~~ hecho en D2. Las versiones del scaffold siguen con `~`: se
+  fijarán cuando una de ellas dé un problema, no antes. Todo lo instalado en D2 y D1
+  sí está fijado exacto.
+- **ESLint se quedó en 9.39.5, no 10.** Los plugins de `eslint-config-expo@57` (import,
+  react, react-hooks) declaran `eslint <= 9`. Con la 10 instalada, npm marcó cuatro
+  dependencias como `invalid` y `eslint-plugin-expo` se trajo su propia copia de la 9.
+  npm avisa de que la 9 «ya no tiene soporte»: es cierto y es lo que hay hasta que Expo
+  actualice sus plugins. Revisar al subir de SDK.
+- **18 vulnerabilidades moderadas**, ninguna alta ni crítica. Todas en dependencias
+  internas de Expo (`decode-uri-component` vía `expo-router`, `uuid` vía
+  `@expo/config-plugins`). El arreglo exige `--force` y rompe `expo-router`. Se aceptan
+  y se revisan al subir de SDK. El gate corta en alta/crítica, no en moderada.
 - Para D3/Fase 1: `src/engine/inventory.ts` usa `ahora: Date = new Date()` como valor por
   defecto — impureza latente. Los tests deben pasar `ahora` siempre; Fase 1 quita el
   default.

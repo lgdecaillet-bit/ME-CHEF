@@ -1,0 +1,21 @@
+# Rápido a propósito (< 5 s): solo mira lo que estás commiteando.
+# Formatea, arregla lo que puede, y busca secretos en lo staged.
+
+cd michef && npx lint-staged || exit 1
+cd ..
+
+# gitleaks mira el repo; scripts/secrets-bundle.js mira lo que acaba en el
+# teléfono. Son cosas distintas y hacen falta las dos.
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact --no-banner || {
+    echo ""
+    echo "Hay un secreto en lo que ibas a commitear."
+    echo "NO uses --no-verify. Saca el valor a un .env o a GitHub Secrets."
+    echo "Si ya se subió alguna vez: revoca la credencial primero."
+    exit 1
+  }
+else
+  echo "AVISO: gitleaks no está instalado, no se revisaron secretos."
+  echo "       Instálalo con:  winget install Gitleaks.Gitleaks"
+  echo "       El CI lo revisa igual y bloqueará el PR (paso D5)."
+fi

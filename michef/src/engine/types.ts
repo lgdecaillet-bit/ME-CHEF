@@ -46,11 +46,7 @@ export interface ItemInventario {
 }
 
 export type TipoRestriccion =
-  | 'excluir_ingrediente'
-  | 'tiempo_max'
-  | 'mas_variedad'
-  | 'mas_calorias'
-  | 'sin_equipo';
+  'excluir_ingrediente' | 'tiempo_max' | 'mas_variedad' | 'mas_calorias' | 'sin_equipo';
 
 export interface Restriccion {
   tipo: TipoRestriccion;

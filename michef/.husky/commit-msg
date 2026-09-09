@@ -1,0 +1,3 @@
+# Conventional Commits. Un historial legible no es estética: es cómo una sesión
+# futura entiende qué pasó sin preguntarle a nadie.
+cd michef && npx commitlint --edit "$1"

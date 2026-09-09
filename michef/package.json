@@ -18,16 +18,47 @@
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
-    "react-native-worklets": "0.10.1"
+    "react-native-worklets": "0.10.1",
+    "zod": "4.5.4"
   },
   "devDependencies": {
+    "@commitlint/cli": "21.2.2",
+    "@commitlint/config-conventional": "21.2.2",
+    "@testing-library/react-native": "14.0.1",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/jest": "30.0.0",
     "@types/react": "~19.2.2",
+    "better-sqlite3": "13.0.3",
+    "dependency-cruiser": "18.2.0",
+    "drizzle-kit": "0.31.10",
+    "eslint": "9.39.5",
+    "eslint-config-expo": "57.0.2",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-no-only-tests": "3.4.0",
+    "fast-check": "4.9.0",
+    "husky": "9.1.7",
+    "jest": "30.5.1",
+    "jest-expo": "57.0.5",
+    "knip": "6.35.1",
+    "lint-staged": "17.5.0",
+    "prettier": "3.9.6",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
     "ios": "expo start --ios",
-    "lint": "expo lint"
+    "gates": "npm run typecheck && npm run lint && npm run depcruise && npm run test",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "depcruise": "depcruise src --config .dependency-cruiser.cjs",
+    "knip": "knip",
+    "secrets:bundle": "node scripts/secrets-bundle.js",
+    "prepare": "cd .. && husky michef/.husky"
   },
   "private": true
 }
