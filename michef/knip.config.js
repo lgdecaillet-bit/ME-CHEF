@@ -12,8 +12,14 @@ module.exports = {
     // expo-router carga estos por convención de archivos, nadie los importa.
     'src/app/**/*.{ts,tsx}',
 
-    // Fronteras públicas de cada capa. Lo de dentro sí lo audita knip: si una
-    // función del motor deja de exportarse desde aquí y nadie la usa, aparece.
+    // Fronteras públicas de cada capa.
+    //
+    // OJO, esto tiene un límite real: `engine/index.ts` es un barril de
+    // `export *`, así que declararlo como entrada hace que TODO el motor quede
+    // alcanzable y knip deje de mirar dentro. Comprobado: sin esta línea marca
+    // 4 archivos y `escalarReceta` y `redondear` como no usados. Se acepta a
+    // sabiendas mientras el motor no tenga consumidores; quien vigila el código
+    // muerto del motor a partir de D3 es la cobertura (100 % de líneas).
     'src/engine/index.ts',
     'src/db/schema.ts',
     'src/ai/client.ts',
@@ -22,6 +28,10 @@ module.exports = {
   ],
 
   project: ['src/**/*.{ts,tsx}', 'scripts/**/*.js'],
+
+  // Violan las reglas a proposito para que scripts/probar-reglas.js compruebe
+  // que disparan. Nadie los importa, y eso es justo lo que deben ser.
+  ignore: ['src/**/__fixtures__/**'],
 
   ignoreDependencies: [
     // Genera las migraciones locales; se usa por línea de comandos, no se importa.

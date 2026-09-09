@@ -26,8 +26,12 @@ module.exports = {
         'objeto. Así se prueba en Node, sin iPhone y sin Supabase.',
       from: { path: '^src/engine' },
       to: {
-        dependencyTypes: ['npm', 'npm-dev', 'npm-peer'],
-        path: '^(react-native|react|expo|@expo|@supabase|@sentry|posthog)',
+        // Un paquete instalado se resuelve a `node_modules/<paquete>/…`; uno que
+        // no está instalado se queda con su nombre a secas. El patrón cubre las
+        // dos formas: con `^(react-native|…)` a secas no casaba ninguna y la
+        // regla nunca disparó. Sin `dependencyTypes`, porque el tipo de una
+        // dependencia sin resolver es 'unknown' y se escapaba por ahí.
+        path: '(^|node_modules/)(react-native|react|expo|@expo|@supabase|@sentry|posthog)(/|$)',
       },
     },
     {
@@ -48,8 +52,10 @@ module.exports = {
         'supabase/functions/ai-proxy.',
       from: { path: '^src' },
       to: {
-        dependencyTypes: ['npm', 'npm-dev', 'npm-peer'],
-        path: '^(@google|@anthropic-ai|openai|@google-cloud)',
+        // Misma razón que en engine-no-native: cubre el paquete instalado y el
+        // que todavía no lo está (que es el caso normal cuando alguien acaba de
+        // escribir el import y aún no ha corrido npm install).
+        path: '(^|node_modules/)(@google|@google-cloud|@anthropic-ai|openai|cohere-ai|replicate)(/|$)',
       },
     },
     {
@@ -64,8 +70,15 @@ module.exports = {
   ],
 
   options: {
+    // doNotFollow no entra DENTRO de los paquetes, pero sí registra la arista
+    // `src/… → node_modules/paquete`, que es justo lo que miran engine-no-native
+    // y ai-only-proxy. Tener `node_modules` en `exclude` las dejaba muertas: el
+    // grafo bajaba de 15 dependencias a 12 y las reglas no veían nada.
+    // Comprobado con el fixture de src/engine/__fixtures__/.
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: '(^|/)(node_modules|coverage|dist|\\.expo)(/|$)' },
+    // __fixtures__ viola las reglas a propósito: scripts/probar-reglas.js levanta
+    // esta exclusión y comprueba que cada regla dispara de verdad.
+    exclude: { path: '(^|/)(coverage|dist|\\.expo|__fixtures__)(/|$)' },
     tsConfig: { fileName: 'tsconfig.json' },
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {

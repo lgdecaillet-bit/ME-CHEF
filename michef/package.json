@@ -28,6 +28,7 @@
     "@types/better-sqlite3": "9.6.0",
     "@types/jest": "30.0.0",
     "@types/react": "~19.2.2",
+    "@typescript-eslint/eslint-plugin": "8.70.0",
     "better-sqlite3": "13.0.3",
     "dependency-cruiser": "18.2.0",
     "drizzle-kit": "0.31.10",
@@ -47,7 +48,7 @@
   "scripts": {
     "start": "expo start",
     "ios": "expo start --ios",
-    "gates": "npm run typecheck && npm run lint && npm run depcruise && npm run test",
+    "gates": "npm run typecheck && npm run lint && npm run depcruise && npm run reglas && npm run test",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
@@ -56,6 +57,7 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs",
+    "reglas": "node scripts/probar-reglas.js",
     "knip": "knip",
     "secrets:bundle": "node scripts/secrets-bundle.js",
     "prepare": "cd .. && husky michef/.husky"

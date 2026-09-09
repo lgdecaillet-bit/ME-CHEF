@@ -12,7 +12,7 @@
 > `### #N · Título` · fecha · estado · texto con el porqué · qué reemplaza · qué archivos
 > de `fases/` cambian.
 
-Vigentes: **#1–#3, #5–#43**. Reemplazadas: #4 (por #29).
+Vigentes: **#1–#3, #5–#47**. Reemplazadas: #4 (por #29).
 
 ---
 
@@ -310,6 +310,54 @@ de GitHub y está bien: son notas para quien trabaja en la máquina.
 Consecuencia: el `.gitignore` de la raíz excluye `research/` entero. Antes del primer
 commit hay que verificar que ningún archivo de `michef/` dependa de `research/` para
 compilar o pasar tests — hoy solo lo citan documentos.
+
+
+### #44 · ESLint se queda en la línea 9 hasta que Expo actualice sus plugins
+Fecha: 2026-09-09 · **vigente**
+Se instaló ESLint 10.10.0 y `npm ls eslint` devolvió cuatro dependencias `invalid`:
+`eslint-plugin-import` declara `<= ^9`, `eslint-plugin-react` `<= ^9.7`, y
+`eslint-plugin-expo` se trajo su propia copia anidada de la 9.39.5. La declaración
+`eslint >=8.10` de `eslint-config-expo@57` es engañosa: sus plugins son más estrictos que
+ella. Se fijó **9.39.5**, con la que hay cero conflictos. npm avisa de que esa versión
+«ya no tiene soporte»; es cierto, y es lo que hay mientras el ecosistema de Expo no
+suba. **Se revisa en cada subida de SDK de Expo**, no antes: subir ESLint por su cuenta
+rompe el linter entero.
+
+### #45 · Los documentos quedan fuera de Prettier
+Fecha: 2026-09-09 · **vigente**
+`prettier --write .` reformateó 16 archivos `.md` de golpe: 556 líneas insertadas y 481
+borradas, solo por añadir líneas en blanco tras los títulos y realinear tablas. Los
+documentos son la memoria del proyecto (decisión #36) y se leen en diffs: ese ruido
+ahogaría el cambio real cada vez que se añade una decisión o una entrada de bitácora.
+El formato de la prosa no es un problema de corrección. `*.md` va en `.prettierignore`,
+junto con `assets/` (generado por Expo) y `docs/producto.html` (1 MB escrito a mano).
+Consecuencia: el formato de los documentos se cuida a mano. Es aceptable porque los lee
+gente, no un compilador.
+
+### #46 · Se aceptan las vulnerabilidades moderadas de las dependencias de Expo
+Fecha: 2026-09-09 · **vigente**
+`npm audit` reporta 18 moderadas y ninguna alta ni crítica. Todas viven en dependencias
+internas de Expo: `decode-uri-component` vía `expo-router`, `uuid` vía
+`@expo/config-plugins`. El arreglo que ofrece npm es `--force` y **degrada `expo-router`
+a la versión 5**, lo que rompe la app. El gate corta en alta y crítica, no en moderada:
+`npm audit --audit-level=high`. **Se revisa en cada subida de SDK de Expo**, y antes del
+lanzamiento (Fase 6). Si alguna sube a alta, se para y se replantea.
+
+### #47 · Cada regla de arquitectura necesita un fixture que la viole
+Fecha: 2026-09-09 · **vigente**
+En D2 se escribieron cinco reglas de dependency-cruiser y **dos no podían dispararse
+jamás**: el patrón decía `^react-native` cuando un paquete se resuelve a
+`node_modules/react-native/…`, y `node_modules` estaba en `exclude`, lo que lo borraba
+del grafo entero. Además, el override de ESLint para `src/engine/**` redefinía
+`no-restricted-imports` y, como ESLint **reemplaza** las opciones de una regla en vez de
+fusionarlas, borraba la prohibición de los SDK de modelos: `import OpenAI from 'openai'`
+dentro del motor pasaba los gates enteros. Los gates salían verdes y la prohibición dura
+número uno de `CLAUDE.md` no estaba protegida por nada.
+Lo encontró el revisor, no los gates, porque **una regla que nunca ha visto una
+violación parece igual de sana que una que funciona**. Desde ahora: toda regla de
+arquitectura tiene un fixture en `src/engine/__fixtures__/` que la viola a propósito, y
+`npm run reglas` (dentro de `npm run gates`) falla si la regla no se queja. Es el control
+positivo del sistema de calidad. Una regla nueva sin fixture no se mergea.
 
 ---
 

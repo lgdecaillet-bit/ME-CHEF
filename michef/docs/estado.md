@@ -11,7 +11,7 @@ Actualizado: 2026-09-09 · por sesión S-20260909-e
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
 | **Paso actual** | **D2 hecho** (`chore/F0-D2-tooling`, PR abierto). Siguiente: D3, tests del motor |
-| **Decisiones vigentes** | hasta **#43** |
+| **Decisiones vigentes** | hasta **#47** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | `chore/F0-D2-tooling` — espera merge. D3 sale de `main` |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
@@ -135,7 +135,10 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 1. ~~Primer commit en `main`~~ hecho: `a5bfa0c` (sesión c). `research/` fuera.
 2. ~~D1 `chore/bootstrap`~~ **mergeado**: Luciano verificó «ME CHEF» en Expo Go, se hizo
    squash merge en `main` (`2ba0d81`) y se borró la rama.
-3. ~~D2 tooling~~ hecho. **Falta que Luciano instale gitleaks y mergee el PR.**
+3. ~~D2 tooling~~ hecho y **revisado dos veces**: el revisor devolvió `CAMBIOS` y
+   encontró que dos reglas de arquitectura estaban muertas. Corregido y verificado con
+   un control positivo (`npm run reglas`). **Falta que Luciano instale gitleaks y
+   mergee el PR.**
 4. Claude presenta **D3** (tests del motor): ejemplos y una propiedad invariante por
    función con `fast-check`, los 7 bugs conocidos como `test.failing`, y el test del
    esquema Drizzle con `better-sqlite3`. **D3 sube los umbrales de cobertura**: en
@@ -168,18 +171,12 @@ Abierto, sin urgencia:
   aunque fnm ya tenía 24.15.0, para no cambiar de major mientras entra `better-sqlite3`
   en D2 (módulo nativo). **En D5, `actions/setup-node` debe fijar `22.23.2`.** Queda
   para D2 decidir si se añade `.node-version` al repo para que fnm y CI lean lo mismo.
-- ~~`.gitattributes`~~ hecho en D2. Las versiones del scaffold siguen con `~`: se
-  fijarán cuando una de ellas dé un problema, no antes. Todo lo instalado en D2 y D1
-  sí está fijado exacto.
-- **ESLint se quedó en 9.39.5, no 10.** Los plugins de `eslint-config-expo@57` (import,
-  react, react-hooks) declaran `eslint <= 9`. Con la 10 instalada, npm marcó cuatro
-  dependencias como `invalid` y `eslint-plugin-expo` se trajo su propia copia de la 9.
-  npm avisa de que la 9 «ya no tiene soporte»: es cierto y es lo que hay hasta que Expo
-  actualice sus plugins. Revisar al subir de SDK.
-- **18 vulnerabilidades moderadas**, ninguna alta ni crítica. Todas en dependencias
-  internas de Expo (`decode-uri-component` vía `expo-router`, `uuid` vía
-  `@expo/config-plugins`). El arreglo exige `--force` y rompe `expo-router`. Se aceptan
-  y se revisan al subir de SDK. El gate corta en alta/crítica, no en moderada.
+- ~~`.gitattributes`~~ y ~~`.node-version`~~ hechos en D2. Las versiones del scaffold
+  siguen con `~`: se fijarán cuando una dé un problema, no antes. Todo lo instalado en
+  D1 y D2 sí está fijado exacto.
+- Decisiones nuevas registradas en D2: **#44** ESLint 9 hasta que Expo suba sus plugins ·
+  **#45** documentos fuera de Prettier · **#46** se aceptan las 18 moderadas de Expo ·
+  **#47** cada regla necesita un fixture que la viole.
 - Para D3/Fase 1: `src/engine/inventory.ts` usa `ahora: Date = new Date()` como valor por
   defecto — impureza latente. Los tests deben pasar `ahora` siempre; Fase 1 quita el
   default.

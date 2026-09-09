@@ -18,7 +18,7 @@
 // PR está prohibido (CLAUDE.md): solo suben.
 
 const OBJETIVO = {
-  global: { lines: 40, branches: 30 },
+  global: { lines: 60, branches: 40 },
   'src/engine/**/*.ts': { lines: 100, branches: 95 },
 };
 
@@ -34,12 +34,19 @@ module.exports = {
   clearMocks: true,
   restoreMocks: true,
 
-  testPathIgnorePatterns: ['/node_modules/', '/.expo/', '/dist/', '/supabase/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.expo/',
+    '/dist/',
+    '/supabase/',
+    '__fixtures__',
+  ],
 
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
     '!src/**/__tests__/**',
+    '!src/**/__fixtures__/**',
     '!src/app/**', // pantallas: se cubren con tests de componente desde D6.5
   ],
 
