@@ -164,11 +164,35 @@ Y estos tres, que no entran en `gates` porque tardan más:
 npm run test:watch
 ```
 
+**El commit dice «AVISO: gitleaks no está instalado».**
+Sí está instalado (8.30.1), pero winget no lo dejó en el PATH, así que el enganche no
+encuentra el programa y **deja pasar el commit sin revisar secretos**. Se arregla una sola
+vez, con esto:
+
+```powershell
+$dir = (Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Filter gitleaks.exe -Recurse | Select-Object -First 1).DirectoryName
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";$dir", "User")
+```
+
+Después **cierra y vuelve a abrir la terminal**, y comprueba que responde:
+
+```powershell
+gitleaks version
+```
+
+Tiene que decir `8.30.1`. Mientras diga «no se reconoce», el aviso del commit seguirá
+saliendo y nadie estará revisando tus commits en local.
+
 **Un test se pone rojo y dice «Failing test passed».**
-No es un fallo: es un aviso bueno. Significa que arreglaste uno de los siete errores
-conocidos del motor, y ese test estaba registrado como «falla a propósito». Hay que ir a
+No es un fallo: es un aviso bueno. Significa que arreglaste uno de los errores conocidos
+del motor, y ese test estaba registrado como «falla a propósito». Hay que ir a
 `michef/src/engine/__tests__/bugs.test.ts`, quitarle el `.failing` a ese test, y ya queda
 como un test normal que protege el arreglo.
+
+Quedan **tres** así: BUG-2, BUG-3 y BUG-6. Los otros cuatro ya se arreglaron y sus tests
+son normales. Los tres que faltan necesitan antes un catálogo de ingredientes (con la
+unidad natural de cada uno y su densidad) y un sitio donde validar lo que entra; por eso
+esperan, no por olvido.
 
 **Arreglar en vez de comprobar.** Estos dos corrigen solos lo que se puede corregir solo:
 

@@ -23,6 +23,19 @@ export interface RecetaIngrediente {
   unidad: Unidad;
 }
 
+/**
+ * Lo que devuelve `escalarReceta`: cantidades YA multiplicadas por las porciones
+ * del hogar. Es un tipo aparte a propósito (arreglo de BUG-7). Antes devolvía
+ * `RecetaIngrediente`, cuyo campo se llama `cantidadPorPorcion`, con el total
+ * dentro. Encadenar dos escalados multiplicaba dos veces y el tipo no delataba
+ * nada. Ahora encadenar por accidente ni siquiera compila.
+ */
+export interface IngredienteEscalado {
+  ingredienteId: IngredienteId;
+  cantidadTotal: number;
+  unidad: Unidad;
+}
+
 export interface Receta {
   id: RecetaId;
   titulo: string;
@@ -36,7 +49,13 @@ export interface Receta {
 
 export interface ItemInventario {
   ingredienteId: IngredienteId;
-  cantidad: number;
+  /**
+   * Gramos o mililitros. **Opcional a propósito** (arreglo de BUG-1): una foto
+   * de nevera casi siempre dice QUÉ hay, no CUÁNTO. `undefined` significa
+   * «está, no sé cuánto», que no es lo mismo que `0` («no queda»). Confundir
+   * los dos borraba del inventario la mitad de lo que la cámara reconocía.
+   */
+  cantidad?: number;
   unidad: Unidad;
   /** 0..1 — nunca se presenta como exacto */
   confianza: number;

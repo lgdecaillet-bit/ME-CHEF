@@ -36,7 +36,9 @@ export function fusionarEscaneo(
     } else {
       porId.set(d.ingredienteId, {
         ingredienteId: d.ingredienteId,
-        cantidad: d.cantidad ?? 0,
+        // Sin `?? 0`: lo que la foto no cuenta entra SIN cantidad, no con cero.
+        // La lista de mercado ya sabe tratar una cantidad desconocida.
+        cantidad: d.cantidad,
         unidad: 'g',
         confianza: CONFIANZA[d.certeza],
         origen: 'escaneo',
@@ -53,7 +55,12 @@ export function fusionarEscaneo(
     }
   }
 
-  return [...porId.values()].filter((i) => i.cantidad > 0 && i.confianza > 0.1);
+  // El filtro mira la CONFIANZA, no la cantidad. Un ingrediente sin cantidad
+  // conocida sigue estando en la nevera y sigue sirviendo para hacer recetas;
+  // uno con cantidad 0 sí se va, porque eso significa que se acabó.
+  return [...porId.values()].filter(
+    (i) => (i.cantidad == null || i.cantidad > 0) && i.confianza > 0.1
+  );
 }
 
 /** Al terminar de cocinar, lo usado sale del inventario. */
@@ -65,9 +72,12 @@ export function descontarCocinado(
   for (const u of usados) {
     const item = porId.get(u.ingredienteId);
     if (!item) continue;
+    // Si no se sabía cuánto había, cocinar no lo convierte en un número: sigue
+    // sin saberse. Restar sobre un cero inventado daría un inventario falso.
+    if (item.cantidad == null) continue;
     item.cantidad = Math.max(0, item.cantidad - u.cantidad);
   }
-  return [...porId.values()].filter((i) => i.cantidad > 0);
+  return [...porId.values()].filter((i) => i.cantidad == null || i.cantidad > 0);
 }
 
 /**

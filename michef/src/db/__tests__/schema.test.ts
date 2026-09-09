@@ -23,7 +23,7 @@ import { is } from 'drizzle-orm';
 import { SQLiteTable, getTableConfig } from 'drizzle-orm/sqlite-core';
 import { generateSQLiteDrizzleJson, generateSQLiteMigration } from 'drizzle-kit/api';
 import * as esquema from '../schema';
-import { comensal, hogar } from '../schema';
+import { comensal, hogar, inventario } from '../schema';
 
 /** El DDL real, generado desde schema.ts igual que lo hará la migración. */
 async function ddlDelEsquema(): Promise<string[]> {
@@ -130,6 +130,29 @@ describe('el esquema se puede crear en SQLite tal cual', () => {
     expect(JSON.parse(fila.d)).toEqual(['arroz', 'aceite', 'sal']);
   });
 
+  it('guarda un ítem de inventario sin cantidad y lo lee como NULL', () => {
+    // El metadato de Drizzle dice que la columna admite NULL; esto comprueba que
+    // SQLite de verdad lo acepta y lo devuelve. Es el caso normal de una foto de
+    // nevera: se ve el huevo, no se cuenta (arreglo de BUG-1).
+    //
+    // OJO con la frontera: aquí vuelve `null`, y el motor usa `undefined`
+    // (`ItemInventario.cantidad?: number`). Los dos significan «está, no sé
+    // cuánto» y todo el motor los trata igual porque compara con `== null`, pero
+    // la capa que lea de esta base tiene que normalizar `null → undefined`.
+    // Escrito en la decisión #49; el repositorio que lo haga llega en Fase 1.
+    db.prepare(
+      'insert into hogar (id, pais, moneda, idioma, creado_en) values (?, ?, ?, ?, ?)'
+    ).run('h1', 'CO', 'COP', 'es', Date.now());
+    db.prepare(
+      'insert into inventario (id, hogar_id, ingrediente_id, confianza, origen, entro_en, visto_en) values (?, ?, ?, ?, ?, ?, ?)'
+    ).run('i1', 'h1', 'huevo', 0.9, 'escaneo', Date.now(), Date.now());
+
+    const fila = db.prepare('select cantidad from inventario where id = ?').get('i1') as {
+      cantidad: number | null;
+    };
+    expect(fila.cantidad).toBeNull();
+  });
+
   it('borrar todo deja la base vacía, y se puede comprobar', () => {
     // «Se exporta y se borra entero, verificable» (CLAUDE.md).
     db.prepare(
@@ -185,6 +208,15 @@ describe('el esquema declara lo que la app necesita', () => {
       'nombre',
       'objetivo_id',
     ]);
+  });
+
+  it('la cantidad del inventario admite NULL, y eso es deliberado', () => {
+    // De esto depende el arreglo de BUG-1. `undefined` en el motor significa
+    // «está, no sé cuánto», que es el caso normal de una foto de nevera. Si
+    // alguien devolviera esta columna a NOT NULL, el motor seguiría guardando el
+    // ítem en memoria y reventaría al escribirlo en el teléfono, lejos de aquí.
+    expect(inventario.cantidad.notNull).toBe(false);
+    expect(hogar.id.notNull).toBe(true); // control: la aserción sabe distinguir
   });
 
   it('el factor de porción es obligatorio y vale 1 por defecto', () => {

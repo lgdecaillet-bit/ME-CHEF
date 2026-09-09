@@ -34,8 +34,9 @@ module.exports = {
   ignore: ['src/**/__fixtures__/**'],
 
   ignoreDependencies: [
-    // Genera las migraciones locales; se usa por línea de comandos, no se importa.
-    'drizzle-kit',
+    // drizzle-kit estuvo aquí hasta que `src/db/__tests__/schema.test.ts` empezó
+    // a importar `drizzle-kit/api` para generar el DDL. El ignore decía «se usa
+    // por línea de comandos, no se importa», y dejó de ser cierto. knip lo avisó.
     // Validación en la frontera. Entra en uso en D4 (respuestas del proxy) y D6 (env).
     'zod',
     // knip la infiere del preset de Expo aunque no esté instalada. Entra en D6.

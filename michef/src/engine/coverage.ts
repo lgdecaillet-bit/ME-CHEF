@@ -5,7 +5,7 @@
  * Regla dura (CLAUDE.md): una receta solo puede usar ingredientes marcados
  * como `seguro` más la despensa básica del hogar. Nunca inventar.
  */
-import type { ItemDetectado, Receta, Restriccion } from './types';
+import type { Comensal, ItemDetectado, Receta, Restriccion } from './types';
 
 export interface OpcionReceta {
   receta: Receta;
@@ -18,6 +18,20 @@ export function recetasConLoQueHay(
   catalogo: Receta[],
   detectado: ItemDetectado[],
   despensaBasica: string[],
+  /**
+   * Arreglo de BUG-5. **Obligatorio y en cuarto lugar a propósito.** Una alergia
+   * es una restricción DURA, y el comportamiento por defecto de una función de
+   * seguridad no puede ser «inseguro salvo que quien llama se acuerde». Antes,
+   * `Comensal.noCome` existía en el modelo y en la base de datos, pero esta
+   * función no lo veía: había que traducirlo a mano a una restricción
+   * `excluir_ingrediente`, y nada obligaba a hacerlo.
+   *
+   * Con un valor por defecto seguiría escapándose: bastaría olvidar el argumento
+   * para volver al comportamiento roto, y el compilador callaría. Un hogar sin
+   * comensales registrados pasa `[]`, que es una afirmación explícita, no un
+   * descuido.
+   */
+  comensales: Comensal[],
   restricciones: Restriccion[] = [],
   cuantas = 3
 ): OpcionReceta[] {
@@ -26,9 +40,12 @@ export function recetasConLoQueHay(
   );
   const disponibles = new Set([...seguros, ...despensaBasica]);
 
-  const excluidos = new Set(
-    restricciones.filter((r) => r.tipo === 'excluir_ingrediente').map((r) => r.valor)
-  );
+  // Lo que el usuario pide en la sesión MÁS lo que no come nadie del hogar.
+  // Lo segundo no es negociable ni depende de quién llame a esta función.
+  const excluidos = new Set([
+    ...restricciones.filter((r) => r.tipo === 'excluir_ingrediente').map((r) => r.valor),
+    ...comensales.flatMap((c) => c.noCome ?? []),
+  ]);
   const sinEquipo = new Set(
     restricciones.filter((r) => r.tipo === 'sin_equipo').map((r) => r.valor)
   );

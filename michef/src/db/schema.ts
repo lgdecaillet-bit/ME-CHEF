@@ -137,7 +137,11 @@ export const inventario = sqliteTable('inventario', {
     .notNull()
     .references(() => hogar.id),
   ingredienteId: text('ingrediente_id').notNull(), // → catálogo compartido
-  cantidad: real('cantidad').notNull(), // gramos o mililitros
+  // Sin notNull a propósito (arreglo de BUG-1): NULL es «está, no sé cuánto»,
+  // que es el caso normal de una foto de nevera, y no es lo mismo que 0. Si esta
+  // columna volviera a ser obligatoria, el motor podría mantener el ítem en
+  // memoria y reventar después al guardarlo.
+  cantidad: real('cantidad'), // gramos o mililitros
   estado: text('estado').$type<'cerrado' | 'abierto' | 'resto'>(),
   confianza: real('confianza').notNull(), // 0..1
   origen: text('origen').notNull().$type<'escaneo' | 'factura' | 'manual'>(),

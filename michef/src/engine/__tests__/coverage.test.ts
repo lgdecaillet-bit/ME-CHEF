@@ -30,6 +30,7 @@ describe('recetasConLoQueHay', () => {
     const opciones = recetasConLoQueHay(
       [tortilla, arrozConHuevo],
       [detectado({ ingredienteId: 'huevo' }), detectado({ ingredienteId: 'patata' })],
+      [],
       []
     );
     expect(opciones.map((o) => o.receta.id)).toEqual(['tortilla']);
@@ -40,7 +41,8 @@ describe('recetasConLoQueHay', () => {
     const opciones = recetasConLoQueHay(
       [arrozConHuevo],
       [detectado({ ingredienteId: 'huevo' })],
-      ['arroz']
+      ['arroz'],
+      []
     );
     expect(opciones).toHaveLength(1);
   });
@@ -53,6 +55,7 @@ describe('recetasConLoQueHay', () => {
         detectado({ ingredienteId: 'huevo', certeza: 'seguro' }),
         detectado({ ingredienteId: 'patata', certeza: 'posible' }),
       ],
+      [],
       []
     );
     expect(opciones).toHaveLength(0);
@@ -67,7 +70,8 @@ describe('recetasConLoQueHay', () => {
     const opciones = recetasConLoQueHay(
       [soloDespensa, tortilla],
       [detectado({ ingredienteId: 'huevo' }), detectado({ ingredienteId: 'patata' })],
-      ['arroz']
+      ['arroz'],
+      []
     );
     // La tortilla usa 2 vistos (2×10 + 5 = 25); la otra usa 0 (0 + 100 = 100).
     // El ranking sigue pesando: con 100 gana. La regla es que cada visto vale 10.
@@ -81,8 +85,8 @@ describe('recetasConLoQueHay', () => {
       receta({ id: `r${n}`, ingredientes: [ingrediente('huevo')], ranking: n })
     );
     const foto = [detectado({ ingredienteId: 'huevo' })];
-    expect(recetasConLoQueHay(catalogo, foto, [])).toHaveLength(3);
-    expect(recetasConLoQueHay(catalogo, foto, [], [], 5)).toHaveLength(5);
+    expect(recetasConLoQueHay(catalogo, foto, [], [])).toHaveLength(3);
+    expect(recetasConLoQueHay(catalogo, foto, [], [], [], 5)).toHaveLength(5);
   });
 
   it('ordena de mejor a peor puntaje', () => {
@@ -92,6 +96,7 @@ describe('recetasConLoQueHay', () => {
     const opciones = recetasConLoQueHay(
       catalogo,
       [detectado({ ingredienteId: 'huevo' })],
+      [],
       []
     );
     expect(opciones.map((o) => o.receta.ranking)).toEqual([9, 4, 1]);
@@ -101,6 +106,7 @@ describe('recetasConLoQueHay', () => {
     const opciones = recetasConLoQueHay(
       [tortilla],
       [detectado({ ingredienteId: 'huevo' }), detectado({ ingredienteId: 'patata' })],
+      [],
       []
     );
     expect(opciones[0]?.visiblesUsados).toBe(2);
@@ -114,6 +120,7 @@ describe('recetasConLoQueHay', () => {
       [tortilla],
       [detectado({ ingredienteId: 'huevo' }), detectado({ ingredienteId: 'patata' })],
       [],
+      [],
       restricciones
     );
     expect(opciones).toHaveLength(0);
@@ -125,6 +132,7 @@ describe('recetasConLoQueHay', () => {
     const opciones = recetasConLoQueHay(
       [alHorno],
       [detectado({ ingredienteId: 'huevo' })],
+      [],
       [],
       restricciones
     );
@@ -147,6 +155,7 @@ describe('recetasConLoQueHay', () => {
       [lenta, rapida],
       [detectado({ ingredienteId: 'huevo' })],
       [],
+      [],
       restricciones
     );
     expect(opciones.map((o) => o.receta.id)).toEqual(['rapida']);
@@ -159,6 +168,7 @@ describe('recetasConLoQueHay', () => {
       recetasConLoQueHay(
         [justa],
         [detectado({ ingredienteId: 'huevo' })],
+        [],
         [],
         restricciones
       )
@@ -175,23 +185,24 @@ describe('recetasConLoQueHay', () => {
         [tortilla],
         [detectado({ ingredienteId: 'huevo' }), detectado({ ingredienteId: 'patata' })],
         [],
+        [],
         restricciones
       )
     ).toHaveLength(1);
   });
 
   it('un catálogo vacío no devuelve nada, y no explota', () => {
-    expect(recetasConLoQueHay([], [detectado()], [])).toEqual([]);
+    expect(recetasConLoQueHay([], [detectado()], [], [])).toEqual([]);
   });
 
   it('una foto vacía sin despensa no propone nada', () => {
-    expect(recetasConLoQueHay([tortilla], [], [])).toEqual([]);
+    expect(recetasConLoQueHay([tortilla], [], [], [])).toEqual([]);
   });
 
   it('una receta sin ingredientes se puede hacer siempre', () => {
     // Caso límite raro pero real: agua caliente, un té. No hay nada que faltar.
     const vacia = receta({ id: 'vacia', ingredientes: [] });
-    expect(recetasConLoQueHay([vacia], [], [])).toHaveLength(1);
+    expect(recetasConLoQueHay([vacia], [], [], [])).toHaveLength(1);
   });
 
   it('PROPIEDAD · nunca propone una receta con algo que no está disponible', () => {
@@ -210,7 +221,7 @@ describe('recetasConLoQueHay', () => {
             detectado({ ingredienteId: id, certeza: 'seguro' })
           );
           const disponibles = new Set<string>([...segurosIds, ...despensa]);
-          return recetasConLoQueHay(catalogo, foto, despensa, [], 10).every((o) =>
+          return recetasConLoQueHay(catalogo, foto, despensa, [], [], 10).every((o) =>
             idsDe(o.receta).every((id) => disponibles.has(id))
           );
         }
@@ -230,6 +241,7 @@ describe('recetasConLoQueHay', () => {
           const opciones = recetasConLoQueHay(
             catalogo,
             [detectado({ ingredienteId: 'huevo' })],
+            [],
             [],
             [],
             cuantasSePiden
