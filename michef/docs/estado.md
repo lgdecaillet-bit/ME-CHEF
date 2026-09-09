@@ -165,6 +165,16 @@ Abierto, sin urgencia:
 
 ---
 
+## Regla permanente · `COMANDOS.md`
+
+En la raíz del repo (`../../COMANDOS.md`) hay una chuleta de comandos para Luciano, que
+no escribe comandos de memoria. **Cada vez que un paso introduzca un comando nuevo que
+Luciano vaya a correr, se añade allí**, con qué hace y cuándo se usa, antes de dar el
+paso por cerrado. Si un comando no está en ese archivo, para Luciano no existe.
+
+Pendiente de añadir cuando existan: `npm run gates` (D2), `npm run supabase:test` (D4),
+`eas build` y `eas update` (D6–D7).
+
 ## Cómo se usa este archivo
 
 - **Al abrir sesión:** leer entero. Luego las últimas 3 entradas de `bitacora.md`. Luego
