@@ -896,3 +896,57 @@ en «¿qué pasa si alguien crea una tabla y se olvida de la política RLS?» �
 respuesta no puede ser «pasa».
 
 ---
+
+## 2026-09-09 · S-20260909-g · BUG-9: la lista de mercado ya no manda a comprar de menos
+
+Tarea: arreglo de BUG-9 · Rama: `fix/F1-bug9-redondeo-mercado` · Resultado: **186 tests**,
+cobertura 100 %, quinto bug cerrado.
+
+**Qué pasaba.** Había un solo redondeo amable, `redondear`, al más cercano, y se usaba
+para todo. Para una receta está bien: nadie mide 137 g de cebolla. Para la lista de
+mercado no: necesitar 12 salía como «compra 10».
+
+**El razonamiento, que es lo que hay que conservar.** Los dos errores del redondeo no
+cuestan lo mismo. Comprar de más deja medio paquete en la despensa; comprar de menos manda
+a la persona de vuelta a la tienda, que es justo lo que la app promete evitar. Cuando un
+sesgo es asimétrico, la función va en la dirección barata, no en la neutra. Quedó como
+**decisión #50**.
+
+**Qué se hizo.** Función nueva `redondearParaComprar`, mismos escalones con `Math.ceil`.
+**Dos funciones y no una con un booleano**: un parámetro se olvida, dos nombres distintos
+obligan a elegir. Es la misma leccción que dejó el revisor con `comensales` en #49.
+
+Y de paso, lo que no estaba en el registro original del bug: **`cantidadNecesaria` deja de
+redondearse.** Redondearla al más cercano era la misma mentira en el otro campo, y rompía
+la resta que ve el usuario. Ahora «necesitas 137, tienes 100, compra 40»: los dos primeros
+son verdad y solo el último, el que va a la tienda, lleva el redondeo amable. Se le quita
+el ruido de la coma flotante con `toFixed(2)`, igual que en `totalEstimado`.
+
+**Comprobado rompiéndolo:** con los tres `Math.ceil` devueltos a `Math.round`, caen ocho
+tests, entre ellos las dos propiedades nuevas. Revertido y comprobado con `git diff` que
+el archivo quedó con el cambio previsto y nada más.
+
+**Lo que encontró fast-check solo.** La propiedad «nunca se pasa más de un escalón»
+falló al primer intento con `x = 5e-324`, el double más pequeño que existe: el resultado
+es 0,5 y la resta da 0,5 clavado, porque la x se pierde en la precisión. Es un artefacto
+de la coma flotante y no un fallo del redondeo, así que el límite quedó en `<=` con el
+porqué escrito encima. Vale la pena anotarlo: la propiedad hizo su trabajo a la primera.
+
+Corrido, tal cual: `npm run gates` verde · 186 tests, 8 suites · cobertura 100 % en
+`engine`, `db` y `ai` · `npm run knip` limpio · `npx prettier --check .` limpio ·
+`npm run reglas` las nueve disparan · `gitleaks git` sin hallazgos.
+
+Decisiones nuevas: **#50**.
+
+Avances de Luciano: aprobó BUG-9 y delegó la ejecución de los merges. Mergeados por Claude
+los PR #4 (D3), #5 (cuatro bugs) y #6 (corrección del diagnóstico de gitleaks).
+
+Pendiente: **Luciano:** mergear el PR de esta rama, y aprobar **D4**, que se presenta a
+continuación. Queda **BUG-8** como único bug barato pendiente; necesita antes decidir la
+forma del inventario.
+
+Para la siguiente sesión: de los nueve bugs conocidos del motor quedan cuatro, y los
+cuatro esperan un dato o una decisión que aún no existe — no esperan tiempo. Están en
+`bugs.test.ts` con la condición escrita al lado. El siguiente paso del roadmap es D4.
+
+---

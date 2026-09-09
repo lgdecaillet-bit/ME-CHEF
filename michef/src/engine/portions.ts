@@ -29,11 +29,32 @@ export function escalarReceta(receta: Receta, porciones: number): IngredienteEsc
 }
 
 /**
- * Redondeo amable: nadie mide 137 g de cebolla.
- * Bajo 10 al entero, bajo 100 al múltiplo de 5, sobre 100 al de 10.
+ * Redondeo amable **al más cercano**: nadie mide 137 g de cebolla.
+ * Bajo 10 al medio, bajo 100 al múltiplo de 5, sobre 100 al de 10.
+ *
+ * Es el de las RECETAS, donde da igual pasarse o quedarse corto por dos gramos.
+ * Para la lista de mercado no sirve: ver `redondearParaComprar`.
  */
 export function redondear(cantidad: number, _unidad: 'g' | 'ml'): number {
   if (cantidad < 10) return Math.round(cantidad * 2) / 2;
   if (cantidad < 100) return Math.round(cantidad / 5) * 5;
   return Math.round(cantidad / 10) * 10;
+}
+
+/**
+ * El mismo redondeo amable, pero **siempre hacia arriba**. Es el de la LISTA DE
+ * MERCADO (arreglo de BUG-9).
+ *
+ * Por qué hacen falta dos: los dos errores del redondeo no cuestan lo mismo.
+ * Comprar de más deja medio paquete en la despensa; comprar de menos obliga a
+ * volver a la tienda, que es justo lo que la app promete evitar. Con el redondeo
+ * al más cercano, necesitar 12 salía como «compra 10».
+ *
+ * El sesgo va siempre en la dirección barata. Es la misma regla que hace que un
+ * ingrediente sin cantidad conocida cuente como cero y se compre (BUG-1).
+ */
+export function redondearParaComprar(cantidad: number, _unidad: 'g' | 'ml'): number {
+  if (cantidad < 10) return Math.ceil(cantidad * 2) / 2;
+  if (cantidad < 100) return Math.ceil(cantidad / 5) * 5;
+  return Math.ceil(cantidad / 10) * 10;
 }

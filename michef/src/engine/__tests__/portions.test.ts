@@ -5,7 +5,12 @@
  * y es una multiplicación: exactamente lo que nunca debe pedirle a un modelo.
  */
 import fc from 'fast-check';
-import { escalarReceta, porcionesDelHogar, redondear } from '../portions';
+import {
+  escalarReceta,
+  porcionesDelHogar,
+  redondear,
+  redondearParaComprar,
+} from '../portions';
 import { comensal, ingrediente, receta } from './ayudas';
 
 describe('porcionesDelHogar', () => {
@@ -219,6 +224,60 @@ describe('escalarReceta', () => {
             (e, i) => e.ingredienteId === ings[i]!.id && e.unidad === ings[i]!.unidad
           );
         }
+      )
+    );
+  });
+});
+
+describe('redondearParaComprar', () => {
+  // La diferencia con `redondear` es toda la función: mismo escalón, otra
+  // dirección. Si algún día las dos hacen lo mismo, este bloque lo dice.
+  it.each([
+    [12, 15],
+    [11, 15],
+    [15, 15],
+    [101, 110],
+    [100, 100],
+    [3.1, 3.5],
+    [2.5, 2.5],
+    [98, 100],
+  ])('%d se compra como %d', (entra, sale) => {
+    expect(redondearParaComprar(entra, 'g')).toBe(sale);
+  });
+
+  it('cero sigue siendo cero: no manda a comprar lo que no falta', () => {
+    expect(redondearParaComprar(0, 'g')).toBe(0);
+  });
+
+  it('PROPIEDAD · nunca devuelve menos de lo que entra', () => {
+    // El invariante del arreglo de BUG-9, sobre la función sola.
+    fc.assert(
+      fc.property(
+        fc.double({ min: 0, max: 10000, noNaN: true }),
+        (x) => redondearParaComprar(x, 'g') >= x
+      )
+    );
+  });
+
+  it('PROPIEDAD · nunca se pasa más de un escalón', () => {
+    // Comprar de más es barato, pero no gratis: el sesgo tiene tope.
+    // El límite es `<=` y no `<` por un caso real que encontró fast-check:
+    // con x = 5e-324 (el double más pequeño que existe) el resultado es 0,5 y la
+    // resta da 0,5 clavado, porque x se pierde en la precisión. Es un artefacto
+    // de la coma flotante, no un fallo del redondeo.
+    fc.assert(
+      fc.property(fc.double({ min: 0, max: 10000, noNaN: true }), (x) => {
+        const escalon = x < 10 ? 0.5 : x < 100 ? 5 : 10;
+        return redondearParaComprar(x, 'g') - x <= escalon;
+      })
+    );
+  });
+
+  it('PROPIEDAD · nunca devuelve menos que el redondeo al más cercano', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: 0, max: 10000, noNaN: true }),
+        (x) => redondearParaComprar(x, 'g') >= redondear(x, 'g')
       )
     );
   });

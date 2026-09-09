@@ -10,10 +10,10 @@ Actualizado: 2026-09-09 · por sesión S-20260909-g
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | D3 **mergeado** (PR #4, `72a0d1a`). En curso: `fix/F1-motor-cuatro-bugs`, adelanto de Fase 1 |
-| **Decisiones vigentes** | hasta **#49** |
+| **Paso actual** | Cinco bugs del motor arreglados (PR #5, #7). Siguiente: **D4**, Supabase como código |
+| **Decisiones vigentes** | hasta **#50** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `fix/F1-motor-cuatro-bugs` — espera merge. D4 sale de `main` |
+| **Rama de trabajo** | `fix/F1-bug9-redondeo-mercado` — espera merge. D4 sale de `main` |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -47,7 +47,8 @@ Se vacía al cambiar de día.
 | Tarea | Rama | Sesión | Desde | Estado |
 |---|---|---|---|---|
 | D0.5 · memoria del proyecto | `main` (solo docs, pre-Git-flow) | S-20260909-a | 2026-09-09 | **hecha** |
-| Arreglo de BUG-1, 4, 5 y 7 | `fix/F1-motor-cuatro-bugs` | S-20260909-g | 2026-09-09 | en revisión, espera merge |
+| Arreglo de BUG-1, 4, 5 y 7 | `fix/F1-motor-cuatro-bugs` | S-20260909-g | 2026-09-09 | **mergeada** (PR #5) |
+| Arreglo de BUG-9 | `fix/F1-bug9-redondeo-mercado` | S-20260909-g | 2026-09-09 | espera merge |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -170,8 +171,9 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    alergia había quedado como parámetro opcional, o sea con el mismo agujero que decía
    cerrar — y encontró **BUG-8**, que ya está registrado. Corregido todo. Espera merge.
 
-   **Decisión que le toca a Luciano:** BUG-8 y BUG-9 son los dos arreglos más baratos que
-   quedan. BUG-9 es un `Math.ceil`. BUG-8 necesita antes decidir la forma del inventario.
+6. ~~BUG-9~~ **hecho** (rama `fix/F1-bug9-redondeo-mercado`, decisión #50). **186 tests.**
+   Espera merge. Queda **BUG-8** como único bug barato pendiente, y necesita antes decidir
+   la forma del inventario.
 6. Claude presenta **D4** (`chore/supabase`): `supabase init`, migración 0001 con el
    esquema actual, migración 0002 con **RLS en todas las tablas**, tests pgTAP que
    comprueban que `anon` NO puede escribir en `precio` ni leer `cache_modelo`, esqueleto
@@ -217,15 +219,18 @@ Abierto, sin urgencia:
 - ~~`inventory.ts` con `ahora: Date = new Date()`~~ cubierto en D3: los tests pasan la
   fecha siempre, y hay dos que ejercitan el valor por defecto a propósito. Fase 1 sigue
   debiendo quitar el default.
-- **De los 7 bugs del motor, 4 están arreglados y 3 siguen registrados**
-  (decisión #49). Viven en `src/engine/__tests__/bugs.test.ts`.
+- **De los 9 bugs del motor, 5 están arreglados y 4 siguen registrados**
+  (decisiones #49 y #50). Viven en `src/engine/__tests__/bugs.test.ts`.
   - **Arreglados:** BUG-1 (la foto perdía lo que no contaba), BUG-4 (las filas
     repetidas del inventario), BUG-5 (las alergias no llegaban al filtro) y BUG-7
-    (el campo que decía «por porción» y traía el total). Sus tests ya no son
-    `.failing`: son tests de regresión normales.
+    (el campo que decía «por porción» y traía el total), más **BUG-9** (la lista
+    de mercado redondeaba hacia abajo lo que hay que comprar). Sus tests ya no
+    son `.failing`: son tests de regresión normales.
   - **Abiertos, como `.failing`:** BUG-2 y BUG-3 necesitan un catálogo de
     ingredientes con unidad canónica y densidad; BUG-6 necesita una frontera donde
-    validar. Sin esos datos, arreglarlos sería inventarse las conversiones.
+    validar; **BUG-8** necesita decidir si el inventario se normaliza a una fila
+    por (ingrediente, unidad, origen). Sin eso, arreglarlos sería inventarse las
+    conversiones o la forma de los datos.
   - Al arreglar uno, su test se pone rojo con «Failing test passed»: hay que
     quitarle el `.failing`.
 - **ESLint: siete reglas de `import/*` apagadas** en D3, registrado como **decisión
@@ -244,10 +249,9 @@ Abierto, sin urgencia:
     Lo encontró el revisor mirando el arreglo de BUG-4. **Antes de arreglarlo hay
     que decidir** si el inventario se normaliza a una fila por (ingrediente,
     unidad, origen).
-  - **BUG-9**: `redondear` va al más cercano, y la lista de mercado lo aplica a
-    la cantidad a comprar: si hacen falta 12, manda a comprar 10. Debería ir
-    hacia arriba — quedarse corto obliga a volver a la tienda. Técnicamente es un
-    `Math.ceil`; falta el «adelante» porque cambia números que ve el usuario.
+  - ~~**BUG-9**~~ **arreglado** el 2026-09-09 (decisión #50). `redondearParaComprar`
+    redondea hacia arriba y es la que usa la lista; `redondear` sigue al más
+    cercano para las recetas. `cantidadNecesaria` deja de redondearse.
 - **Límite conocido, sin registrar como bug:** `LineaMercado.cantidadEnCasa` es un
   `number`, así que un ingrediente que está pero sin cantidad conocida sale como
   `0`. El número a comprar es correcto; el «0» es una media verdad que llegará a

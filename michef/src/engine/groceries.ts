@@ -7,7 +7,7 @@
  */
 import type { ItemInventario, LineaMercado, Receta } from './types';
 import { UMBRAL_CONFIABLE } from './inventory';
-import { redondear } from './portions';
+import { redondearParaComprar } from './portions';
 
 export interface PrecioConocido {
   ingredienteId: string;
@@ -57,13 +57,20 @@ export function listaDeMercado(
   const lineas: LineaMercado[] = [];
   for (const [ingredienteId, { cantidad, unidad }] of necesario) {
     const tengo = enCasa.get(`${ingredienteId}|${unidad}`) ?? 0;
-    const comprar = redondear(Math.max(0, cantidad - tengo), unidad);
+    // Hacia arriba, nunca al más cercano (BUG-9): una lista que se queda corta
+    // manda a la persona de vuelta a la tienda.
+    const comprar = redondearParaComprar(Math.max(0, cantidad - tengo), unidad);
     if (comprar === 0) continue;
 
     const precio = preciosPorId.get(ingredienteId);
     lineas.push({
       ingredienteId,
-      cantidadNecesaria: redondear(cantidad, unidad),
+      // Sin redondeo amable: es lo que las recetas piden de verdad, y es el
+      // número con el que cuadra la resta que ve el usuario
+      // (necesaria − en casa = lo que falta, antes de redondear la compra).
+      // El `toFixed` solo quita el ruido de la coma flotante, como en
+      // `totalEstimado`; no cambia la magnitud.
+      cantidadNecesaria: +cantidad.toFixed(2),
       cantidadEnCasa: tengo,
       cantidadAComprar: comprar,
       unidad,
