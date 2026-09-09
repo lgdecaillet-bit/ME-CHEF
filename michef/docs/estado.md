@@ -5,15 +5,15 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-09 · por sesión S-20260909-c
+Actualizado: 2026-09-09 · por sesión S-20260909-d
 
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D0 cerrado** y **primer commit en `main`** (`a5bfa0c`, 2026-09-09). Siguiente: presentar D1 |
+| **Paso actual** | **D1 hecho** (`chore/F0-D1-bootstrap`, PR abierto, espera merge de Luciano). Siguiente: presentar D2 |
 | **Decisiones vigentes** | hasta **#43** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `main` todavía. Primer PR será D1 (`chore/bootstrap`) |
+| **Rama de trabajo** | `chore/F0-D1-bootstrap` — mergear a `main` y borrar. D2 sale de `main` |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -37,14 +37,13 @@ Se vacía al cambiar de día.
 | S-20260909-a | planificación + D0.5 | cerrada |
 | S-20260909-b | acompañar D0 paso a paso + rename a ME CHEF | cerrada |
 | S-20260909-c | primer commit y push a `main` sin `research/` | cerrada |
+| S-20260909-d | D1 · chore/bootstrap | cerrada |
 
 ## Tareas tomadas
 
 | Tarea | Rama | Sesión | Desde | Estado |
 |---|---|---|---|---|
 | D0.5 · memoria del proyecto | `main` (solo docs, pre-Git-flow) | S-20260909-a | 2026-09-09 | **hecha** |
-
-Ninguna otra. Nadie ha tomado D1.
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -59,8 +58,8 @@ desde el primer PR de código.
 | — | Docs de planificación: roadmap, protocolos, diseño, fases 0–6 | Claude | ✅ hecho |
 | D0 | Cuentas y herramientas | **Luciano** | ✅ hecho (detalle abajo) |
 | D0.5 | `estado.md`, `bitacora.md`, `decisiones.md` numerado, protocolo en `CLAUDE.md`, `revisor.md` | Claude | ✅ hecho |
-| D1 | `chore/bootstrap`: migrar starter a `michef/`, limpiar scaffold | Claude | ⏳ espera presentación + «adelante» |
-| D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ⏳ |
+| D1 | `chore/bootstrap`: migrar starter a `michef/`, limpiar scaffold | Claude | ✅ hecho (PR espera merge) |
+| D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ⏳ espera presentación + «adelante» |
 | D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ⏳ |
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ⏳ |
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ⏳ |
@@ -133,9 +132,16 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 ## Siguiente paso concreto
 
 1. ~~Primer commit en `main`~~ hecho: `a5bfa0c` (sesión c). `research/` fuera.
-2. Claude presenta **D1** (`chore/bootstrap`) para aprobación: lista exacta de archivos a
-   mover de `michef-starter/` a `michef/`, qué se borra del scaffold, y el texto de los
-   cambios a `CLAUDE.md`. No se ejecuta nada sin «adelante» (decisión #34).
+2. ~~D1 `chore/bootstrap`~~ construido y revisado (`APROBADO` tras instalar `drizzle-orm`).
+   **Falta que Luciano lo verifique en Expo Go y mergee el PR.**
+3. Claude presenta **D2** (tooling: ESLint, Prettier, Husky, lint-staged, commitlint,
+   dependency-cruiser, knip, gitleaks, Jest + RNTL + fast-check + better-sqlite3) con la
+   tabla de paquetes y versiones, las reglas de ESLint y depcruise, los umbrales de
+   cobertura y los scripts de `package.json`. No se ejecuta nada sin «adelante» (#34).
+
+Propuesto aparte, dos minutos, cuando Luciano quiera: **regla de rama básica en `main`**
+(solo PRs, sin push directo, sin force-push). No depende de que exista CI; los checks
+requeridos se añaden en D5.
 
 Abierto, sin urgencia:
 - El casing del nombre quedó en versales, `ME CHEF`, 1.059 veces en prosa. Si se prefiere
@@ -144,6 +150,15 @@ Abierto, sin urgencia:
   usa el Postgres local de Supabase.
 - En D6, verificar si `@sentry/wizard` necesita `SENTRY_URL=https://de.sentry.io` por ser
   la organización de región EU.
+- **Node 22.12.0 y metro 0.84.5 pide `^22.13.0`.** Hoy es solo un aviso `EBADENGINE`;
+  puede volverse error si CI (D5) usa otra versión. La actualización de Node la corre
+  Luciano, no el agente.
+- En D2: `.gitattributes` con `* text=auto eol=lf` (git avisa LF→CRLF en cada `add`), y
+  decidir si se fijan todas las versiones de `package.json` (hoy vienen con `~` del
+  scaffold; `drizzle-orm` sí quedó fijada exacta).
+- Para D3/Fase 1: `src/engine/inventory.ts` usa `ahora: Date = new Date()` como valor por
+  defecto — impureza latente. Los tests deben pasar `ahora` siempre; Fase 1 quita el
+  default.
 
 ---
 

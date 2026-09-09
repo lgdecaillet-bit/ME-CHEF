@@ -1,56 +1,135 @@
-# Welcome to your Expo app 👋
+# ME CHEF
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App iOS que resuelve la fatiga de decidir qué comer. Le tomas una foto a la
+nevera y en segundos tienes tres recetas con lo que hay.
 
-## Get started
+- **Producto, backend y stack:** `docs/producto.html` (ábrelo en el navegador)
+- **Reglas del proyecto:** `CLAUDE.md` — léelo antes de tocar código
+- **Decisiones tomadas:** `docs/decisiones.md`
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## Puesta en marcha en Windows
 
-2. Start the app
+Todo se hace desde Windows. No hace falta un Mac: EAS Build compila y sube en la
+nube.
 
-   ```bash
-   npx expo start
-   ```
+### 0. Requisitos
 
-In the output, you'll find options to open the app in a
+- [Node.js LTS](https://nodejs.org) (incluye npm)
+- [Git](https://git-scm.com)
+- La app **Expo Go** en tu iPhone (App Store), para probar mientras desarrollas
+- Cuenta gratuita en [expo.dev](https://expo.dev) y en [supabase.com](https://supabase.com)
+- Apple Developer Program (99 USD/año) — necesario solo cuando vayas a TestFlight
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Comprueba que todo está:
 
 ```bash
-npm run reset-project
+node -v
+npm -v
+git --version
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 1. Crear el proyecto Expo
 
-### Other setup steps
+Desde la carpeta donde quieras el repo:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npx create-expo-app@latest michef
+cd michef
+```
 
-## Learn more
+### 2. Copiar encima los archivos de este starter
 
-To learn more about developing your project with Expo, look at the following resources:
+Copia el contenido de este paquete dentro de `michef/`, respetando las carpetas.
+Si Windows pregunta por archivos repetidos, quédate con los de este paquete
+excepto `package.json` (ese lo generó Expo y no hay que tocarlo).
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 3. Instalar dependencias
 
-## Join the community
+```bash
+npx expo install expo-sqlite expo-camera expo-notifications expo-apple-authentication expo-secure-store expo-file-system expo-background-task
+npm install drizzle-orm @supabase/supabase-js
+npm install -D drizzle-kit typescript @types/react
+```
 
-Join our community of developers creating universal apps.
+### 4. Variables de entorno
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+copy .env.example .env
+```
+
+Rellena `.env` con la URL y la clave anónima de tu proyecto Supabase
+(Settings → API). **Nunca pongas ahí claves de modelos de IA**: esas viven solo
+en las Edge Functions.
+
+### 5. Correr en tu iPhone
+
+```bash
+npx expo start
+```
+
+Escanea el QR con la cámara del iPhone. La app abre en Expo Go y recarga sola al
+guardar.
+
+### 6. Base de datos compartida
+
+En el panel de Supabase, SQL Editor, pega y ejecuta `supabase/schema.sql`.
+Crea el catálogo compartido (ingredientes, productos, precios, recetas) con
+pgvector activado.
+
+### 7. Primer build a TestFlight (cuando estés listo)
+
+```bash
+npm install -g eas-cli
+eas login
+eas build:configure
+eas build --platform ios
+eas submit --platform ios
+```
+
+EAS gestiona certificados y perfiles solo. El plan gratuito da 15 builds iOS al
+mes y cada build tarda entre 15 y 35 minutos.
+
+### 8. Git
+
+```bash
+git init
+git add .
+git commit -m "Base del proyecto: reglas, esquema y motor determinista"
+```
+
+Luego crea el repo en GitHub y sigue las instrucciones que te da para conectarlo.
+
+---
+
+## Mapa del repo
+
+```
+CLAUDE.md              reglas del proyecto — se lee en cada sesión
+docs/
+  producto.html        producto, backend y stack en tres pestañas
+  decisiones.md        qué se decidió y por qué
+src/
+  db/schema.ts         datos personales (SQLite en el teléfono)
+  engine/              motor determinista — sin IA, sin red, testeable
+    types.ts
+    portions.ts        escalar recetas al hogar
+    groceries.ts       lista de mercado = necesario − inventario
+    inventory.ts       fusión de escaneo y factura con el inventario
+    coverage.ts        tres recetas con lo que hay
+  ai/                  clientes que llaman al proxy, nunca a los modelos
+supabase/
+  schema.sql           catálogo compartido, sin identidad
+  functions/ai-proxy/  proxy de modelos: aquí viven las keys
+eval/                  harness de las 200 fotos (Promptfoo)
+```
+
+## Reglas que no se rompen
+
+Están todas en `CLAUDE.md`. Las tres que más se olvidan:
+
+1. Ninguna API key de modelo en la app. Todo por el proxy.
+2. `src/engine/` nunca importa de `src/ai/`.
+3. Una receta a partir de una foto solo usa ingredientes `seguro` más la
+   despensa básica. Nunca inventar.

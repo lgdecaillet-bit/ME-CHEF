@@ -217,3 +217,79 @@ con la lista exacta de archivos a mover, borrar y editar, y el texto de los camb
 Luciano; en D4 no arrancar `teso-dev-db` (puerto 54322); en D6 verificar `SENTRY_URL`.
 
 ---
+
+## 2026-09-09 · S-20260909-d · D1 · `chore/bootstrap`
+
+Tarea: F0-D1 · Rama: `chore/F0-D1-bootstrap` · Resultado: `michef/` es ME CHEF;
+`michef-starter/` borrado. 64 archivos, +539 −1.764. Revisor: `APROBADO` tras instalar
+`drizzle-orm`. PR abierto, espera verificación en Expo Go y merge de Luciano.
+
+Tocado:
+- **13 renombrados** de `michef-starter/` a `michef/` (byte a byte, con historia):
+  `CLAUDE.md`, `README.md`, `docs/producto.html`, `src/engine/` (6), `src/db/schema.ts`,
+  `src/ai/client.ts`, `supabase/schema.sql`, `supabase/functions/ai-proxy/README.md`,
+  `eval/README.md`, `.env.example`.
+- **42 borrados**: 39 del scaffold de demo (`src/app/explore.tsx`, `src/components/`,
+  `src/constants/`, `src/hooks/`, `src/global.css`, `scripts/reset-project.js`,
+  `LICENSE` del template, imágenes de Expo/React/Android/tabIcons) y 3 del starter
+  (`.gitignore`, `tsconfig.json`, `docs/decisiones.md` que era un puntero). Quedan
+  `icon.png`, `splash-icon.png` y `assets/expo.icon/`: los referencia `app.json`.
+- **9 modificados**: `CLAUDE.md` (sección «Cuenta» por #29; «Estado y orden» ahora apunta
+  a `roadmap.md`/`fases/`; «Cómo trabajar conmigo» + gates, `--no-verify`, una feature un
+  PR, instalaciones globales las corre Luciano; sección nueva «Cómo se verifica»; quitada
+  la nota de rutas relativas), `README.md` (el del starter reemplaza al del template; D8
+  lo reescribe), `app.json` (`name: "ME CHEF"`, sin `android` ni `web`; `slug` y `scheme`
+  siguen `michef`), `package.json` (fuera `react-dom`, `react-native-web`, `@expo/ui`,
+  `expo-glass-effect`, `expo-symbols`, `expo-image`, `expo-web-browser`, `expo-device` y
+  los scripts `android`, `web`, `reset-project`; dentro `drizzle-orm`),
+  `package-lock.json`, `.gitignore` (+ `*.log`, `.env`, `.env.local`, `eval/fotos/`,
+  `eval/resultados/`), `src/app/_layout.tsx` y `src/app/index.tsx` (mínimos, con
+  `testID="home"`), `docs/estado.md`.
+
+Corrido, tal cual:
+- `npx tsc --noEmit` → **1 error**: `src/db/schema.ts:10` importa `drizzle-orm/sqlite-core`
+  y `drizzle-orm` no estaba instalado. No estaba en la lista aprobada, así que se paró y
+  se preguntó (decisión #34). Luciano aprobó la instalación.
+- `npm install --save-exact drizzle-orm@0.45.2` → `added 1 package in 16s`. Versión fijada
+  exacta, última publicación 2026-08-12, `postinstall`: ninguno. Solo se importa
+  `sqlite-core` (tipos y builders, sin nativo). Ya estaba en `CLAUDE.md § Stack`, así que
+  no es decisión de visión nueva.
+- `npx tsc --noEmit` → **0 errores**.
+- `npm audit --audit-level=high` → sin alta/crítica. Quedan 2 moderados en transitivas de
+  Expo (`decode-uri-component` vía `expo-router`, `uuid` vía `@expo/config-plugins`); el
+  fix es `--force` y rompe `expo-router`. Se aceptan y se revisan en D2.
+- `npx expo export --platform ios` → bundle Hermes 2,3 MB, sin errores. Grep de
+  `sk-ant-`, `AIza…`, `service_role`, `sbp_…` en el bundle → **0**.
+- `npx expo-doctor` (lo corrió el revisor) → 18/18.
+- Grep de `@/components|@/hooks|@/constants|global.css` en `src/` → **0**.
+- `npm install` avisa `EBADENGINE`: metro 0.84.5 pide Node `^22.13.0`, la máquina tiene
+  22.12.0. Hoy es aviso, no error.
+- Git avisa LF→CRLF en cada `add`. Pendiente `.gitattributes` en D2.
+
+Revisor: veredicto `CAMBIOS` en la primera pasada, por el `tsc` rojo (criterio de salida
+de D1) y por una viñeta de `CLAUDE.md` fuera de la lista aprobada («las instalaciones
+globales de npm las corre Luciano»). Ambos resueltos: instalada `drizzle-orm` con
+aprobación; la viñeta se reportó a Luciano y la mantuvo. El revisor dejó cinco apuntes
+«para después», recogidos en `estado.md § Abierto`.
+
+Decisiones nuevas: ninguna. `drizzle-orm` ya estaba en `CLAUDE.md § Stack`.
+
+Avances de Luciano: «adelante» a D1 con la lista presentada; aprobó instalar lo necesario
+para que `tsc` pase; mantuvo la viñeta de instalaciones globales. Preguntó por qué D1 se
+mergea sin CI ni reglas de rama: se le explicó que CI no tiene nada que correr hasta D2 y
+que un ruleset exigiendo un check inexistente bloquearía todos los PRs; se le ofreció la
+regla básica de `main` (solo PRs, sin force-push) como paso aparte de dos minutos.
+
+Pendiente:
+- **Luciano:** abrir la app en Expo Go (`npx expo start` en `michef/`) y confirmar que se
+  ve «ME CHEF»; después mergear el PR y borrar la rama.
+- D2 espera presentación y «adelante».
+- Node 22.12.0 vs `^22.13.0` de metro.
+
+Para la siguiente sesión: si el PR está mergeado, salir de `main` actualizado y presentar
+D2 (tooling) con la tabla de paquetes, las reglas de ESLint y dependency-cruiser, los
+umbrales de cobertura y los scripts. No instalar nada sin «adelante». Recordar: las
+instalaciones globales las corre Luciano; en D4 no arrancar `teso-dev-db` (puerto 54322);
+en D6 verificar `SENTRY_URL=https://de.sentry.io`.
+
+---
