@@ -121,22 +121,28 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 
 ## Bloqueos
 
-- **El enganche de pre-commit no está revisando secretos, desde D2.** gitleaks 8.30.1
-  **sí está instalado** — `winget list` lo confirma — pero winget no creó el enlace en
-  `WinGet\Links`, así que el ejecutable no está en el PATH y el enganche cae en su rama
-  de aviso: imprime «gitleaks no está instalado» y **deja pasar el commit**. O sea que
-  los PR #3 y #4 se commitearon sin revisión local de secretos.
-  - **Comprobado a mano el 2026-09-09** con la ruta completa del ejecutable:
-    `gitleaks git` sobre los 10 commits del repo → **no leaks found**. El árbol de
-    trabajo da 573 hallazgos, de los cuales 572 están en `research/` (ignorado, 2,6 GB
-    de datos crudos) y **uno** en `michef/.env`, que es el archivo real de Luciano:
-    está sin seguir por git e ignorado por `michef/.gitignore:47`. Es exactamente donde
-    debe estar una clave. **Nada se ha filtrado.**
-  - Lo arregla Luciano con el comando de `COMANDOS.md` § «El commit dice AVISO», y hay
-    que reabrir la terminal. No bloquea el trabajo, pero cuanto antes.
-  - El enganche funciona: la rama de aviso es deliberada (un enganche que se cae por no
-    tener una herramienta es peor). Lo que falló fue dar por instalado lo que estaba
-    instalado pero inalcanzable. **Comprobar la herramienta, no el instalador.**
+- ~~El enganche de pre-commit no revisa secretos~~ **Diagnosticado mal y corregido el
+  mismo día.** Los commits de las sesiones de Claude imprimían «gitleaks no está
+  instalado» y pasaban sin revisar. La primera explicación escrita aquí fue que winget
+  no había dejado el ejecutable en el PATH. **Era falsa**, y comprobarla antes de
+  arreglar nada fue lo que lo destapó: el registro (`HKCU:\Environment`) ya contenía la
+  carpeta, y un proceso nuevo que relee el PATH encuentra `gitleaks.exe` sin tocar nada.
+  - **La causa real:** una terminal hereda la lista de programas que había al abrirla.
+    La sesión de Claude arrancó antes de que Luciano instalara gitleaks, así que sus
+    procesos hijos — y con ellos el enganche — nunca lo vieron. **En la terminal de
+    Luciano el enganche sí funciona.** No hay nada que instalar ni que configurar: se
+    cierra y se abre la terminal.
+  - Lección, que vale para D4 y D5 igual: «la herramienta no está» y «este proceso no
+    la ve» se parecen mucho y se arreglan distinto. Antes de escribir una causa, hay que
+    comprobarla; escribir la equivocada en `estado.md` habría mandado a Luciano a
+    reconfigurar algo que ya estaba bien.
+  - **Lo que sí quedó verificado, y era lo importante:** `gitleaks git` sobre los 10
+    commits del repo → **no leaks found**. El árbol de trabajo da 573 hallazgos, 572 en
+    `research/` (ignorado, 2,6 GB de datos crudos) y **uno** en `michef/.env`, que está
+    sin seguir por git e ignorado por `michef/.gitignore:47`. Es exactamente donde debe
+    estar una clave. **Nada se ha filtrado.**
+  - Pendiente real, pequeño: que las sesiones de Claude corran el enganche con el PATH
+    al día. Hasta D5 (CI), el respaldo es correr `gitleaks git` a mano antes de un PR.
 
 - **D1 no empieza** hasta que Luciano reporte D0 verificado (0.1–0.9) y diga «adelante» a D1.
 - ~~Nada está commiteado~~ **Resuelto el 2026-09-09:** `a5bfa0c` en `origin/main` con

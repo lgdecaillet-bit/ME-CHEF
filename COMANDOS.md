@@ -165,23 +165,26 @@ npm run test:watch
 ```
 
 **El commit dice «AVISO: gitleaks no está instalado».**
-Sí está instalado (8.30.1), pero winget no lo dejó en el PATH, así que el enganche no
-encuentra el programa y **deja pasar el commit sin revisar secretos**. Se arregla una sola
-vez, con esto:
+Casi siempre significa una sola cosa: **esa terminal se abrió antes de instalar gitleaks.**
+Una terminal se queda con la lista de programas que había al abrirla; instalar algo después
+no la actualiza. Ciérrala, abre una nueva, y comprueba:
+
+```powershell
+gitleaks version
+```
+
+Si dice `8.30.1`, ya está: el enganche vuelve a revisar. Si dice que no se reconoce el
+comando, entonces sí falta ponerlo en el PATH, y esto lo hace una sola vez (después hay
+que volver a cerrar y abrir la terminal):
 
 ```powershell
 $dir = (Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Filter gitleaks.exe -Recurse | Select-Object -First 1).DirectoryName
 [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";$dir", "User")
 ```
 
-Después **cierra y vuelve a abrir la terminal**, y comprueba que responde:
-
-```powershell
-gitleaks version
-```
-
-Tiene que decir `8.30.1`. Mientras diga «no se reconoce», el aviso del commit seguirá
-saliendo y nadie estará revisando tus commits en local.
+**Mientras salga ese aviso, tus commits pasan sin que nadie revise si llevan una clave.**
+El aviso no bloquea a propósito — un enganche que se cae por no tener una herramienta
+estorba más de lo que protege — pero no es decorativo: revisa a qué se debe.
 
 **Un test se pone rojo y dice «Failing test passed».**
 No es un fallo: es un aviso bueno. Significa que arreglaste uno de los errores conocidos
