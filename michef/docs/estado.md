@@ -10,10 +10,10 @@ Actualizado: 2026-09-09 · por sesión S-20260909-g
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | Cinco bugs del motor arreglados (PR #5, #7). Siguiente: **D4**, Supabase como código |
-| **Decisiones vigentes** | hasta **#50** |
+| **Paso actual** | **D4 hecho** (`chore/F0-D4-supabase`, espera merge). Siguiente: **D5**, CI y reglas de rama |
+| **Decisiones vigentes** | hasta **#52** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `fix/F1-bug9-redondeo-mercado` — espera merge. D4 sale de `main` |
+| **Rama de trabajo** | `chore/F0-D4-supabase` — espera merge. D5 sale de `main` |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -48,7 +48,8 @@ Se vacía al cambiar de día.
 |---|---|---|---|---|
 | D0.5 · memoria del proyecto | `main` (solo docs, pre-Git-flow) | S-20260909-a | 2026-09-09 | **hecha** |
 | Arreglo de BUG-1, 4, 5 y 7 | `fix/F1-motor-cuatro-bugs` | S-20260909-g | 2026-09-09 | **mergeada** (PR #5) |
-| Arreglo de BUG-9 | `fix/F1-bug9-redondeo-mercado` | S-20260909-g | 2026-09-09 | espera merge |
+| Arreglo de BUG-9 | `fix/F1-bug9-redondeo-mercado` | S-20260909-g | 2026-09-09 | **mergeada** (PR #7) |
+| D4 · Supabase como código | `chore/F0-D4-supabase` | S-20260909-g | 2026-09-09 | espera merge |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -66,7 +67,7 @@ desde el primer PR de código.
 | D1 | `chore/bootstrap`: migrar starter a `michef/`, limpiar scaffold | Claude | ✅ mergeado (PR #1, `2ba0d81`) |
 | D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ✅ mergeado (PR #2 y #3) |
 | D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ✅ mergeado (PR #4, `72a0d1a`) |
-| D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ⏳ espera presentación + «adelante» |
+| D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ✅ hecho (PR espera merge) |
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ⏳ |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init`, secretos EAS | Claude + Luciano | ⏳ |
 | D6.5 | Sistema de diseño + galería | Claude | ⏳ |
@@ -153,7 +154,30 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 
 ## Avisos entre sesiones
 
-(vacío)
+- **Supabase local se queda encendido** después de D4 y consume memoria. Se apaga con
+  `npm run supabase:stop`. No hace falta para nada que no sea `supabase:test`.
+- **`deno` no está instalado** y no hace falta: `scripts/probar-supabase.js` lo corre en
+  un contenedor si no lo encuentra. En D5, el CI sí usará `denoland/setup-deno`.
+- **⚠️ Antes de escribir la primera tarea del proxy (Fase 2), comprobar cómo firma
+  Supabase los JWT del proyecto.** `jwt.ts` verifica HS256 con un secreto compartido.
+  Supabase emite JWT con **claves asimétricas** (ECC/RSA) en los proyectos nuevos, y si
+  `npswkfpomhinewxsmiic` es de esos, esa verificación no sirve: haría falta JWKS. No se
+  pudo comprobar en D4 porque no se enlazó con el proyecto real, a propósito. Lo levantó
+  el revisor y es lo primero que hay que mirar. Se ve en Settings → API → JWT Settings.
+- **El proxy no se ha probado de punta a punta.** Todo lo que se sabe de él viene de
+  llamar a `manejar()` como función, que es lo que hace `deno test`. El contenedor del
+  edge runtime local no tenía la función cargada, así que no se pudo comprobar que el
+  runtime entregue el pathname como `/ai-proxy/health`, que es lo que `handler.ts` asume.
+  Es lo que el criterio de salida de Fase 0 pide, pero **en D5 conviene levantarla de
+  verdad y pegarle un `curl`**.
+- **`npm run supabase:test` NO está dentro de `npm run gates`**, a propósito: necesita
+  Docker y el enganche de `pre-push` no debería depender de él. Consecuencia: hasta que
+  exista el job `supabase` en CI (D5), **una regresión de RLS no la caza nada
+  automáticamente**. Hay que correrlo a mano antes de un PR que toque `supabase/`.
+- **El código de `supabase/functions/` está fuera de tsconfig, ESLint y knip** a
+  propósito: es Deno, con otros imports y otro runtime. Quien lo revisa es `deno test`,
+  que lo compila de verdad — y de hecho cazó un error de tipos que este proyecto no
+  habría visto. Si alguien lo mete en el tsconfig, `npm run gates` se pone rojo.
 
 ---
 
@@ -174,15 +198,18 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 6. ~~BUG-9~~ **hecho** (rama `fix/F1-bug9-redondeo-mercado`, decisión #50). **186 tests.**
    Espera merge. Queda **BUG-8** como único bug barato pendiente, y necesita antes decidir
    la forma del inventario.
-6. Claude presenta **D4** (`chore/supabase`): `supabase init`, migración 0001 con el
-   esquema actual, migración 0002 con **RLS en todas las tablas**, tests pgTAP que
-   comprueban que `anon` NO puede escribir en `precio` ni leer `cache_modelo`, esqueleto
-   del `ai-proxy` (401 sin JWT, 200 en `/health`, 501 en cualquier tarea) con `deno test`,
-   y el script `npm run supabase:test`. No se ejecuta nada sin «adelante» (#34).
+7. ~~D4~~ **hecho** (`chore/F0-D4-supabase`, decisiones #51 y #52). Las quince tablas
+   estaban abiertas de verdad — se comprobó escribiendo un precio como `anon` antes de
+   tocar nada. Ahora: dos migraciones, RLS en las quince, **20 tests pgTAP** y **16 del
+   proxy**, y `npm run supabase:test`. Espera merge.
+8. Claude presenta **D5** (`chore/ci`): `ci.yml` con los dos jobs (gates y supabase),
+   `gitleaks.yml`, `eval.yml` vacío, `scripts/branch-rules.sh` para el ruleset de `main`,
+   y **la prueba del gate rojo**. No se ejecuta nada sin «adelante» (#34).
 
-   **Aviso para D4, de la decisión #47:** una política RLS que no deniega nada se ve
-   exactamente igual que una que funciona. Los tests pgTAP tienen que incluir el caso
-   negativo (intentar escribir y comprobar que falla), no solo el positivo.
+   **Aviso para D5, de las decisiones #47, #51 y #52:** un CI que nunca ha bloqueado nada
+   se ve igual que uno que funciona. La prueba del gate rojo no es opcional: rama con un
+   test roto a propósito → PR → rojo → merge bloqueado → arreglar → verde → merge.
+   Y hay que fijar `actions/setup-node` en **22.23.2**.
 
 Propuesto aparte, dos minutos, cuando Luciano quiera: **regla de rama básica en `main`**
 (solo PRs, sin push directo, sin force-push). No depende de que exista CI; los checks
@@ -200,8 +227,10 @@ pero entonces el aviso llega tarde y con un PR abierto.
 Abierto, sin urgencia:
 - El casing del nombre quedó en versales, `ME CHEF`, 1.059 veces en prosa. Si se prefiere
   `Me Chef`, es un reemplazo de un comando.
-- En D4, no arrancar el contenedor `teso-dev-db`: publica el puerto 54322, el mismo que
-  usa el Postgres local de Supabase.
+- ~~En D4, no arrancar el contenedor `teso-dev-db`~~ D4 corrió sin choque: Docker estaba
+  vacío. El aviso sigue valiendo — `teso-dev-db` publica el 54322, el mismo puerto del
+  Postgres local de Supabase — y está escrito dentro de `scripts/probar-supabase.js`,
+  que lo dice si la conexión falla.
 - En D6, verificar si `@sentry/wizard` necesita `SENTRY_URL=https://de.sentry.io` por ser
   la organización de región EU.
 - ~~Node 22.12.0 y metro pide `^22.13.0`~~ **Resuelto el 2026-09-09:** `fnm` ya estaba en
@@ -271,8 +300,9 @@ no escribe comandos de memoria. **Cada vez que un paso introduzca un comando nue
 Luciano vaya a correr, se añade allí**, con qué hace y cuándo se usa, antes de dar el
 paso por cerrado. Si un comando no está en ese archivo, para Luciano no existe.
 
-Pendiente de añadir cuando existan: `npm run gates` (D2), `npm run supabase:test` (D4),
-`eas build` y `eas update` (D6–D7).
+Pendiente de añadir cuando existan: `eas build` y `eas update` (D6–D7).
+Ya añadidos: `npm run gates` (D2) y `supabase:start` / `supabase:stop` / `supabase:reset`
+/ `supabase:test` (D4).
 
 ## Cómo se usa este archivo
 

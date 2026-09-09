@@ -1,13 +1,29 @@
--- ME CHEF — catálogo COMPARTIDO.
--- Ninguna fila de este esquema lleva identidad de usuario. Ver CLAUDE.md.
--- Los datos personales viven en SQLite cifrado en el teléfono.
+-- Migracion 0001 · el catalogo compartido
+--
+-- Es `supabase/schema.sql` tal cual, convertido en migracion versionada. Antes
+-- era un archivo suelto para pegar en un panel: nadie podía saber si lo que
+-- había en el servidor era esto. Ahora corre igual en local, en CI y en
+-- produccion, con el mismo comando.
+--
+-- Cambios respecto a schema.sql, y ninguno mas:
+--   · `create table if not exists` y `create or replace view`, para que la
+--     migracion se pueda repetir sin romperse.
+--   · Los cinco indices llevan nombre. `if not exists` no existe para un indice
+--     anonimo, asi que sin nombre no habia forma de hacerlos repetibles.
+--
+-- **Aqui no hay ni una regla de acceso, a proposito.** Van todas en la 0002,
+-- juntas y con sus tests al lado, para que se puedan leer de una vez y para que
+-- nadie tenga que buscarlas por el archivo.
+--
+-- Ninguna fila de este esquema lleva identidad de usuario. Los datos personales
+-- viven en SQLite cifrado en el telefono (CLAUDE.md).
 
 create extension if not exists vector;
 
 -- ---------------------------------------------------------------- ingredientes
 
 -- Canónico: sin idioma, sin país, sin marca. Es la columna vertebral.
-create table ingrediente (
+create table if not exists ingrediente (
   id            text primary key,
   categoria     text not null,          -- proteina, verdura, grano, lacteo, condimento
   unidad_base   text not null default 'g',   -- g | ml
@@ -16,7 +32,7 @@ create table ingrediente (
 );
 
 -- Porciones caseras: "1 cebolla mediana = 110 g". Vienen de USDA.
-create table ingrediente_porcion (
+create table if not exists ingrediente_porcion (
   ingrediente_id text not null references ingrediente(id),
   descripcion    text not null,          -- "unidad mediana", "taza cocido"
   gramos         real not null,
@@ -24,7 +40,7 @@ create table ingrediente_porcion (
 );
 
 -- Cómo se llama en cada idioma, con sinónimos y formas como aparecen en tickets.
-create table ingrediente_nombre (
+create table if not exists ingrediente_nombre (
   ingrediente_id text not null references ingrediente(id),
   idioma         text not null,          -- es, fr, de, en
   nombre         text not null,
@@ -34,7 +50,7 @@ create table ingrediente_nombre (
 );
 
 -- Números de bases públicas. NUNCA de un modelo (ver CLAUDE.md).
-create table nutricion (
+create table if not exists nutricion (
   ingrediente_id text not null references ingrediente(id),
   fuente         text not null,          -- usda | suiza | ciqual | bedca | estimado
   id_en_fuente   text,
@@ -45,7 +61,7 @@ create table nutricion (
 );
 
 -- Open Food Facts vive aparte (licencia ODbL con share-alike). No mezclar.
-create table off_producto (
+create table if not exists off_producto (
   codigo_barras text primary key,
   nombre        text,
   marca         text,
@@ -58,7 +74,7 @@ create table off_producto (
 
 -- Lo que existe en una tienda real. Absorbe la diversidad del mundo:
 -- un país nuevo se llena solo con las primeras facturas.
-create table producto (
+create table if not exists producto (
   id             text primary key,
   ingrediente_id text not null references ingrediente(id),
   pais           text not null,
@@ -70,10 +86,12 @@ create table producto (
   confianza      real not null default 1,
   creado_en      timestamptz not null default now()
 );
-create index on producto (pais, ingrediente_id);
-create index on producto using gin (to_tsvector('simple', nombre_comercial));
+create index if not exists idx_producto_pais_ingrediente
+  on producto (pais, ingrediente_id);
+create index if not exists idx_producto_nombre_comercial
+  on producto using gin (to_tsvector('simple', nombre_comercial));
 
-create table tienda (
+create table if not exists tienda (
   id       text primary key,
   cadena   text not null,
   pais     text not null,
@@ -84,7 +102,7 @@ create table tienda (
 
 -- Tres fuentes, una regla: usar siempre la de mayor confianza.
 -- estimado (modelo, una vez por país) < dato_abierto < factura (decae con el tiempo)
-create table precio (
+create table if not exists precio (
   id           bigserial primary key,
   producto_id  text not null references producto(id),
   tienda_id    text references tienda(id),
@@ -94,12 +112,13 @@ create table precio (
   fuente       text not null,            -- estimado | dato_abierto | factura
   confianza    real not null
 );
-create index on precio (producto_id, tienda_id, fecha desc);
+create index if not exists idx_precio_producto_tienda_fecha
+  on precio (producto_id, tienda_id, fecha desc);
 
 -- --------------------------------------------------------------------- recetas
 
 -- Estructura, no texto. Apunta a ids canónicos, por eso no tiene país.
-create table receta (
+create table if not exists receta (
   id           text primary key,
   minutos      int not null,
   tipo         text not null,            -- desayuno | almuerzo | comida | in_the_middle
@@ -110,9 +129,10 @@ create table receta (
   estado       text not null default 'borrador', -- borrador | validada | publicada | retirada
   creada_en    timestamptz not null default now()
 );
-create index on receta (estado, tipo);
+create index if not exists idx_receta_estado_tipo
+  on receta (estado, tipo);
 
-create table receta_ingrediente (
+create table if not exists receta_ingrediente (
   receta_id      text not null references receta(id),
   ingrediente_id text not null references ingrediente(id),
   cantidad_por_porcion real not null,    -- para UNA porción
@@ -120,7 +140,7 @@ create table receta_ingrediente (
   primary key (receta_id, ingrediente_id)
 );
 
-create table receta_paso (
+create table if not exists receta_paso (
   receta_id   text not null references receta(id),
   orden       int not null,
   instruccion text not null,
@@ -131,7 +151,7 @@ create table receta_paso (
 );
 
 -- Generado una vez por idioma, en lote. Nunca se traduce en vivo.
-create table receta_texto (
+create table if not exists receta_texto (
   receta_id text not null references receta(id),
   idioma    text not null,
   titulo    text not null,
@@ -142,7 +162,7 @@ create table receta_texto (
 );
 
 -- Contadores agregados. Sin usuario, sin eventos individuales.
-create table receta_senal (
+create table if not exists receta_senal (
   receta_id      text primary key references receta(id),
   vistas         bigint not null default 0,
   elegidas       bigint not null default 0,
@@ -157,20 +177,21 @@ create table receta_senal (
 );
 
 -- Para "algo calientico para la noche" y para detectar duplicados.
-create table receta_vector (
+create table if not exists receta_vector (
   receta_id text primary key references receta(id),
   embedding vector(1536)
 );
-create index on receta_vector using hnsw (embedding vector_cosine_ops);
+create index if not exists idx_receta_vector_embedding
+  on receta_vector using hnsw (embedding vector_cosine_ops);
 
 -- --------------------------------------------------- disponibilidad por país
 
 -- Derivada: ¿hay algún producto de ese ingrediente en ese país?
 -- Las recetas con ingredientes sin producto local se marcan difíciles.
-create view ingrediente_disponible as
+create or replace view ingrediente_disponible as
 select distinct ingrediente_id, pais from producto;
 
-create view receta_disponible as
+create or replace view receta_disponible as
 select r.id as receta_id, p.pais,
        bool_and(d.ingrediente_id is not null) as disponible
 from receta r
@@ -184,7 +205,7 @@ group by r.id, p.pais;
 
 -- La vuelta que hace que un país nuevo cueste cada vez menos:
 -- toda respuesta de modelo se guarda y no se vuelve a pedir.
-create table cache_modelo (
+create table if not exists cache_modelo (
   clave      text primary key,           -- hash de (tarea + entrada + país)
   tarea      text not null,
   respuesta  jsonb not null,

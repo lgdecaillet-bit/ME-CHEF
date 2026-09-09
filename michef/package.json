@@ -60,7 +60,11 @@
     "reglas": "node scripts/probar-reglas.js",
     "knip": "knip",
     "secrets:bundle": "node scripts/secrets-bundle.js",
-    "prepare": "cd .. && husky michef/.husky"
+    "prepare": "cd .. && husky michef/.husky",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
+    "supabase:reset": "npx supabase db reset",
+    "supabase:test": "node scripts/probar-supabase.js"
   },
   "private": true
 }

@@ -164,6 +164,38 @@ Y estos tres, que no entran en `gates` porque tardan más:
 npm run test:watch
 ```
 
+**Levantar la base de datos en tu PC.** Hace falta que Docker Desktop esté abierto.
+La primera vez tarda porque se descarga; después son segundos.
+
+```powershell
+npm run supabase:start
+```
+
+Cuando termina, puedes ver las tablas con el navegador en **http://localhost:54323**.
+
+**Apagarla** cuando no la uses (libera memoria):
+
+```powershell
+npm run supabase:stop
+```
+
+**Comprobar que los candados de la base funcionan.** Esto intenta hacer, a propósito, lo
+que un atacante haría — escribir precios, leer el caché de modelos — y comprueba que
+falla. También prueba el proxy de IA.
+
+```powershell
+npm run supabase:test
+```
+
+Si dice que no puede conectarse, es que falta `npm run supabase:start`.
+
+**Volver a crear la base desde cero**, aplicando todas las migraciones en limpio. Borra
+los datos locales de prueba; no toca nada en internet.
+
+```powershell
+npm run supabase:reset
+```
+
 **El commit dice «AVISO: gitleaks no está instalado».**
 Casi siempre significa una sola cosa: **esa terminal se abrió antes de instalar gitleaks.**
 Una terminal se queda con la lista de programas que había al abrirla; instalar algo después

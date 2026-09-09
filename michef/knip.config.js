@@ -29,9 +29,19 @@ module.exports = {
 
   project: ['src/**/*.{ts,tsx}', 'scripts/**/*.js'],
 
-  // Violan las reglas a proposito para que scripts/probar-reglas.js compruebe
-  // que disparan. Nadie los importa, y eso es justo lo que deben ser.
-  ignore: ['src/**/__fixtures__/**'],
+  ignore: [
+    // Violan las reglas a proposito para que scripts/probar-reglas.js compruebe
+    // que disparan. Nadie los importa, y eso es justo lo que deben ser.
+    'src/**/__fixtures__/**',
+
+    // Las Edge Functions son Deno, no Node: importan por URL (`jsr:@std/...`) y
+    // con extension `.ts`. knip las lee como si fueran de aqui y da la
+    // dependencia por no declarada. Quien las revisa es `deno test`, que las
+    // compila de verdad — y de hecho ya cazó un error de tipos que este
+    // proyecto no habría visto. Mismo motivo por el que estan fuera de ESLint
+    // y de tsconfig.
+    'supabase/functions/**',
+  ],
 
   ignoreDependencies: [
     // drizzle-kit estuvo aquí hasta que `src/db/__tests__/schema.test.ts` empezó

@@ -950,3 +950,198 @@ cuatro esperan un dato o una decisión que aún no existe — no esperan tiempo.
 `bugs.test.ts` con la condición escrita al lado. El siguiente paso del roadmap es D4.
 
 ---
+
+## 2026-09-09 · S-20260909-g · D4: el catálogo estaba abierto, y ahora no
+
+Tarea: F0-D4 · Rama: `chore/F0-D4-supabase` · Resultado: **20 tests pgTAP** y **16 del
+proxy**, con `npm run supabase:test`, y todos comprobados rompiendo lo que protegen.
+
+Tocado: `supabase/config.toml` (nuevo, de `supabase init`) ·
+`supabase/migrations/20260909000001_catalogo.sql` y `20260909000002_rls.sql` (nuevos) ·
+`supabase/tests/database/rls.test.sql` (nuevo) ·
+`supabase/functions/ai-proxy/{handler,jwt,index}.ts` (nuevos) ·
+`supabase/functions/tests/ai-proxy.test.ts` (nuevo) ·
+`scripts/probar-supabase.js` (nuevo) · `package.json` (cuatro scripts) ·
+`tsconfig.json` y `knip.config.js` (excluyen el código de Deno) ·
+`supabase/functions/ai-proxy/README.md` · `.env.example` · `CLAUDE.md` · `README.md` ·
+`../COMANDOS.md` · `docs/{estado,decisiones,bitacora}.md` ·
+`docs/fases/fase-0-fundaciones.md` · **borrado: `supabase/schema.sql`**.
+
+**Se borró `supabase/schema.sql`.** Convertido en la migración 0001, dejarlo era tener el
+esquema escrito dos veces, que es exactamente la deriva que costó cara en D3 con el DDL a
+mano de `schema.test.ts` — le faltaban cinco columnas y doce tablas sin que nadie lo
+notara. Peor aún: `README.md` mandaba pegarlo en el panel de Supabase, y hacerlo hoy
+creaba el catálogo **sin ninguna regla de acceso**. Corregidos `README.md` y `CLAUDE.md`,
+que lo citaban. Las referencias que quedan son históricas y hablan en pasado.
+
+**Lo primero fue medir el agujero, no suponerlo.** Antes de escribir una sola política se
+levantó Supabase en local, se aplicó el esquema de hoy y se entró como `anon` — el rol de
+la clave que viaja dentro del bundle de la app, o sea la que tiene cualquiera que la
+instale. Resultó: `anon` **insertó una fila en `precio`** y **leyó `cache_modelo`
+entero**. Las quince tablas tenían `relrowsecurity = f`. El agujero era real y del tamaño
+que decía el plan.
+
+**Qué se hizo.** Migración 0001 con el esquema de siempre convertido en migración
+versionada (único cambio: `if not exists` y nombre a los cinco índices, porque un índice
+anónimo no admite `if not exists` y sin eso la migración no se puede repetir). Migración
+0002 con los candados: RLS en las quince, lectura del catálogo canónico, recetas solo si
+`estado = 'publicada'`, y cuatro tablas sin ninguna política — `precio`, `cache_modelo`,
+`off_producto`, `receta_vector`. Ninguna política de escritura para nadie. Decisión #51.
+
+**Dos cosas que el plan no tenía y sí hacían falta:**
+
+- **`security_invoker = on` en las dos vistas.** Una vista de Postgres corre por defecto
+  con los permisos de quien la creó, no de quien la consulta. Sin esa línea, las vistas se
+  saltan todo el RLS de sus tablas base: el candado puesto y la ventana abierta al lado.
+- **Las tablas hijas de `receta` heredan la condición de «publicada».** El plan les ponía
+  lectura abierta. Así, el contenido de un borrador — sus pasos, su texto — seguía siendo
+  legible aunque su fila en `receta` no lo fuera, y el candado principal no servía de nada.
+
+**La trampa de RLS, que es la #47 con otra cara.** Con RLS activado y sin política de
+lectura, un `select` **no da error: devuelve cero filas**. Sobre una tabla vacía eso pasa
+igual con candado que sin él, así que un test que consulte una tabla vacía pasa en verde
+con RLS roto. Por eso `rls.test.sql` **siembra filas primero**, como `postgres`, y solo
+después se cambia a `anon`. Y por eso hay cuatro tests estructurales además de los de
+comportamiento: que RLS siga activo en las quince, que las cuatro cerradas sigan sin
+políticas, que no exista ninguna política de escritura, y que las vistas sigan corriendo
+como quien pregunta.
+
+También se decidió **un solo mecanismo, no dos**: nada de añadir `revoke` encima de RLS.
+Sería más seguro y sería peor, porque entonces ningún test podría decir cuál de los dos
+trabaja, y si RLS se rompiera el `revoke` lo taparía y el gate seguiría verde.
+
+**Comprobado rompiéndolo, tres veces:** quitar RLS de `precio` → rojo. Añadir una política
+permisiva a `cache_modelo` → rojo. Apagar `security_invoker` en una vista → rojo. Los tres
+revertidos y verde otra vez.
+
+**El proxy, y la lección fina del día.** Esqueleto con `/health` a 200 sin credenciales,
+401 sin JWT válido, 501 con uno válido, y **500 si falta el secreto** — falla cerrado; un
+proxy mal configurado que aceptara todo sería peor que uno caído, porque no se notaría
+hasta la factura. La verificación HS256 está escrita a mano con Web Crypto: cuarenta
+líneas que se leen enteras, y es el único punto donde se decide quién puede gastar dinero
+en modelos. Una dependencia ahí es una dependencia dentro del control de acceso.
+
+Y aquí lo interesante. Se escribió un test del ataque clásico, `alg: "none"` sin firma. Al
+comprobarlo por rotura — quitando la comprobación de `alg` — **ese test siguió en
+verde**: un token sin firma lo rechaza igual cualquier verificador, porque la firma vacía
+no cuadra. O sea que el test del ataque famoso no probaba la defensa que decía probar. El
+que sí la aísla es otro, que se añadió: una cabecera diciendo `HS512` sobre una firma
+HS256 válida. Sin la comprobación de `alg`, ese pasa. Quedó como **decisión #52**: un test
+contra un ataque con nombre no prueba la defensa; hay que ver cuál es la línea que, al
+quitarla, lo pone rojo. Se comprobaron también la caducidad y el fallo cerrado, las dos
+por rotura.
+
+**Lo que NO se hizo, a propósito:** `supabase link`. D4 se queda entero en local. Enlazar
+y empujar migraciones al proyecto real espera a que exista CI (D5) que las verifique
+antes. Empujar a mano a la base que va a tener datos, sin red de seguridad, es justo lo
+que la Fase 0 existe para evitar. Presentado así a Luciano y aprobado así.
+
+Menores: `supabase/functions/` quedó fuera de tsconfig, ESLint y knip — es Deno, con
+imports por URL y extensión `.ts`, y quien lo revisa es `deno test`, que lo compila de
+verdad (de hecho cazó un error de tipos con `Uint8Array<ArrayBufferLike>` que este
+proyecto no habría visto). `deno` no está instalado y no hace falta:
+`scripts/probar-supabase.js` lo corre en un contenedor si no lo encuentra. El archivo de
+tests se llama `ai-proxy.test.ts` y no `ai-proxy-test.ts` porque Deno solo descubre
+`*.test.ts` o `*_test.ts`.
+
+Corrido, tal cual: `npm run gates` verde · 186 tests de la app, cobertura 100 % ·
+`npm run supabase:test` verde · 20 pgTAP + 16 Deno · `npm run knip` limpio ·
+`npx prettier --check .` limpio · `npm run reglas` las nueve disparan.
+
+Decisiones nuevas: **#51** y **#52**.
+
+Avances de Luciano: aprobó D4 tal como se presentó, con el enlace al proyecto real
+aplazado hasta D5.
+
+Pendiente: **Luciano:** mergear el PR de D4, y aprobar **D5**. Apagar Supabase con
+`npm run supabase:stop` cuando no lo use.
+
+Para la siguiente sesión: D5 es CI, y le aplica la misma lección tres veces seguida.
+**Un CI que nunca ha bloqueado nada se ve igual que uno que funciona.** La prueba del gate
+rojo no es un extra del paso: es el paso. Y `actions/setup-node` tiene que fijar 22.23.2.
+
+---
+
+## 2026-09-09 · S-20260909-g · D4, segunda vuelta: `anon` podía vaciar las tablas
+
+Tarea: correcciones del revisor sobre `chore/F0-D4-supabase` · Rama: la misma · Resultado:
+**22 tests pgTAP** (eran 20), **19 del proxy** (eran 16) y **189 de la app** (eran 186).
+
+Tocado: `supabase/migrations/20260909000002_rls.sql` ·
+`supabase/tests/database/rls.test.sql` · `supabase/functions/ai-proxy/jwt.ts` ·
+`supabase/functions/tests/ai-proxy.test.ts` ·
+`src/ai/__tests__/contrato-proxy.test.ts` (nuevo) · `scripts/probar-supabase.js` ·
+`supabase/config.toml` · `.env.example` · `supabase/functions/ai-proxy/README.md` ·
+`docs/{estado,decisiones,bitacora}.md`.
+
+**El hallazgo grande: `anon` podía vaciar cualquier tabla con `TRUNCATE`.** La migración
+decía por escrito «no hay ni una politica de insert, update o delete. Para nadie», y el
+test lo respaldaba. Era falso. **PostgreSQL trata `truncate` como DDL y RLS no se le
+aplica**, y Supabase concede `ALL` — que incluye `TRUNCATE`, `TRIGGER` y `REFERENCES` — a
+`anon` y `authenticated` sobre todo el esquema público. Reproducido: como `anon`,
+`truncate cache_modelo` funcionó y las filas desaparecieron. `precio` y `cache_modelo`,
+las dos tablas que la decisión #51 llama el activo del proyecto, eran destruibles por el
+rol de la clave que viaja dentro de la app.
+
+Matiz honesto sobre lo explotable **hoy**: PostgREST nunca emite `TRUNCATE`, así que con
+la clave publicable sola no se llega; haría falta una conexión directa a Postgres o una
+función RPC futura. No era una emergencia. Pero el archivo afirmaba que no existía.
+
+Arreglado con `revoke truncate, trigger, references` a los dos roles, más
+`alter default privileges` para las tablas que aún no existen, más un test que cuenta esas
+concesiones en **todo** el esquema y exige cero. Los cuatro verbos que RLS sí cubre no se
+tocaron, para que siga siendo RLS el único que decide y los tests puedan aislarlo. La
+decisión #51 quedó corregida con la regla que faltaba: **antes de escribir que un
+mecanismo cubre algo, hay que saber qué no cubre.**
+
+**El segundo hallazgo es la #47 otra vez, y esta vez en un test mío.** El test estructural
+de `security_invoker` contaba las vistas que SÍ lo tenían y exigía 2. El revisor creó una
+tercera vista, sin `security_invoker`, que exponía `precio` entero a `anon`: los veinte
+tests siguieron en verde. **Un test de inventario no es un test de invariante.** Ahora
+cuenta las que NO lo tienen y exige cero — igual que el test de RLS de al lado, que estaba
+bien escrito desde el principio por ese mismo motivo, y que sí cazaba una tabla nueva.
+Comprobado: la misma vista con fuga ahora pone el gate en rojo.
+
+**Dos caminos sin autenticar reventaban el proxy.** Una firma que no fuera base64 válida
+(`atob` lanza) y una cabecera `null` (leer `.alg` de `null` lanza) salían de
+`verificarJwt`, y `Deno.serve` las convertía en un **500 con traza**. No era un bypass,
+pero rompía la promesa escrita de la #52 — que el 401 es siempre igual — y daba una forma
+barata de ensuciar logs y gastar invocaciones. Escritos los tres tests primero, en rojo, y
+después el arreglo: el cuerpo entero de `verificarJwt` va dentro de un `try`, porque un
+token es texto que manda un desconocido.
+
+**El test del «contrato con la app» no podía detectar la deriva que decía vigilar.**
+Comparaba la lista del proxy con una copia literal escrita tres líneas más abajo, en el
+propio test: solo fallaba si editabas `handler.ts` y te olvidabas de editar el test al
+lado. `src/ai/client.ts` no se puede importar desde ahí — es otro runtime. Nuevo
+`src/ai/__tests__/contrato-proxy.test.ts`, del lado de la app, que **lee los dos archivos
+como texto** porque es la única forma de cruzar la frontera entre los runtimes. Comprobado
+añadiendo una tarea solo en el proxy: rojo. Y el comentario del test de Deno corregido para
+decir lo que hace, que es fijar la lista del servidor y nada más.
+
+Menores, todos del revisor: `config.toml` tenía `enable_anonymous_sign_ins = false`, que
+contradice la decisión #29 — toda la app empieza sin cuenta — y era el valor mudo de la
+plantilla; ahora es `true` con el porqué al lado. El contenedor de Deno usaba la etiqueta
+móvil `:alpine` para correr los tests del control de acceso; fijado a `2.9.6`. Y en tres
+sitios se sugería que `AI_PROXY_JWT_SECRET` fuera un valor cualquiera: **tiene que ser el
+JWT Secret del propio proyecto**, porque los tokens los firma Supabase Auth con él; con
+otro valor el proxy rechaza todo con un 401 que por diseño no explica nada.
+
+Corrido, tal cual: `npm run gates` verde · 189 tests de la app, cobertura 100 % ·
+`npm run supabase:test` verde · 22 pgTAP + 19 Deno · `npm run knip` limpio ·
+`npx prettier --check .` limpio. Cinco roturas a propósito, revertidas y comprobadas.
+
+Decisiones nuevas: ninguna. **#51 corregida** (la excepción de `TRUNCATE`, y el test de
+vistas que no generalizaba) y **#52 ampliada** (los dos caminos que reventaban).
+
+Avances de Luciano: ninguno en esta vuelta.
+
+Pendiente: **Luciano:** mergear el PR de D4 y aprobar D5.
+
+Para la siguiente sesión: **antes de escribir que algo está protegido, hay que saber qué
+NO protege el mecanismo que se usó.** RLS no cubre DDL. Y un test que cuenta las cosas
+buenas y exige N no caza la mala que llegue mañana: hay que contar las malas y exigir cero.
+Las dos cosas aplican tal cual a D5, donde el gate de CI tiene que fallar por lo que aún no
+existe, no solo por lo que hay hoy.
+
+---

@@ -69,7 +69,7 @@ hogar, comensales, objetivo (versionado), planes, semanas, comidas planificadas,
 facturas y sus líneas, inventario, restricciones, escaneos, eventos.
 Se exporta y se borra entero, verificable.
 
-**Compartido — Postgres en Supabase** (`supabase/schema.sql`):
+**Compartido — Postgres en Supabase** (`supabase/migrations/`):
 ingredientes canónicos, nombres por idioma, nutrición, productos por país,
 tiendas, precios, recetas, pasos, textos por idioma, señales agregadas, vectores.
 **Ninguna fila lleva identidad de usuario.**

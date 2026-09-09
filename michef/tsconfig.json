@@ -10,5 +10,5 @@
     "noUncheckedIndexedAccess": true
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
-  "exclude": ["node_modules", "src/**/__fixtures__/**", "coverage"]
+  "exclude": ["node_modules", "src/**/__fixtures__/**", "coverage", "supabase/functions"]
 }

@@ -12,7 +12,7 @@
 > `### #N · Título` · fecha · estado · texto con el porqué · qué reemplaza · qué archivos
 > de `fases/` cambian.
 
-Vigentes: **#1–#3, #5–#50**. Reemplazadas: #4 (por #29).
+Vigentes: **#1–#3, #5–#52**. Reemplazadas: #4 (por #29).
 
 ---
 
@@ -473,6 +473,114 @@ Misma familia que el arreglo de BUG-1 (un ingrediente sin cantidad conocida cuen
 cero y se compra): ante la duda, la app prefiere que sobre comida a que falte.
 
 **Archivos de `fases/` que cambian:** `fase-1-motor-y-datos.md` § 1.1, fila de BUG-9.
+
+
+### #51 · Los candados del catálogo: RLS como único mecanismo, y probado por rotura
+Fecha: 2026-09-09 · **vigente**
+Hasta D4 las quince tablas del catálogo estaban abiertas. No es una forma de hablar: se
+comprobó antes de escribir nada, y como `anon` se pudo insertar una fila en `precio` y
+leer `cache_modelo` entero. `anon` es el rol de la clave que viaja **dentro** del bundle
+de la app, o sea que la tenía cualquiera.
+
+**El modelo.** Los clientes solo leen el catálogo publicado, y no escriben nada. Todo lo
+que escribe pasa por el proxy o por un job, con `service_role`, que se salta RLS por
+definición. Cuatro tablas quedan sin ninguna política de lectura: `precio` (es el activo
+del proyecto, construido con facturas reales y consultas pagadas a modelos),
+`cache_modelo` (leerlo es leer todo lo que se pagó; escribirlo es envenenar lo que la app
+cree saber), `off_producto` (licencia ODbL con share-alike, no se reexpone) y
+`receta_vector` (los embeddings permiten reconstruir el catálogo por similitud).
+
+**Un solo mecanismo para lo que RLS cubre, y la excepción que hay que entender.** Para
+`select`, `insert`, `update` y `delete`, la tentación era poner RLS *y* revocar los
+permisos de tabla. Sería más seguro y sería peor: con los dos puestos, ningún test podría
+decir cuál está trabajando, y si RLS se rompiera, el `revoke` lo taparía y el gate
+seguiría verde. Es la decisión #47 aplicada al servidor. Así que ahí el mecanismo es uno
+y se comprueba de dos maneras independientes: por comportamiento (sembrando filas y viendo
+que `anon` no las ve) y por estructura (que RLS sigue activo y que las cuatro cerradas
+siguen sin políticas).
+
+**La excepción es `TRUNCATE`, y la primera versión de esta decisión la ignoraba.** Lo
+encontró el revisor: PostgreSQL trata `truncate` como DDL, **RLS no se le aplica**, y
+Supabase concede `ALL` sobre el esquema público a `anon` y `authenticated` — y `ALL`
+incluye `TRUNCATE`, `TRIGGER` y `REFERENCES`. O sea que la migración afirmaba por escrito
+que ningún cliente podía escribir, el test lo respaldaba, **y `anon` podía vaciar `precio`
+y `cache_modelo` de un golpe**. Comprobado: se hizo, y las filas desaparecieron.
+
+El argumento de «un solo mecanismo» no aplicaba ahí, y por una razón concreta: no había
+dos mecanismos solapados, había **cero**. Revocar `TRUNCATE` no oculta un RLS roto, porque
+RLS nunca llegó a ese verbo. Se revocan los tres a `anon` y `authenticated`, también por
+`alter default privileges` para las tablas que aún no existen, y hay un test que cuenta
+las concesiones de esos tres verbos en todo el esquema y exige cero — así una tabla creada
+mañana tampoco se cuela. Los cuatro verbos que RLS sí cubre no se tocan.
+
+**La regla que queda:** antes de escribir que un mecanismo cubre algo, hay que saber
+**qué no cubre**. RLS no cubre DDL. Una frase absoluta en un comentario («para nadie») es
+una promesa que alguien va a creerse.
+
+**La trampa concreta que hay que recordar.** Con RLS activado y sin política de lectura,
+un `select` **no da error: devuelve cero filas**. Sobre una tabla vacía eso pasa igual con
+candado que sin él. Un test que consulte una tabla vacía pasa en verde con RLS roto. Por
+eso `rls.test.sql` siembra filas primero. Si alguien quita la siembra «porque no hace
+falta», los tests dejan de probar nada.
+
+**Dos cosas que no estaban en el plan y sí hacían falta:**
+- **`security_invoker` en las dos vistas.** Una vista de Postgres corre, por defecto, con
+  los permisos de quien la creó — aquí `postgres` — y no con los de quien la consulta.
+  Sin esa línea, las vistas se saltan todo lo demás: el candado puesto y la ventana
+  abierta al lado. Hay un test que lo caza; se comprobó apagándolo.
+- **Las tablas hijas de `receta` heredan la condición de «publicada».** El plan ponía
+  lectura abierta en `receta_paso`, `receta_texto`, `receta_ingrediente` y `receta_senal`.
+  Así, el contenido de un borrador seguía siendo legible aunque su fila en `receta` no lo
+  fuera, y el candado principal no servía de nada.
+
+**Comprobado rompiéndolo**, cinco veces: quitar RLS de `precio`, añadir una política
+permisiva a `cache_modelo`, apagar `security_invoker` en una vista, devolverle `TRUNCATE`
+a `anon`, y **crear una vista nueva sin `security_invoker`**. Las cinco ponen los tests en
+rojo. La última no lo hacía al principio: el test contaba las vistas que SÍ tenían
+`security_invoker` y exigía 2, así que el revisor añadió una tercera vista que exponía
+`precio` entero y los veinte tests siguieron en verde. **Un test de inventario no es un
+test de invariante.** Ahora cuenta las que NO lo tienen y exige cero, igual que el de RLS,
+que estaba bien escrito desde el principio por ese mismo motivo. Una cuarta comprobación, del lado del proxy, dejó una lección aparte que
+está en la #52.
+
+**Archivos de `fases/` que cambian:** `fase-0-fundaciones.md` § D4.
+
+### #52 · El proxy verifica la firma él mismo, falla cerrado, y su test no puede ser complaciente
+Fecha: 2026-09-09 · **vigente**
+`verify_jwt = false` en `config.toml` **no** significa que la función sea pública:
+significa que la verificación la hace la función y no la plataforma. Hace falta porque
+`GET /health` tiene que responder sin credenciales — es el latido, y si dependiera del
+token no serviría para saber si la función está viva.
+
+La verificación HS256 está escrita a mano con Web Crypto, sin dependencias: son cuarenta
+líneas que se leen enteras, y es el único punto donde se decide si alguien puede gastar
+dinero en modelos. Una dependencia ahí es una dependencia dentro del control de acceso.
+
+**Falla cerrado.** Sin `AI_PROXY_JWT_SECRET` configurado, el proxy responde 500 y no
+atiende nada. Un proxy mal configurado que aceptara todo sería peor que uno caído: no se
+notaría hasta la factura. Y el `401` es siempre idéntico — no dice si el token está
+caducado, mal firmado o ausente — porque distinguirlos sería un oráculo para quien quiera
+fabricar uno. El motivo se registra en el servidor.
+
+**Dos caminos sin autenticar que reventaban la función**, encontrados por el revisor y
+arreglados con sus tests escritos antes: una firma que no era base64 válida (`atob` lanza)
+y una cabecera `null` (leer `.alg` de `null` lanza). Las dos salían de `verificarJwt`,
+`Deno.serve` las convertía en un **500 con traza en el log**, y eso rompe la promesa de
+arriba: había un tercer resultado observable, alcanzable por cualquiera sin credenciales.
+No era un bypass, pero sí una forma barata de ensuciar los logs y gastar invocaciones.
+Ahora el cuerpo entero de `verificarJwt` va dentro de un `try`, porque **un token es texto
+que manda un desconocido** y cualquier cosa que lance ahí sale a la superficie.
+
+**La lección del día, y es fina.** Se escribió un test del ataque clásico, `alg: "none"`
+sin firma. Al comprobarlo por rotura — quitando la comprobación de `alg` — ese test
+**siguió en verde**: un token sin firma lo rechaza igual cualquier verificador, porque la
+firma vacía no cuadra. O sea que el test del ataque famoso no estaba probando la defensa
+que decía probar. El que sí la aísla es otro: una cabecera que dice `HS512` sobre una
+firma HS256 válida. Sin la comprobación de `alg`, ese pasa.
+**Generalizando: un test contra un ataque con nombre no prueba la defensa; hay que
+comprobar cuál es la línea de código que, al quitarla, lo pone rojo.**
+
+**Archivos de `fases/` que cambian:** `fase-0-fundaciones.md` § D4.
 
 ---
 
