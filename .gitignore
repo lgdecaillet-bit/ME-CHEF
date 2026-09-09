@@ -1,0 +1,10 @@
+# Investigación: material de trabajo local, no producto (decisión #43)
+research/
+
+# Dependencias
+node_modules/
+
+# Variables de entorno con valores reales
+.env
+.env.local
+.env*.local
