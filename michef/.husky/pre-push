@@ -1,0 +1,4 @@
+# La última barrera antes de que el código salga de tu máquina.
+# Si esto tarda demasiado, se arregla la lentitud, no se salta el hook.
+# Prohibido --no-verify (CLAUDE.md).
+cd michef && npm run gates

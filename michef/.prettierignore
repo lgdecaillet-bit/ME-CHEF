@@ -1,0 +1,20 @@
+node_modules
+.expo
+dist
+coverage
+ios
+android
+package-lock.json
+
+# Generado por Expo, no se toca a mano ni con formateador.
+assets/
+
+# Los documentos son la memoria del proyecto y se escriben a mano, con saltos de
+# línea deliberados. Prettier los reformatea entero y ahoga el cambio real en
+# ruido: 16 archivos y 1.000 líneas movidas solo por añadir una decisión.
+# El formato de la prosa no es un problema de corrección.
+*.md
+
+# Especificacion de producto de 1 MB, escrita a mano en HTML. Prettier no la
+# entiende y reformatearla no aporta nada.
+docs/producto.html

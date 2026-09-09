@@ -389,3 +389,176 @@ sin «adelante». Recordar: en D4 no arrancar `teso-dev-db` (puerto 54322); en D
 `actions/setup-node` fija `22.23.2`; en D6 verificar `SENTRY_URL=https://de.sentry.io`.
 
 ---
+
+## 2026-09-09 · S-20260909-e · D2 · tooling de calidad
+
+Tarea: F0-D2 · Rama: `chore/F0-D2-tooling` · Resultado: `npm run gates` existe y está
+verde en 12 s. Los enganches rechazan de verdad: probado con un commit real.
+
+Tocado (nuevos): `eslint.config.js`, `.prettierrc`, `.prettierignore`, `.gitattributes`,
+`commitlint.config.js`, `.lintstagedrc.json`, `.dependency-cruiser.cjs`, `jest.config.js`,
+`knip.config.js`, `scripts/secrets-bundle.js`, `.husky/{pre-commit,commit-msg,pre-push}`,
+`src/engine/__tests__/humo.test.ts`.
+Modificados: `package.json` (14 scripts), `tsconfig.json` (`types: [jest, node]`),
+`.gitignore` (+`coverage/`), `COMANDOS.md` (§ 5 reescrita, § 7b nueva).
+
+Corrido, tal cual:
+- **ESLint 10.10.0 no sirve.** Se instaló como se presentó y `npm ls eslint` devolvió
+  cuatro `invalid`: `eslint-plugin-import` pide `<= ^9`, `eslint-plugin-react` pide
+  `<= ^9.7`, y `eslint-plugin-expo` se trajo su propia copia de la 9.39.5 anidada. Se
+  bajó a **9.39.5** y quedó en 0 conflictos. La declaración `eslint >=8.10` de
+  `eslint-config-expo` es engañosa: sus plugins son más estrictos que ella.
+- `npm audit` → **18 moderadas, 0 altas, 0 críticas.** Todas internas de Expo.
+- `better-sqlite3@13.0.3` compila y corre en Node 22.23.2 (prueba: crear tabla, insertar,
+  leer). Sin necesidad de herramientas de compilación de Windows.
+- **Primer `eslint .`** → 7 errores. Dos en el motor: `!= null` y `== null` en
+  `inventory.ts:32` y `:86`. **No eran bugs, la regla estaba mal escrita:** `x != null`
+  comprueba null e indefinido a la vez, y forzar `!==` habría introducido un bug. Se
+  cambió a `eqeqeq: ['error','always',{null:'ignore'}]`. Los otros cinco eran `console`
+  en `scripts/`, que es su interfaz: override añadido.
+- **`depcruise`** → 0 errores, 4 avisos de `no-orphans`. Se **eliminó esa regla**: el
+  código muerto es trabajo de knip, y duplicarlo hacía que la orden imprimiera ruido en
+  cada ejecución. Ahora depcruise solo habla de arquitectura y todas sus reglas son
+  `error`: si imprime algo, es una violación real.
+- **`knip`** → primero pidió quitar 15 ignores redundantes; luego marcó el motor entero
+  como no usado. Se pasó de `knip.json` a `knip.config.js` para poder documentar **cuándo
+  deja de hacer falta cada ignore**, y se declararon como entradas las fronteras públicas
+  de cada capa (`engine/index.ts`, `db/schema.ts`, `ai/client.ts`). Salida limpia, código 0.
+- **`prettier --write .` tocó 16 documentos**: 556 líneas insertadas y 481 borradas, solo
+  por añadir líneas en blanco tras los títulos y realinear tablas. **Se revirtió y se
+  añadió `*.md` a `.prettierignore`:** los documentos son la memoria del proyecto y ese
+  ruido ahogaría el cambio real en cada diff futuro. También se excluyó `assets/`
+  (generado por Expo) y `docs/producto.html` (1 MB escrito a mano).
+- **Cobertura:** los umbrales objetivo (motor 100 % líneas / 95 % ramas) hacen fallar el
+  gate hoy porque **no hay tests todavía**. Quedan escritos en `jest.config.js` como
+  `OBJETIVO`, y `ACTIVO` apunta a cero. **D3 cambia esa línea.** Un umbral imposible de
+  cumplir no protege: obliga a saltarse el gate, y saltarlo una vez enseña a saltarlo
+  siempre.
+- **Husky no arrancaba:** `.git can't be found`, porque el repo está en `ME-CHEF/` y el
+  proyecto npm en `ME-CHEF/michef/`. Resuelto con `prepare: cd .. && husky michef/.husky`
+  y un `cd michef` al principio de cada enganche.
+- **Prueba de los enganches, con commits reales:**
+  1. Archivo con `console.log`, `git commit` → **rechazado** por `no-console`, y
+     lint-staged revirtió al estado original. `git log` confirma que no se commiteó.
+  2. Mensaje `arreglando cositas` → **rechazado** por commitlint (`type may not be
+     empty`).
+- `npm run gates` → **verde en 12,4 s** (objetivo: menos de 60).
+- `npx prettier --check .` → limpio. `npm run knip` → limpio.
+
+Decisiones nuevas: ninguna que cambie la visión. Cuatro de implementación, todas
+documentadas dentro del archivo que afectan: ESLint 9 en vez de 10; `no-orphans` fuera de
+depcruise; markdown fuera de Prettier; umbrales de cobertura diferidos a D3.
+
+Avances de Luciano: «adelante» a D2 con la lista presentada.
+
+Pendiente:
+- **Luciano:** `winget install Gitleaks.Gitleaks`, y mergear el PR.
+- D3 espera presentación y «adelante».
+
+Para la siguiente sesión: si el PR está mergeado, presentar **D3**. Recordar que D3 sube
+los umbrales de cobertura (`ACTIVO` → `OBJETIVO` en `jest.config.js`) y registra los 7
+bugs como `test.failing` antes de arreglarlos en Fase 1. Y añadir a `COMANDOS.md` lo que
+salga nuevo.
+
+---
+
+## 2026-09-09 · S-20260909-e · D2, segunda vuelta: dos reglas estaban muertas
+
+Tarea: F0-D2, correcciones del revisor · Rama: `chore/F0-D2-tooling` · Resultado: las
+nueve reglas de arquitectura **disparan de verdad**, comprobado con un control positivo
+que ahora corre en cada `npm run gates`.
+
+**El hallazgo grave.** El revisor devolvió `CAMBIOS`. Los gates salían verdes y la
+prohibición dura número uno de `CLAUDE.md` — ninguna API key de modelo en la app — no
+estaba protegida por nada:
+
+1. En `.dependency-cruiser.cjs`, `engine-no-native` y `ai-only-proxy` **no podían
+   dispararse jamás**. Dos fallos independientes, cada uno bastaba:
+   - `options.exclude` incluía `node_modules`, y eso lo borra del **grafo entero**, no
+     solo de la travesía. El grafo pasaba de 15 dependencias a 12 y las reglas no tenían
+     nada que mirar. Lo que se quería (no entrar dentro de los paquetes) ya lo daba
+     `doNotFollow`.
+   - Los patrones decían `^(react-native|…)` y `^(openai|…)`, pero un paquete instalado
+     se resuelve a `node_modules/<paquete>/…`. El ancla `^` no casaba con nada.
+2. En `eslint.config.js`, el override de `src/engine/**` redefinía `no-restricted-imports`.
+   **ESLint reemplaza las opciones de una regla, no las fusiona**, así que el override
+   borraba la prohibición de los SDK de modelos. Verificado: `import OpenAI from 'openai'`
+   dentro de `src/engine/` pasaba `npm run gates` entero.
+
+Lo reprodujimos antes de tocar nada, con un fixture: `depcruise` decía «0 violaciones» y
+ESLint solo se quejaba de `react-native`, no de `openai`.
+
+**Qué se hizo con eso.** Además de arreglar las dos causas, se añadió lo que faltaba de
+verdad: **un control positivo**. `scripts/probar-reglas.js` corre `depcruise` y `eslint`
+contra fixtures que violan cada regla a propósito y **falla si la regla no se queja**.
+Está dentro de `npm run gates` como `npm run reglas`. Sale así:
+
+    dependency-cruiser · con la exclusión de fixtures levantada
+      ok    engine-no-native detecta react-native en el motor
+      ok    ai-only-proxy detecta un SDK de modelo
+      ok    engine-no-ai detecta un import de src/ai/
+      ok    engine-no-db detecta un import de src/db/
+    ESLint · sobre los fixtures, con --no-ignore
+      ok    no-restricted-imports dispara en el motor
+      ok    el SDK de modelo está prohibido dentro del motor
+      ok    no-explicit-any dispara
+      ok    no-console dispara
+      ok    no-only-tests dispara
+    Todas las reglas disparan.
+
+El propio script tuvo dos bugs antes de funcionar, y los dos daban **falsos «todo
+muerto»**: `execFileSync` no puede lanzar un `.cmd` desde Node 20 (CVE-2024-27980) y
+devolvía salida vacía; y el `/* eslint-disable */` de los fixtures apagaba las reglas
+hasta que se añadió `--no-inline-config`. Ahora aborta si cualquiera de las dos órdenes
+devuelve salida vacía, porque un control que no ve nada no puede afirmar nada.
+
+**El resto de correcciones del revisor:**
+- `@typescript-eslint/no-explicit-any` añadida (estaba prometida en `fase-0` y faltaba).
+  Obligó a instalar `@typescript-eslint/eslint-plugin@8.70.0`, que ya estaba en el árbol
+  como transitiva: ESLint exige que la regla y su plugin vivan en el mismo objeto.
+- `noUncheckedIndexedAccess: true` en `tsconfig.json` (prometida en D2 punto 8, se había
+  caído sin declararlo). **Cero errores nuevos** en el código real.
+- El objetivo global de cobertura se había escrito como 40 cuando lo aprobado era 60.
+  Corregido a `{ lines: 60, branches: 40 }`. Sigue inactivo hasta D3.
+- El comentario de `knip.config.js` afirmaba que knip audita dentro del motor. Es falso
+  mientras `engine/index.ts` sea un barril de `export *`: declararlo como entrada hace
+  todo alcanzable. Comprobado A/B (sin esa línea, knip marca 4 archivos y `escalarReceta`
+  y `redondear`). Se dejó así a sabiendas y **el comentario ahora dice la verdad**.
+- `scripts/secrets-bundle.js` tenía tres fallos, los tres verificados y corregidos:
+  1. `/sk-[A-Za-z0-9]{32,}/` **no ve** `sk-proj-…` ni `sk-svcacct-…`, que son los formatos
+     actuales de OpenAI: el guion corta la clase de caracteres.
+  2. Buscar el literal `service_role` **no encuentra** una clave `service_role` real, que
+     es un JWT con el rol dentro del payload en base64. Ahora decodifica cada JWT y mira
+     el rol. Probado: detecta el JWT con `service_role` y **no** marca el de `anon`.
+  3. `process.exit(1)` dentro del `try` **se salta el `finally`**, así que dejaba el
+     bundle con el secreto dentro en `%TEMP%` justo en el único caso que importa. Ahora
+     guarda el código y sale después de limpiar.
+- El hook de pre-commit usaba `gitleaks protect`, obsoleto desde 8.19. Ahora prueba
+  `gitleaks git --staged` y cae al viejo si no existe, y **distingue «hay una fuga» de
+  «la herramienta se rompió»**: si el hook grita «secreto» cada vez que gitleaks falla
+  por otra cosa, dejas de leerlo.
+- `.lintstagedrc.json` no pasaba ESLint a `scripts/*.js`. Corregido.
+- `.node-version` con `22.23.2`, que era una decisión abierta de `estado.md`: fnm y el CI
+  de D5 leen la misma versión.
+- Cuatro decisiones registradas en `decisiones.md`: **#44** ESLint 9 · **#45** documentos
+  fuera de Prettier · **#46** 18 moderadas aceptadas · **#47** cada regla con su fixture.
+
+Estado final, todo corrido: `npm run gates` verde · `npm run reglas` las nueve en verde ·
+`npm run knip` limpio · `npx prettier --check .` limpio · `npx tsc --noEmit` limpio con
+`noUncheckedIndexedAccess`.
+
+Decisiones nuevas: #44, #45, #46, #47.
+
+Avances de Luciano: ninguno nuevo; sigue pendiente instalar gitleaks y mergear.
+
+Pendiente:
+- **Luciano:** `winget install Gitleaks.Gitleaks`, y mergear el PR.
+- D3 espera presentación y «adelante».
+
+Para la siguiente sesión: la lección de esta vuelta es la decisión **#47** y vale para
+todo lo que viene: **un gate verde no prueba que el gate funcione.** En D4 (RLS de
+Supabase) y D5 (CI) hay que escribir el caso negativo antes de fiarse: una política RLS
+que no deniega nada y un CI que no bloquea nada se ven exactamente igual que los que
+funcionan.
+
+---

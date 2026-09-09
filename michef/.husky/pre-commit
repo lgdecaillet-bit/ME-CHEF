@@ -1,0 +1,39 @@
+# Rápido a propósito (< 5 s): solo mira lo que estás commiteando.
+# Formatea, arregla lo que puede, y busca secretos en lo staged.
+
+cd michef && npx lint-staged || exit 1
+cd ..
+
+# gitleaks mira el repo; scripts/secrets-bundle.js mira lo que acaba en el
+# teléfono. Son cosas distintas y hacen falta las dos.
+if command -v gitleaks >/dev/null 2>&1; then
+  # `gitleaks protect` está obsoleto desde 8.19; el subcomando actual es
+  # `gitleaks git --staged`. Se prueba el nuevo y se cae al viejo si no existe,
+  # para no romper con cualquier versión que haya instalada.
+  if gitleaks git --help >/dev/null 2>&1; then
+    SALIDA=$(gitleaks git --staged --redact --no-banner 2>&1)
+  else
+    SALIDA=$(gitleaks protect --staged --redact --no-banner 2>&1)
+  fi
+  CODIGO=$?
+
+  if [ $CODIGO -ne 0 ]; then
+    echo "$SALIDA"
+    # Distinguir «hay una fuga» de «la herramienta se rompió»: si el hook grita
+    # «secreto» cada vez que gitleaks falla por otra cosa, dejas de leerlo.
+    if echo "$SALIDA" | grep -qiE "leaks? found|secret"; then
+      echo ""
+      echo "Hay un secreto en lo que ibas a commitear."
+      echo "NO uses --no-verify. Saca el valor a un .env o a GitHub Secrets."
+      echo "Si ya se subió alguna vez: revoca la credencial primero."
+    else
+      echo ""
+      echo "gitleaks falló, pero no por una fuga. Revisa el mensaje de arriba."
+    fi
+    exit 1
+  fi
+else
+  echo "AVISO: gitleaks no está instalado, no se revisaron secretos."
+  echo "       Instálalo con:  winget install Gitleaks.Gitleaks"
+  echo "       El CI lo revisa igual y bloqueará el PR (paso D5)."
+fi

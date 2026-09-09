@@ -48,3 +48,6 @@ example
 .env.local
 eval/fotos/
 eval/resultados/
+
+# Informes de cobertura: se regeneran en cada `npm test`.
+coverage/

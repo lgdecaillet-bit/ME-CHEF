@@ -1,0 +1,13 @@
+# El repo guarda LF siempre. Sin esto, Windows mete CRLF y Prettier, los hooks
+# y el CI ven archivos distintos a los que ves tú.
+* text=auto eol=lf
+
+# Binarios: que git no los toque
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.hbc binary
+*.ttf binary
+*.otf binary

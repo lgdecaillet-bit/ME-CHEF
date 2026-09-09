@@ -130,27 +130,42 @@ y baja la versión actualizada. **Córrelas siempre las tres.**
 
 ## 5 · Comprobar que nada está roto
 
-Estos son los que corro yo antes de decir que algo está listo. Los pongo aquí por si
-quieres comprobarlo tú mismo. Todos se corren desde **la app**.
+**El único que necesitas saber.** Corre las cuatro comprobaciones seguidas y tarda unos
+doce segundos:
 
 ```powershell
 cd C:\Users\Luciano\Desktop\ME-CHEF\michef
-```
-
-| Comando | Qué comprueba | Qué quieres ver |
-|---|---|---|
-| `npx tsc --noEmit` | Que no hay errores de tipos | Que no diga nada |
-| `npx expo-doctor` | Que el proyecto Expo está sano | `21/21 checks passed` |
-| `npm audit` | Vulnerabilidades en las librerías | Ninguna `high` ni `critical` |
-| `npx expo export --platform ios` | Que la app compila de verdad | `ios bundles (1)` |
-
-A partir del paso D2 habrá uno solo que los corre todos:
-
-```powershell
 npm run gates
 ```
 
-*(todavía no existe — se crea en D2)*
+Si termina sin quejarse, está todo bien. Si se para, te dice cuál falló y por qué.
+
+Lo que hace por dentro, por si quieres correr solo uno:
+
+| Comando | Qué comprueba | Si falla, casi siempre es |
+|---|---|---|
+| `npm run typecheck` | Que no hay errores de tipos | Un nombre mal escrito o algo que falta importar |
+| `npm run lint` | Errores y malas prácticas | Un `console.log` olvidado |
+| `npm run depcruise` | Las reglas de arquitectura | El motor importando algo que no debe |
+| `npm test` | Que los tests pasan | Un test roto de verdad |
+
+Y estos tres, que no entran en `gates` porque tardan más:
+
+| Comando | Qué comprueba |
+|---|---|
+| `npm run knip` | Código y librerías que ya nadie usa |
+| `npm run secrets:bundle` | Que ninguna contraseña acabó dentro de la app |
+| `npx expo-doctor` | Que el proyecto Expo está sano (`21/21`) |
+
+**Arreglar en vez de comprobar.** Estos dos corrigen solos lo que se puede corregir solo:
+
+```powershell
+npm run lint:fix
+```
+
+```powershell
+npm run format
+```
 
 ---
 
@@ -227,6 +242,34 @@ eas whoami
 ```powershell
 npx supabase projects list
 ```
+
+---
+
+## 7b · Cuando el commit no te deja
+
+Desde el paso D2, hacer un commit dispara revisiones automáticas. Si te rechaza, **no
+es un fallo tuyo: es el sistema haciendo su trabajo.** Nunca uses `--no-verify` para
+saltártelo. Está prohibido en las reglas del proyecto y anula la única red que hay.
+
+| Lo que ves | Qué pasó | Qué haces |
+|---|---|---|
+| `Unexpected console statement` | Se quedó un `console.log` | Bórralo, o usa el registro del proyecto |
+| `subject may not be empty` | El mensaje no tiene el formato | Escríbelo como abajo |
+| `Hay un secreto en lo que ibas a commitear` | Una contraseña iba a subirse | Sácala a `.env`. Si ya se subió antes, hay que revocarla |
+| Se para en `gates` al hacer push | Algo se rompió | Corre `npm run gates` y mira cuál falló |
+
+**El formato del mensaje.** Empieza siempre con una palabra, dos puntos, y qué hiciste:
+
+```
+feat: la pantalla de la nevera muestra tres recetas
+fix: la lista de mercado ya no suma gramos con mililitros
+docs: actualizada la bitácora
+chore: instalado el linter
+test: tests del motor de porciones
+```
+
+Las palabras válidas son `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `style`,
+`perf`, `build`, `ci` y `revert`.
 
 ---
 

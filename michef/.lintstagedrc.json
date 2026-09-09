@@ -1,0 +1,11 @@
+{
+  "*.{ts,tsx}": [
+    "eslint --fix --max-warnings=0 --no-warn-ignored",
+    "prettier --write --ignore-unknown"
+  ],
+  "scripts/*.js": [
+    "eslint --fix --max-warnings=0 --no-warn-ignored",
+    "prettier --write --ignore-unknown"
+  ],
+  "*.{js,cjs,json,yml,yaml}": ["prettier --write --ignore-unknown"]
+}
