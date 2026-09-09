@@ -36,8 +36,6 @@ module.exports = {
   ignoreDependencies: [
     // Genera las migraciones locales; se usa por línea de comandos, no se importa.
     'drizzle-kit',
-    // Propiedades invariantes del motor. Entra en uso en D3.
-    'fast-check',
     // Validación en la frontera. Entra en uso en D4 (respuestas del proxy) y D6 (env).
     'zod',
     // knip la infiere del preset de Expo aunque no esté instalada. Entra en D6.

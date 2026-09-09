@@ -562,3 +562,170 @@ que no deniega nada y un CI que no bloquea nada se ven exactamente igual que los
 funcionan.
 
 ---
+
+## 2026-09-09 · S-20260909-f · D3 · tests del motor
+
+Tarea: F0-D3 · Rama: `test/F0-D3-motor` · Resultado: **138 tests, 8 suites, cobertura
+100 % en `src/engine`, `src/db` y `src/ai`.** Los 7 bugs conocidos quedan registrados y
+los umbrales de cobertura, activados.
+
+Tocado (nuevos):
+- `src/engine/__tests__/`: `ayudas.ts` (constructores de datos), `portions.test.ts`,
+  `inventory.test.ts`, `groceries.test.ts`, `coverage.test.ts`, `index.test.ts`,
+  **`bugs.test.ts`** (los 7 bugs).
+- `src/db/__tests__/schema.test.ts` · `src/ai/__tests__/client.test.ts`.
+- Borrado `humo.test.ts`, que era el andamio de D2.
+Modificados: `jest.config.js` (umbrales activados, `testMatch`, exclusiones),
+`eslint.config.js` (reglas de import), `knip.config.js`, `COMANDOS.md`.
+
+Corrido, tal cual:
+- `npm run gates` → **verde**. `npm run knip` → limpio. `npx prettier --check .` → limpio.
+- Cobertura final: `engine` 100/100/100/100, `db` 100, `ai` 100.
+
+**Lo que se comprobó de verdad, no se supuso** (decisión #47 aplicada a este paso):
+- Se «arregló» BUG-1 a mano, en caliente, para ver qué hace el registro de bugs. Con el
+  bug presente: 10 tests pasan. Con el bug arreglado: **2 fallan** con el mensaje
+  «Failing test passed even though it was supposed to fail. Remove `.failing`». Es
+  exactamente el comportamiento que se necesita: el registro avisa cuando deja de ser
+  cierto. Después se revirtió el motor y se verificó con `git diff` que quedó intacto.
+- Se comprobó que `tsc` detecta un import inexistente (`TS2307`) antes de apagar las
+  reglas de `import/*` que hacían lo mismo.
+
+Problemas encontrados y cómo se resolvieron:
+1. **Jest trataba `ayudas.ts` como una suite vacía** y fallaba. Resuelto con
+   `testMatch: ['**/*.test.{ts,tsx}']`: solo los `*.test.ts` son tests.
+2. **Los umbrales activados fallaban con «global 0 %»**. Causa: Jest **saca del cómputo
+   global** los archivos que casan con una clave de ruta. Al poner umbral al motor, el
+   bucket global se quedó solo con lo no cubierto. Se resolvió cubriendo de verdad
+   `src/ai` y `src/db`, no bajando el umbral. Queda explicado en `jest.config.js`.
+3. **`engine/index.ts` y `types.ts` marcan 0 % para siempre**: no tienen ni una sentencia
+   ejecutable (uno son tipos, el otro `export *`). Se excluyen de la cobertura **y** se
+   prueba el barril por contrato en `index.test.ts`, que comprueba que exporta las nueve
+   funciones públicas. No es una exclusión de conveniencia: es que no hay líneas.
+4. **`schema.ts` se quedaba en 50 %.** Lo que faltaba eran las claves foráneas, que
+   Drizzle declara como funciones perezosas (`.references(() => hogar.id)`) y no resuelve
+   hasta que alguien las pide. O sea: **una referencia a una tabla borrada no se nota al
+   compilar, se nota cuando SQLite rechaza la migración en el teléfono.** Se añadió un
+   test que resuelve todas las claves foráneas de todas las tablas. Sube la cobertura y,
+   sobre todo, cubre un fallo real que no tenía red.
+5. **ESLint se caía entero** (`EslintPluginImportResolveError`) en cuanto un test usó
+   `import * as x`. El `eslint-plugin-import` anidado de `eslint-config-expo@57` no encaja
+   con `eslint-import-resolver-typescript@3.10.1`. **No es que la regla encontrara algo:
+   es que no puede correr.** Se apagaron las siete reglas de `import/*` que necesitan
+   resolver el módulo, tras comprobar que `tsc` hace ese trabajo y mejor. Revisar con #44.
+6. Tres errores de tipos en las propiedades: `fc.constantFrom` infiere una unión literal
+   y los `Set` heredaban ese tipo. Resuelto con `new Set<string>(...)`.
+
+Qué protege ahora el motor, además de los ejemplos:
+- `redondear` es idempotente y nunca devuelve negativos.
+- `listaDeMercado` nunca produce una cantidad negativa ni un ingrediente que nadie pidió.
+- `fusionarEscaneo` nunca inventa un ingrediente que no estaba ni en el inventario ni en
+  la foto (es la prohibición dura de CLAUDE.md, ahora ejecutable).
+- `recetasConLoQueHay` nunca propone una receta con algo no disponible, y nunca devuelve
+  más recetas de las pedidas.
+- `client.ts` llama al proxy y **nunca** a un dominio de proveedor de modelos.
+- El esquema no tiene ninguna tabla que se llame como algo que debe calcularse.
+
+Decisiones nuevas: ninguna de visión. Cuatro de implementación, documentadas en el
+archivo que afectan: `testMatch`, exclusión de archivos sin sentencias, umbrales por ruta
+y su efecto en el global, y las reglas de `import/*`.
+
+Avances de Luciano: instaló gitleaks 8.30.1 y mergieó los PR #2 y #3. «Adelante» a D3.
+
+Pendiente:
+- **Luciano:** mergear el PR de D3.
+- D4 espera presentación y «adelante».
+- Los 7 bugs siguen SIN arreglar, a propósito: eso es Fase 1.
+
+Para la siguiente sesión: presentar **D4** (Supabase como código). Llevar la lección de
+#47: los tests de RLS tienen que incluir el caso negativo, porque una política que no
+deniega nada se ve igual que una que funciona. Y añadir a `COMANDOS.md` lo que salga
+nuevo (`npm run supabase:test`).
+
+---
+
+## 2026-09-09 · S-20260909-f · D3, segunda vuelta: tests que no podían fallar
+
+Tarea: F0-D3, correcciones del revisor · Rama: `test/F0-D3-motor` · Resultado: **157
+tests**, cobertura 100 % en motor, datos e IA, y **todo comprobado rompiendo el código a
+propósito**, no supuesto.
+
+**El hallazgo.** El revisor devolvió `CAMBIOS`. La primera versión tenía seis problemas y
+cuatro eran del mismo tipo: **tests que dan confianza falsa**. Es la decisión #47 otra vez,
+con otra cara. Un test verde no prueba que el test sirva.
+
+1. **Cuatro de los once `it.failing` nunca se habrían puesto rojos al arreglar su bug.**
+   - BUG-5 llamaba a la función sin pasar la alergia y hacía `void alergico` para callar
+     al linter: **ninguna implementación correcta podía satisfacer esa aserción.** No era
+     una reproducción, era un marcador de posición.
+   - Los dos de BUG-6 se contradecían entre sí: uno exigía que un dato inválido descartara
+     todo, el otro que no descartara nada, y el arreglo escrito en el propio comentario
+     (lanzar) no habría puesto verde a ninguno.
+   - BUG-7 encadenado avisaba por `TS2345` al compilar, no por el «Failing test passed»
+     que `COMANDOS.md` le enseña a Luciano a buscar.
+   Reescritos los tres para que **afirmen el comportamiento posterior al arreglo**. Donde
+   la firma actual no lo permite (BUG-5, BUG-7) se llama con la firma que tendrá después,
+   con un `as unknown as` y el porqué escrito encima. **Verificado:** se arreglaron BUG-5,
+   BUG-6 y BUG-7 en caliente y los cuatro tests se pusieron rojos con el mensaje correcto;
+   después se revirtió el motor y se comprobó con `git diff` que quedó intacto.
+
+2. **Dos propiedades eran trivialmente ciertas.** El revisor lo demostró rompiendo el
+   motor: con `porcionesDelHogar` devolviendo `0` la propiedad «nunca negativo» **pasaba**;
+   con `PENALIZACION_NO_VISTO = -3` la de «ni cantidad ni confianza negativas» **también**,
+   porque solo reformulaba el filtro final de la propia función. Sustituidas por dos que sí
+   pueden fallar: el resultado está a menos de 0,05 de la suma de factores, y lo no visto
+   pierde **exactamente** la mitad de confianza. Comprobado que ambas cazan el fallo.
+
+3. **Faltaban propiedades** en `escalarReceta`, `totalEstimado`, `descontarCocinado` y
+   `porVencerse`, y la de monotonía de `redondear` que pide `fase-0` por su nombre.
+   Añadidas las cinco. Total: 16 propiedades.
+
+4. **`schema.test.ts` no probaba `schema.ts`.** Tenía un DDL escrito a mano que **ya se
+   había separado del esquema**: le faltaban cinco columnas (`minutos_diarios`,
+   `presupuesto_semanal`, `comidas_por_dia`, `come_en_casa`, `objetivo_id`) y no creaba
+   doce de las catorce tablas. El comentario prometió que impedía esa separación; no la
+   impedía, y de hecho no la había visto. Reescrito: ahora el SQL **se genera desde
+   `schema.ts`** con `generateSQLiteMigration` de `drizzle-kit/api`, el mismo generador que
+   produce las migraciones reales, y se aplican las 14 sentencias en SQLite. Las
+   comprobaciones de columnas pasaron de `arrayContaining` (contención) a igualdad.
+
+5. **La exclusión de cobertura de `index.ts` y `types.ts` no hacía lo que decía.** El
+   revisor la quitó y el gate siguió verde: con cero sentencias, el umbral no penaliza.
+   O sea, solo escondía dos filas del informe **y abría un agujero futuro**, porque el día
+   que el barril deje de ser `export *` su lógica quedaría fuera del 100 %. Exclusión
+   retirada.
+
+6. **Siete reglas de ESLint apagadas sin registrar**, y con una justificación inexacta:
+   decía que TypeScript cubre lo mismo, y eso vale para cuatro de ellas, no para
+   `no-duplicates` ni `no-named-as-default`, que son de estilo y no las cubre nadie.
+   Registrado como **decisión #48** con esa distinción escrita.
+
+Menores también corregidos: el test de las siete tareas del proxy era un
+`toHaveLength(7)` sobre un array escrito tres líneas antes (tautología), ahora es un
+`it.each` con `satisfies` que comprueba que cada tarea viaja sin transformarse; una
+promesa suelta en un test no `async`; la propiedad de groceries pasaba el inventario
+siempre vacío, así que no podía detectar que un ítem del inventario se colara en la
+lista; y el número «138 tests» en `COMANDOS.md`, que caduca en el siguiente PR.
+
+**Casos límite que faltaban** y que CLAUDE.md pide por su nombre: `factorPorcion` NaN o
+negativo, `redondear(NaN)`, `escalarReceta` con porciones negativas. Todos pasan tal cual
+hoy, y un NaN llega hasta la lista de mercado. Quedan como tests de caracterización para
+que el arreglo de Fase 1 (zod en la frontera) sea deliberado y no accidental.
+
+Corrido, tal cual: `npm run gates` verde · 157 tests, 8 suites · cobertura 100 % en
+`engine`, `db` y `ai` · `npm run knip` limpio · `npx prettier --check .` limpio ·
+`npm run reglas` las nueve disparan.
+
+Decisiones nuevas: **#48**.
+
+Avances de Luciano: ninguno nuevo en esta vuelta.
+
+Pendiente: **Luciano:** mergear el PR de D3. D4 espera presentación y «adelante».
+
+Para la siguiente sesión: la lección de esta vuelta, para D4 y D5. **Un test verde no
+prueba que el test sirva.** Antes de fiarse de una comprobación hay que romper lo que
+protege y ver que se queja. En D4 eso significa: escribir una política RLS, intentar
+saltarsela desde `anon`, y comprobar que el intento falla. Una política que no deniega
+nada se ve idéntica a una que funciona.
+
+---

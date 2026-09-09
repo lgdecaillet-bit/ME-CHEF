@@ -12,7 +12,7 @@
 > `### #N · Título` · fecha · estado · texto con el porqué · qué reemplaza · qué archivos
 > de `fases/` cambian.
 
-Vigentes: **#1–#3, #5–#47**. Reemplazadas: #4 (por #29).
+Vigentes: **#1–#3, #5–#48**. Reemplazadas: #4 (por #29).
 
 ---
 
@@ -358,6 +358,25 @@ violación parece igual de sana que una que funciona**. Desde ahora: toda regla 
 arquitectura tiene un fixture en `src/engine/__fixtures__/` que la viola a propósito, y
 `npm run reglas` (dentro de `npm run gates`) falla si la regla no se queja. Es el control
 positivo del sistema de calidad. Una regla nueva sin fixture no se mergea.
+
+
+### #48 · Siete reglas `import/*` de ESLint quedan apagadas
+Fecha: 2026-09-09 · **vigente**
+`eslint-config-expo@57` trae su propia copia anidada de `eslint-plugin-import`, y su
+interfaz no encaja con `eslint-import-resolver-typescript@3.10.1`. El síntoma empezó
+siendo avisos («typescript with invalid interface loaded as resolver») y pasó a ser una
+caída completa de ESLint (`EslintPluginImportResolveError`) en cuanto un test usó
+`import * as x`. **No es que las reglas encontraran algo: es que no pueden correr.**
+Apagadas: `import/namespace`, `import/no-unresolved`, `import/named`, `import/default`,
+`import/no-named-as-default`, `import/no-named-as-default-member`, `import/no-duplicates`.
+Las cuatro primeras las cubre TypeScript, y mejor: un import inexistente da `TS2307` en
+`npm run typecheck`, que corre **antes** que el lint dentro de `npm run gates`
+(comprobado). Las tres últimas son de estilo y **no las cubre nadie**: se pierden a
+sabiendas, porque el coste de tener el linter caído es mayor.
+**Se revisa en cada subida de SDK de Expo**, junto con la decisión #44. Si el resolvedor
+se arregla, se vuelven a encender de una en una.
+Misma familia que #44 y #46: tres cesiones al ecosistema de Expo, todas con su condición
+de revisión escrita.
 
 ---
 
