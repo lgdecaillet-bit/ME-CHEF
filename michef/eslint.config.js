@@ -107,6 +107,34 @@ module.exports = [
       eqeqeq: ['error', 'always', { null: 'ignore' }],
       'no-var': 'error',
       'prefer-const': 'error',
+
+      // ── Reglas de import que dependen de un resolvedor roto ────────────────
+      //
+      // `eslint-config-expo@57` trae su propia copia anidada de
+      // `eslint-plugin-import`, y su interfaz no encaja con la de
+      // `eslint-import-resolver-typescript@3.10.1`. El síntoma: primero avisos
+      // «typescript with invalid interface loaded as resolver», y en cuanto
+      // aparece un `import * as x`, ESLint se cae entero con
+      // EslintPluginImportResolveError. No es que la regla encuentre algo: es
+      // que no puede correr.
+      //
+      // Las cuatro de resolución (`namespace`, `no-unresolved`, `named`,
+      // `default`) las cubre TypeScript y mejor: un import inexistente da
+      // `TS2307` en `npm run typecheck`, que corre ANTES que el lint dentro de
+      // `npm run gates`. Comprobado.
+      //
+      // Las tres últimas son de estilo y **no las cubre nadie**: se pierden a
+      // sabiendas, porque tener el linter caído cuesta más que perderlas.
+      //
+      // Registrado como decisión #48. Revisar cuando Expo suba de SDK, junto
+      // con la #44.
+      'import/namespace': 'off',
+      'import/no-unresolved': 'off',
+      'import/named': 'off',
+      'import/default': 'off',
+      'import/no-named-as-default': 'off',
+      'import/no-named-as-default-member': 'off',
+      'import/no-duplicates': 'off',
     },
   },
 

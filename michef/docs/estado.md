@@ -5,15 +5,15 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-09 · por sesión S-20260909-e
+Actualizado: 2026-09-09 · por sesión S-20260909-f
 
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D2 hecho** (`chore/F0-D2-tooling`, PR abierto). Siguiente: D3, tests del motor |
-| **Decisiones vigentes** | hasta **#47** |
+| **Paso actual** | **D3 hecho** (`test/F0-D3-motor`, PR abierto). Siguiente: D4, Supabase como código |
+| **Decisiones vigentes** | hasta **#48** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `chore/F0-D2-tooling` — espera merge. D3 sale de `main` |
+| **Rama de trabajo** | `test/F0-D3-motor` — espera merge. D4 sale de `main` |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -39,6 +39,7 @@ Se vacía al cambiar de día.
 | S-20260909-c | primer commit y push a `main` sin `research/` | cerrada |
 | S-20260909-d | D1 · chore/bootstrap | cerrada |
 | S-20260909-e | D2 · tooling de calidad | cerrada |
+| S-20260909-f | D3 · tests del motor | cerrada |
 
 ## Tareas tomadas
 
@@ -61,8 +62,8 @@ desde el primer PR de código.
 | D0.5 | `estado.md`, `bitacora.md`, `decisiones.md` numerado, protocolo en `CLAUDE.md`, `revisor.md` | Claude | ✅ hecho |
 | D1 | `chore/bootstrap`: migrar starter a `michef/`, limpiar scaffold | Claude | ✅ mergeado (PR #1, `2ba0d81`) |
 | D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ✅ hecho (PR espera merge) |
-| D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ⏳ espera presentación + «adelante» |
-| D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ⏳ |
+| D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ✅ hecho (PR espera merge) |
+| D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ⏳ espera presentación + «adelante» |
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ⏳ |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init`, secretos EAS | Claude + Luciano | ⏳ |
 | D6.5 | Sistema de diseño + galería | Claude | ⏳ |
@@ -135,15 +136,21 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 1. ~~Primer commit en `main`~~ hecho: `a5bfa0c` (sesión c). `research/` fuera.
 2. ~~D1 `chore/bootstrap`~~ **mergeado**: Luciano verificó «ME CHEF» en Expo Go, se hizo
    squash merge en `main` (`2ba0d81`) y se borró la rama.
-3. ~~D2 tooling~~ hecho y **revisado dos veces**: el revisor devolvió `CAMBIOS` y
-   encontró que dos reglas de arquitectura estaban muertas. Corregido y verificado con
-   un control positivo (`npm run reglas`). **Falta que Luciano instale gitleaks y
-   mergee el PR.**
-4. Claude presenta **D3** (tests del motor): ejemplos y una propiedad invariante por
-   función con `fast-check`, los 7 bugs conocidos como `test.failing`, y el test del
-   esquema Drizzle con `better-sqlite3`. **D3 sube los umbrales de cobertura**: en
-   `jest.config.js`, cambiar `ACTIVO` de `D2_SIN_TESTS_TODAVIA` a `OBJETIVO`
-   (motor 100 % líneas / 95 % ramas). No se ejecuta nada sin «adelante» (#34).
+3. ~~D2 tooling~~ mergeado (PR #2), más el arreglo del mensaje del hook (PR #3).
+   gitleaks 8.30.1 instalado y probado.
+4. ~~D3 tests del motor~~ hecho y **revisado dos veces**: el revisor devolvió `CAMBIOS`
+   y encontró cuatro registros de bug que nunca se habrían puesto rojos y dos propiedades
+   que no podían fallar. Corregido y verificado rompiendo el motor a propósito.
+   **157 tests, cobertura 100 % en motor, datos e IA.** Espera merge.
+5. Claude presenta **D4** (`chore/supabase`): `supabase init`, migración 0001 con el
+   esquema actual, migración 0002 con **RLS en todas las tablas**, tests pgTAP que
+   comprueban que `anon` NO puede escribir en `precio` ni leer `cache_modelo`, esqueleto
+   del `ai-proxy` (401 sin JWT, 200 en `/health`, 501 en cualquier tarea) con `deno test`,
+   y el script `npm run supabase:test`. No se ejecuta nada sin «adelante» (#34).
+
+   **Aviso para D4, de la decisión #47:** una política RLS que no deniega nada se ve
+   exactamente igual que una que funciona. Los tests pgTAP tienen que incluir el caso
+   negativo (intentar escribir y comprobar que falla), no solo el positivo.
 
 Propuesto aparte, dos minutos, cuando Luciano quiera: **regla de rama básica en `main`**
 (solo PRs, sin push directo, sin force-push). No depende de que exista CI; los checks
@@ -177,9 +184,22 @@ Abierto, sin urgencia:
 - Decisiones nuevas registradas en D2: **#44** ESLint 9 hasta que Expo suba sus plugins ·
   **#45** documentos fuera de Prettier · **#46** se aceptan las 18 moderadas de Expo ·
   **#47** cada regla necesita un fixture que la viole.
-- Para D3/Fase 1: `src/engine/inventory.ts` usa `ahora: Date = new Date()` como valor por
-  defecto — impureza latente. Los tests deben pasar `ahora` siempre; Fase 1 quita el
-  default.
+- ~~`inventory.ts` con `ahora: Date = new Date()`~~ cubierto en D3: los tests pasan la
+  fecha siempre, y hay dos que ejercitan el valor por defecto a propósito. Fase 1 sigue
+  debiendo quitar el default.
+- **Los 7 bugs del motor están registrados, no arreglados.** Viven en
+  `src/engine/__tests__/bugs.test.ts` como `it.failing`. **Fase 1 los arregla**, y por
+  orden de daño: BUG-1 (la foto pierde lo que no cuenta) y BUG-5 (las alergias no llegan
+  al filtro) primero. Al arreglar uno, su test se pone rojo con el mensaje «Failing test
+  passed»: hay que quitarle el `.failing`.
+- **ESLint: siete reglas de `import/*` apagadas** en D3, registrado como **decisión
+  #48**. Tres de ellas (`no-duplicates`, `no-named-as-default`,
+  `no-named-as-default-member`) son de estilo y **no las cubre nadie**: se pierden a
+  sabiendas. Revisar junto con #44 al subir de SDK.
+- **Casos límite del motor sin validar, caracterizados en D3:** un `factorPorcion` NaN
+  o negativo pasa tal cual y contamina la lista de mercado; `redondear(NaN)` da NaN;
+  `escalarReceta` con porciones negativas da cantidades negativas. Hay tests que fijan
+  ese comportamiento para que el cambio de Fase 1 (zod en la frontera) sea deliberado.
 
 ---
 

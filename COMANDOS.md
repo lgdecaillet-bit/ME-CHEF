@@ -147,7 +147,8 @@ Lo que hace por dentro, por si quieres correr solo uno:
 | `npm run typecheck` | Que no hay errores de tipos | Un nombre mal escrito o algo que falta importar |
 | `npm run lint` | Errores y malas prácticas | Un `console.log` olvidado |
 | `npm run depcruise` | Las reglas de arquitectura | El motor importando algo que no debe |
-| `npm test` | Que los tests pasan | Un test roto de verdad |
+| `npm test` | Que todos los tests pasan | Un test roto de verdad |
+| `npm run reglas` | Que las reglas de arquitectura siguen vivas | Alguien tocó una regla y la dejó muerta |
 
 Y estos tres, que no entran en `gates` porque tardan más:
 
@@ -156,6 +157,18 @@ Y estos tres, que no entran en `gates` porque tardan más:
 | `npm run knip` | Código y librerías que ya nadie usa |
 | `npm run secrets:bundle` | Que ninguna contraseña acabó dentro de la app |
 | `npx expo-doctor` | Que el proyecto Expo está sano (`21/21`) |
+
+**Ver los tests mientras trabajas.** Se queda abierto y re-ejecuta al guardar:
+
+```powershell
+npm run test:watch
+```
+
+**Un test se pone rojo y dice «Failing test passed».**
+No es un fallo: es un aviso bueno. Significa que arreglaste uno de los siete errores
+conocidos del motor, y ese test estaba registrado como «falla a propósito». Hay que ir a
+`michef/src/engine/__tests__/bugs.test.ts`, quitarle el `.failing` a ese test, y ya queda
+como un test normal que protege el arreglo.
 
 **Arreglar en vez de comprobar.** Estos dos corrigen solos lo que se puede corregir solo:
 
