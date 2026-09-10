@@ -55,6 +55,6 @@ export function redondear(cantidad: number, _unidad: 'g' | 'ml'): number {
  */
 export function redondearParaComprar(cantidad: number, _unidad: 'g' | 'ml'): number {
   if (cantidad < 10) return Math.ceil(cantidad * 2) / 2;
-  if (cantidad < 100) return Math.ceil(cantidad / 5) * 5;
+  if (cantidad < 100) return Math.floor(cantidad / 5) * 5;
   return Math.ceil(cantidad / 10) * 10;
 }
