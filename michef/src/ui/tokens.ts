@@ -146,3 +146,10 @@ export const opacidad = { pulsado: 0.6, latido: 0.4, sombra: 0.15 } as const;
 
 /** Milisegundos. Lo que un `Aviso` se queda en pantalla (diseno.md § 2.2). */
 export const duracion = { aviso: 3000 } as const;
+
+/**
+ * La forma de `Cargando`: el alto del bloque grande (lo que va a llegar arriba de
+ * una pantalla, una foto o una tarjeta) y el largo de sus tres líneas, distinto
+ * cada una, como un párrafo de verdad.
+ */
+export const cargando = { bloque: 192, lineas: ['100%', '85%', '60%'] } as const;

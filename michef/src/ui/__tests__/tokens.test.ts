@@ -1,4 +1,5 @@
 import {
+  cargando,
   colores,
   duracion,
   espacio,
@@ -56,6 +57,12 @@ describe('tokens de los componentes', () => {
       expect(valor).toBeGreaterThan(0);
       expect(valor).toBeLessThan(1);
     }
+  });
+
+  it('el bloque de Cargando sigue la rejilla de 4 pt, y sus líneas van de más larga a más corta', () => {
+    expect(cargando.bloque % 4).toBe(0);
+    const largos = cargando.lineas.map((l) => Number.parseFloat(l));
+    expect([...largos].sort((a, b) => b - a)).toEqual(largos);
   });
 
   it('un aviso se queda 3 s en pantalla (diseno.md § 2.2)', () => {

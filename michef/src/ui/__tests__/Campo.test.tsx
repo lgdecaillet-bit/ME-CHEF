@@ -31,17 +31,17 @@ const entrada = () => screen.getByTestId('c');
 const caja = () => estiloDe(screen.getByTestId('c.caja'));
 
 function etiqueta() {
-  const { transform } = estiloDe(screen.getByTestId('c.etiqueta', conOcultos)) as {
+  const { transform, top } = estiloDe(screen.getByTestId('c.etiqueta', conOcultos)) as {
     transform: [{ translateY: number }, { scale: number }];
+    top: number;
   };
-  return { y: transform[0].translateY, escala: transform[1].scale };
+  return { y: transform[0].translateY, escala: transform[1].scale, top };
 }
 
 const ABAJO = { y: 0, escala: 1 };
-const ARRIBA = {
-  y: -espacio.l,
-  escala: tipografia.nota.fontSize / tipografia.cuerpo.fontSize,
-};
+const PEQUENA = tipografia.nota.fontSize / tipografia.cuerpo.fontSize;
+// Arriba, la etiqueta queda pegada al borde de arriba de la caja.
+const arriba = () => espacio.xs - Number(caja().paddingTop);
 
 describe('Campo', () => {
   it('VoiceOver lo nombra con su etiqueta, y la etiqueta visible no se lee dos veces', async () => {
@@ -53,7 +53,9 @@ describe('Campo', () => {
 
   it('vacío y sin tocar: la etiqueta está dentro, a tamaño normal, y el borde es gris', async () => {
     await dibujar(elCampo());
-    expect(etiqueta()).toEqual(ABAJO);
+    expect(etiqueta()).toMatchObject(ABAJO);
+    // Abajo, en la misma línea donde se escribe.
+    expect(etiqueta().top).toBe(caja().paddingTop);
     expect(caja()).toMatchObject({
       borderColor: colores.claro.borde,
       backgroundColor: colores.claro.superficie,
@@ -63,8 +65,8 @@ describe('Campo', () => {
   it('al tocarlo, la etiqueta sube y se encoge, y el borde se pone del acento', async () => {
     await dibujar(elCampo());
     await fireEvent(entrada(), 'focus');
-    expect(etiqueta().y).toBe(ARRIBA.y);
-    expect(etiqueta().escala).toBeCloseTo(ARRIBA.escala);
+    expect(etiqueta().y).toBeCloseTo(arriba());
+    expect(etiqueta().escala).toBeCloseTo(PEQUENA);
     expect(caja().borderColor).toBe(colores.claro.acento);
   });
 
@@ -72,13 +74,13 @@ describe('Campo', () => {
     await dibujar(elCampo());
     await fireEvent(entrada(), 'focus');
     await fireEvent(entrada(), 'blur');
-    expect(etiqueta()).toEqual(ABAJO);
+    expect(etiqueta()).toMatchObject(ABAJO);
     expect(caja().borderColor).toBe(colores.claro.borde);
   });
 
   it('con valor, la etiqueta se queda arriba aunque no esté tocado', async () => {
     await dibujar(elCampo({ valor: 'Tomate' }));
-    expect(etiqueta().y).toBe(ARRIBA.y);
+    expect(etiqueta().y).toBeCloseTo(arriba());
     expect(entrada().props.value).toBe('Tomate');
   });
 
@@ -159,6 +161,20 @@ describe('Campo', () => {
       tipografia.cuerpo.fontSize * tipografia.cuerpo.escalaMaxima
     );
   });
+
+  it.each([undefined, 1, 1.353, 1.786, 3.571])(
+    'con la letra a %s, la etiqueta de arriba no tapa lo que se escribe (lo vio el revisor)',
+    async (escalaDeLetra) => {
+      await dibujar(elCampo({ valor: 'Tomate' }), { escalaDeLetra });
+      const { top, y, escala } = etiqueta();
+      const alto = Number(
+        estiloDe(screen.getByText('Ingrediente', conOcultos)).lineHeight
+      );
+      const bordeDeAbajo = top + y + alto * escala;
+      expect(bordeDeAbajo).toBeLessThanOrEqual(Number(caja().paddingTop));
+      expect(top + y).toBeCloseTo(espacio.xs);
+    }
+  );
 
   it('con animación, la etiqueta viaja en el tiempo rápido del tema, y se para si cambia a mitad', async () => {
     reducido.mockReturnValue(false);

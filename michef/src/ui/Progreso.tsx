@@ -1,9 +1,10 @@
 /**
  * Progreso · la barra «2 de 2» del onboarding.
  *
- * VoiceOver la lee como una barra de progreso, con su valor en palabras. Con un
- * número fuera de rango (negativo, más que el total, NaN) se queda en el borde
- * de la barra: nunca se sale ni desaparece.
+ * VoiceOver lee su valor en palabras («1 de 2»). En iOS, React Native no la
+ * anuncia como «barra de progreso»: ese rol solo le dice que cambia a menudo.
+ * Nunca se sale de la barra: un número negativo cuenta como 0, uno mayor que el
+ * total como el total, y uno que no es finito (NaN, Infinity) como 0.
  */
 import { StyleSheet, View } from 'react-native';
 

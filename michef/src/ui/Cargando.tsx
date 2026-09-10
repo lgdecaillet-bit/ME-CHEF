@@ -24,9 +24,6 @@ type Props = {
   testID?: string;
 };
 
-// Tres líneas de largo distinto, como un párrafo de verdad.
-const LINEAS = ['100%', '85%', '60%'] as const;
-
 export function Cargando({ modo = 'linea', descripcion, testID }: Props) {
   const tema = useTema();
   const reducido = useMovimientoReducido();
@@ -69,14 +66,14 @@ export function Cargando({ modo = 'linea', descripcion, testID }: Props) {
           style={[
             bloque,
             {
-              height: tema.espacio.xxxl * 4,
+              height: tema.cargando.bloque,
               borderRadius: tema.radio.l,
               marginBottom: tema.espacio.s,
             },
           ]}
         />
       ) : null}
-      {LINEAS.map((ancho) => (
+      {tema.cargando.lineas.map((ancho) => (
         <View
           key={ancho}
           testID={testID && `${testID}.linea`}

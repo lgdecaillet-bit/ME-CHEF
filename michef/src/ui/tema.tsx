@@ -13,6 +13,7 @@ import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 
 import {
+  cargando,
   colores,
   duracion,
   espacio,
@@ -37,6 +38,7 @@ export type Tema = {
   icono: typeof icono;
   opacidad: typeof opacidad;
   duracion: typeof duracion;
+  cargando: typeof cargando;
   /**
    * Solo la galería lo fija, para simular Dynamic Type. Sin él, el tamaño de
    * la letra lo decide el iPhone.
@@ -72,6 +74,7 @@ export function ProveedorTema({ children, esquema, escalaDeLetra }: Props) {
       icono,
       opacidad,
       duracion,
+      cargando,
       escalaDeLetra,
     }),
     [elegido, escalaDeLetra]

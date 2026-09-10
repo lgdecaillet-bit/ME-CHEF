@@ -957,10 +957,35 @@ cambie al revisar el PR
     «nunca una rueda sola» de `diseno.md` § 2.2 convertida en error de lint. Cada una con su
     línea en un fixture y su mutación.
 11. **Los tokens crecen**: `icono` (tamaños y tope), `opacidad` (pulsado 0,6, latido 0,4,
-    sombra 0,15) y `duracion.aviso` (3 s). Siguen siendo el único archivo con valores.
+    sombra 0,15), `duracion.aviso` (3 s) y `cargando` (el bloque de 192 pt y el largo de
+    las tres líneas). Siguen siendo el único archivo con valores, salvo el grosor de borde
+    de 1 pt, que ya se escribía así en D6.5a. La primera versión de este punto dejaba las
+    medidas de `Cargando` fuera y decía lo mismo: lo vio el revisor.
 12. **En la galería, el modo y el tamaño de letra se eligen con `Chip`**, y
     `BotonDeDesarrollo` se borró (#58.5). La pantalla inicial usa `Boton`: VoiceOver lee
     «Galería» y «Provocar error», y lo que hacen va como pista.
+13. **Archivos que no estaban en la lista presentada**, cada uno por algo concreto:
+    - `src/ui/letra.ts` saca de `Texto` el cálculo de Dynamic Type, para que `Campo`
+      escriba con la misma letra. Es un refactor pequeño dentro de un PR de feature, que
+      CLAUDE.md desaconseja; se hizo aquí porque sin él `Campo` copiaba la cuenta. Los
+      tests de `Texto` no cambiaron y siguen pasando.
+    - `Texto` gana `centrado` (lo pide `EstadoVacio`) y exporta `ColorDeTexto` (lo usan
+      las piezas que colorean un icono).
+    - `src/ui/useMovimientoReducido.ts` (punto 3).
+    - `src/ui/__tests__/dibujar.tsx`: ayudas de los tests (el tema como `wrapper`, el
+      estilo aplanado y un dedo que toca sin soltar).
+    - `knip.config.js`: `expo-font` sale de las excepciones, porque ahora la importa
+      `expo-symbols`. Lo avisó knip.
+14. **Las dos dependencias nativas se prueban en Expo Go, no en un build.**
+    `protocolos-calidad.md` pide build de simulador y Maestro cuando entra una dependencia
+    nativa, y esa tubería llega con D7. `expo-symbols` y `expo-haptics` vienen dentro de
+    Expo Go, así que la prueba del iPhone las usa de verdad; el build de simulador las verá
+    por primera vez en D7.
+15. **La etiqueta de `Campo` se coloca con la letra de ahora.** El sitio de arriba crece
+    con Dynamic Type (la escala de la galería o la del iPhone, con el tope del cuerpo), y
+    así la etiqueta encogida nunca tapa lo escrito. La primera versión la subía siempre
+    16 pt, y con la letra más grande tapaba 36 pt del texto: lo vio el revisor, con la
+    cuenta hecha sobre los tokens.
 
 ## Pendientes de decidir
 

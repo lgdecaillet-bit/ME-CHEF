@@ -34,11 +34,14 @@ describe('Progreso', () => {
     [1, 0, '0 de 0', 0],
     [1, -3, '0 de 0', 0],
     [1, Number.POSITIVE_INFINITY, '0 de 0', 0],
-  ])('con %s de %s, se queda en el borde: «%s»', async (actual, total, texto, flex) => {
-    await dibujar(<Progreso actual={actual} total={total} testID="p" />);
-    expect(screen.getByText(texto)).toBeTruthy();
-    expect(relleno().flex).toBe(flex);
-  });
+  ])(
+    'con %s de %s, se queda dentro de la barra: «%s»',
+    async (actual, total, texto, flex) => {
+      await dibujar(<Progreso actual={actual} total={total} testID="p" />);
+      expect(screen.getByText(texto)).toBeTruthy();
+      expect(relleno().flex).toBe(flex);
+    }
+  );
 
   it('con cualquier número, la barra está entre vacía y llena y el texto no dice «NaN»', async () => {
     await fc.assert(

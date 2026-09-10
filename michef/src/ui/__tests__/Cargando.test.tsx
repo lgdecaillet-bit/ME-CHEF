@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react-native';
 import { Animated } from 'react-native';
 
 import { Cargando } from '../Cargando';
-import { colores, espacio, movimiento, opacidad } from '../tokens';
+import { cargando, colores, espacio, movimiento, opacidad } from '../tokens';
 import { useMovimientoReducido } from '../useMovimientoReducido';
 import { dibujar, estiloDe } from './dibujar';
 
@@ -26,7 +26,7 @@ describe('Cargando', () => {
   it('en línea: tres líneas grises de largo distinto, sin bloque grande', async () => {
     await dibujar(<Cargando descripcion="Cargando" testID="c" />);
     const lineas = screen.getAllByTestId('c.linea').map(estiloDe);
-    expect(lineas.map((l) => l.width)).toEqual(['100%', '85%', '60%']);
+    expect(lineas.map((l) => l.width)).toEqual(cargando.lineas);
     expect(lineas.every((l) => l.backgroundColor === colores.claro.superficie2)).toBe(
       true
     );
@@ -36,7 +36,7 @@ describe('Cargando', () => {
 
   it('pantalla: un bloque grande arriba y tres líneas, ocupando la pantalla', async () => {
     await dibujar(<Cargando modo="pantalla" descripcion="Cargando" testID="c" />);
-    expect(estiloDe(screen.getByTestId('c.bloque')).height).toBe(espacio.xxxl * 4);
+    expect(estiloDe(screen.getByTestId('c.bloque')).height).toBe(cargando.bloque);
     expect(screen.getAllByTestId('c.linea')).toHaveLength(3);
     expect(estiloDe(screen.getByTestId('c'))).toMatchObject({
       flex: 1,

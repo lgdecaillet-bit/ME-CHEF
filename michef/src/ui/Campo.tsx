@@ -7,10 +7,18 @@
  * - VoiceOver lee la etiqueta como el nombre del campo, y el error como pista.
  *   Cuando aparece un error, además lo dice en voz alta.
  * - El error va debajo, en rojo y con un icono: no depende solo del color.
- * - La letra sigue Dynamic Type, como `Texto`.
+ * - La letra sigue Dynamic Type, como `Texto`, y el sitio de la etiqueta crece
+ *   con ella: con la letra que sea, la etiqueta de arriba no tapa lo escrito.
  */
 import { useEffect, useState } from 'react';
-import { AccessibilityInfo, Animated, StyleSheet, TextInput, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  Animated,
+  StyleSheet,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { Icono } from './Icono';
 import { letra } from './letra';
@@ -41,6 +49,7 @@ export function Campo({
   testID,
 }: Props) {
   const tema = useTema();
+  const { fontScale } = useWindowDimensions();
   const reducido = useMovimientoReducido();
   const [enfocado, setEnfocado] = useState(false);
   const arriba = enfocado || valor.length > 0;
@@ -67,6 +76,15 @@ export function Campo({
 
   const { style: estiloDeLetra, ...escala } = letra(tema, 'cuerpo');
   const pequena = tema.tipografia.nota.fontSize / tema.tipografia.cuerpo.fontSize;
+  // El alto de una línea del cuerpo con la letra de ahora (la que simula la
+  // galería o la del iPhone, con el tope del estilo). Arriba del todo va la
+  // etiqueta encogida, y debajo lo que se escribe: así no se tocan nunca.
+  const crece = Math.min(
+    tema.escalaDeLetra ?? fontScale,
+    tema.tipografia.cuerpo.escalaMaxima
+  );
+  const linea = tema.tipografia.cuerpo.lineHeight * crece;
+  const arribaDelTexto = tema.espacio.xs + linea * pequena + tema.espacio.xs;
   const borde = error != null ? 'rojo' : enfocado ? 'acento' : 'borde';
 
   return (
@@ -78,7 +96,7 @@ export function Campo({
           {
             minHeight: tema.tactil.minimo + tema.espacio.l,
             paddingHorizontal: tema.espacio.l,
-            paddingTop: tema.espacio.xl,
+            paddingTop: arribaDelTexto,
             paddingBottom: tema.espacio.s,
             borderRadius: tema.radio.m,
             borderColor: tema.color[borde],
@@ -96,11 +114,13 @@ export function Campo({
             estilos.etiqueta,
             {
               left: tema.espacio.l,
+              // Abajo, en la línea donde se escribe; arriba, pegada al borde.
+              top: arribaDelTexto,
               transform: [
                 {
                   translateY: posicion.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0, -tema.espacio.l],
+                    outputRange: [0, tema.espacio.xs - arribaDelTexto],
                   }),
                 },
                 {
@@ -151,14 +171,9 @@ export function Campo({
 }
 
 const estilos = StyleSheet.create({
-  caja: { borderWidth: 1, justifyContent: 'center' },
-  // Encogida desde la izquierda, para que al subir no se vaya hacia el centro.
-  etiqueta: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    transformOrigin: 'left',
-  },
+  caja: { borderWidth: 1 },
+  // Encogida desde su esquina de arriba a la izquierda: al subir no se va hacia
+  // el centro, y su borde de arriba queda donde se le dice.
+  etiqueta: { position: 'absolute', transformOrigin: 'left top' },
   fila: { flexDirection: 'row', alignItems: 'center' },
 });
