@@ -226,7 +226,11 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    `supabase`, `secretos` — en verde en menos de dos minutos y medio. El job `supabase`
    pasó a la primera; el de `gates` encontró tres cosas reales que llevaban días en el
    repo. **Falta que Luciano decida sobre GitHub Pro** (ver Bloqueos).
-9. Claude presenta **D6** (`feat/app-base`): `app.config.ts` con el bundleId de iOS,
+9. ~~Prueba del gate rojo~~ **hecha a medias, y a propósito queda dicho cuál mitad**
+   (PR #10, cerrado sin mergear; detalle en `protocolos-calidad.md § 8`). **Probado:** el
+   CI se pone rojo en 1m14s y nombra los cinco tests que caen. **Sin probar, y sin poder
+   probarse hoy:** que el merge quede bloqueado — eso necesita la #54.
+10. Claude presenta **D6** (`feat/app-base`): `app.config.ts` con el bundleId de iOS,
    las dependencias base, `log.ts`, `sentry.ts`, `env.ts` con zod, `flags.ts`, la pantalla
    inicial de verdad, `metro.config.js`, `eas.json` y `eas init`. Es el paso en el que la
    app deja de ser una pantalla en blanco. No se ejecuta nada sin «adelante» (#34).

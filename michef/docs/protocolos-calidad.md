@@ -194,4 +194,37 @@ Al terminar la Fase 0 se hace esta prueba **y se anota aquí el resultado con fe
 
 | Fecha | Resultado | CI | EAS | Notas |
 |---|---|---|---|---|
-| — | pendiente | — | — | se rellena al cerrar la Fase 0 |
+| 2026-09-10 | **mitad probada** | 1m14s | — | PR #10. Ver abajo. |
+
+### 2026-09-10 · primera prueba, y qué mitad quedó sin probar
+
+**Lo que se hizo.** Rama `test/gate-rojo` con `redondearParaComprar` devuelto a
+`Math.floor`, o sea BUG-9 reintroducido. Se empujó **con `--no-verify` a propósito**: el
+enganche de pre-push lo habría parado en local, y el punto de la prueba es justamente que
+un enganche local se puede saltar y el CI no. PR #10.
+
+**Resultado.** El CI se puso rojo en **1m14s**, en el paso `tests y cobertura`, y nombró
+los cinco tests que caen: el registro de BUG-9, tres casos de `redondearParaComprar` y el
+de `listaDeMercado`. Los otros dos checks siguieron en verde — `supabase` (2m56s) y
+`secretos` (11s) — que es lo correcto: el fallo era del motor, no de la base ni de los
+secretos. Un CI que pusiera todo en rojo ante cualquier fallo diría mucho menos.
+
+El PR se cerró sin mergear y la rama se borró.
+
+**Lo que NO se pudo probar, y es la mitad que de verdad protege.** El paso 2 de la lista
+dice «el botón de merge, bloqueado». **No lo estaba.** GitHub no permite proteger ramas en
+repositorios privados con cuenta gratuita (decisión #54), así que el PR #10 se podía
+mergear en rojo perfectamente; simplemente no se hizo.
+
+Distinguir las dos mitades importa:
+
+- **Probado:** el CI detecta lo roto, corre en una máquina limpia, y dice con precisión
+  qué falló y dónde.
+- **Sin probar, y sin poder probarse hoy:** que el merge quede bloqueado, y que un
+  `git push` directo a `main` sea imposible.
+
+Mientras la #54 siga abierta, **la última barrera es la disciplina de una persona**, que es
+exactamente lo que la Fase 0 existe para no necesitar. Esta prueba se repite entera — y
+esta tabla se rellena de verdad — el día que `npm run reglas:rama` pueda aplicarse.
+
+**La columna de EAS queda vacía**: los builds y Maestro llegan en D7.
