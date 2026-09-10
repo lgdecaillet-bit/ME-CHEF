@@ -1220,3 +1220,60 @@ se podrá hasta que se resuelva la #54. Que quede claro cuál de las dos mitades
 probada, porque son cosas distintas y la segunda es la que de verdad protege.
 
 ---
+
+## 2026-09-10 · S-20260910-a · `main` protegida: la mitad que faltaba de la prueba
+
+Tarea: cierre de D5 · Rama: `docs/F0-D5-cierre` · Resultado: **la prueba del gate rojo,
+superada entera.** `main` solo se toca por PR y solo en verde.
+
+Tocado: `docs/protocolos-calidad.md` § 8 · `docs/{estado,decisiones,bitacora}.md`.
+
+**Luciano hizo el repositorio público**, que era la opción 2 de la decisión #54. Con eso,
+la protección de rama dejó de depender del plan de GitHub y `npm run reglas:rama` la
+aplicó a la primera.
+
+**Y después se comprobó que bloquea de verdad, que es lo único que cuenta** (decisión
+#47: una regla que no deniega nada se ve igual que una que funciona):
+
+1. **Push directo a `main`**, con `--no-verify` para saltarse también el enganche local:
+   `! [remote rejected] main -> main (push declined due to repository rule violations)`.
+   Este era el agujero más grande que podía tener el proyecto, porque **los gates no
+   corren en lo que no pasa por un PR**.
+2. **Merge de un PR en rojo** (`test/gate-rojo-2`, con BUG-9 reintroducido). CI rojo en
+   52 s, y `gh pr merge --squash` devolvió
+   `not mergeable: the base branch policy prohibits the merge`. Cerrado sin mergear.
+
+La primera prueba (PR #10) solo había podido demostrar la mitad, y quedó escrito así en
+vez de darla por superada. Ahora están las dos.
+
+**La salida de emergencia que sigue existiendo, dicha en voz alta:** `gh pr merge --admin`
+se salta la regla, porque Luciano es dueño del repo y eso no se puede quitar sin dejar de
+serlo. La diferencia con antes es que **ahora hay que escribirlo**, y queda en el historial
+del PR. Saltarse el gate pasó de ser lo que ocurre por descuido a ser un acto consciente.
+
+**Lo que cuesta que el repo sea público**, porque no es gratis del todo y conviene que esté
+escrito: **todo `docs/` es legible por cualquiera** — el roadmap entero, las 54 decisiones,
+la estrategia de producto y las conclusiones de la investigación. Es una decisión de
+negocio, no técnica, y está tomada a sabiendas. **Ningún secreto está expuesto**:
+comprobado con `gitleaks git` sobre el historial completo **después** del cambio, sin
+hallazgos. Los tokens viven en GitHub Secrets, que siguen siendo privados; la `anon key`
+sigue solo en el `.env` local, ignorado por git. De regalo, los minutos de Actions pasan a
+ser ilimitados.
+
+Corrido, tal cual: `npm run reglas:rama` → ruleset creado · push directo a `main` →
+rechazado · PR #13 en rojo → merge rechazado · `gitleaks git` sobre el historial completo
+→ sin hallazgos · el motor comprobado intacto tras las dos roturas a propósito.
+
+Decisiones nuevas: ninguna. **#54 resuelta**, con las consecuencias de ser público escritas
+dentro.
+
+Avances de Luciano: **hizo el repositorio público.**
+
+Pendiente: **Claude:** presentar D6.
+
+Para la siguiente sesión: **la Fase 0 ya tiene sus barreras cerradas de verdad.** Lo que
+queda — D6, D6.5, D7, D8 — es la app y el sistema de diseño, no protección. A partir de
+aquí, **cualquier rama tiene que pasar por PR y por los tres checks**; ya no hay atajo, ni
+siquiera para un cambio de una línea en un documento.
+
+---

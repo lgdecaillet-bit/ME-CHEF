@@ -618,8 +618,34 @@ porque en local no hay permisos.
 
 **Archivos de `fases/` que cambian:** `fase-0-fundaciones.md` § D5.
 
-### #54 · `main` no se puede proteger hasta que Luciano decida sobre GitHub Pro
-Fecha: 2026-09-10 · **vigente, pendiente de decisión de Luciano**
+### #54 · `main` protegida, y el repositorio pasa a ser público
+Fecha: 2026-09-10 · **resuelta el mismo día**
+
+> **RESUELTA.** Luciano eligió la opción 2: hacer el repositorio público. `main` quedó
+> protegida el 2026-09-10 con `npm run reglas:rama`, y la prueba del gate rojo se completó
+> entera (`protocolos-calidad.md § 8`): un push directo a `main` se rechaza, y un PR en
+> rojo no se puede mergear.
+>
+> **Lo que hay que tener presente ahora que el repositorio es público**, porque no es
+> gratis del todo:
+> - **Todo `docs/` es legible por cualquiera**: el roadmap entero, las 54 decisiones, la
+>   estrategia de producto y las conclusiones de la investigación. Es una decisión de
+>   negocio, no técnica, y está tomada a sabiendas.
+> - **Ningún secreto está expuesto.** Comprobado con `gitleaks git` sobre el historial
+>   completo después del cambio: sin hallazgos. Los tokens viven en GitHub Secrets, que
+>   siguen siendo privados; la `anon key` sigue solo en el `.env` local, ignorado.
+> - **Los PR de forks también disparan el CI**, y por diseño de GitHub no reciben los
+>   secretos del repositorio. El job `supabase` funciona igual porque levanta su propio
+>   Postgres.
+> - **Los minutos de Actions pasan a ser ilimitados** en repos públicos.
+> - Si algún día vuelve a ser privado, **la protección de rama se pierde** con el plan
+>   gratuito y hay que volver a esta decisión.
+
+Lo de abajo es el análisis original, que se conserva porque explica por qué hacía falta
+decidir.
+
+---
+
 **GitHub no permite proteger ramas en repositorios privados con cuenta gratuita.**
 Comprobado, no supuesto: tanto `repos/.../rulesets` como la protección clásica devuelven
 `403 Upgrade to GitHub Pro or make this repository public`.

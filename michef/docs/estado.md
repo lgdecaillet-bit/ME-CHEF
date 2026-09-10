@@ -10,7 +10,7 @@ Actualizado: 2026-09-10 · por sesión S-20260910-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D5 mergeado** salvo la protección de `main`, que necesita GitHub Pro (#54). Siguiente: **D6**, la app base |
+| **Paso actual** | **D5 cerrado del todo**, `main` protegida y comprobada. Siguiente: **D6**, la app base |
 | **Decisiones vigentes** | hasta **#54** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | ninguna. D6 sale de `main` |
@@ -77,7 +77,7 @@ desde el primer PR de código.
 | D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ✅ mergeado (PR #2 y #3) |
 | D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ✅ mergeado (PR #4, `72a0d1a`) |
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ✅ mergeado (PR #8) |
-| D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho **salvo rulesets** (#54) |
+| D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho, entero |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init`, secretos EAS | Claude + Luciano | ⏳ |
 | D6.5 | Sistema de diseño + galería | Claude | ⏳ |
 | D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
@@ -132,16 +132,17 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 
 ## Bloqueos
 
-- **⚠️ `main` no está protegida, y no se puede proteger** (decisión #54). GitHub no
-  permite proteger ramas en repos **privados** con cuenta gratuita: tanto rulesets como
-  la protección clásica devuelven `403 Upgrade to GitHub Pro`.
-  - **Lo que significa hoy:** el CI ya dice rojo o verde en cada PR, pero **nada impide
-    mergear en rojo, ni hacer `git push` directo a `main` saltándose el CI entero**. La
-    última barrera vuelve a ser la disciplina de una persona.
-  - **Lo decide Luciano:** GitHub Pro (~4 USD/mes, recomendado) o repo público.
-  - `scripts/reglas-de-rama.js` está listo y es idempotente. El día que haya plan:
-    `npm run reglas:rama`.
-  - **Mientras tanto, convenio en firme: no se mergea nada en rojo, aunque se pueda.**
+- ~~`main` no está protegida~~ **Resuelto el 2026-09-10.** Luciano hizo el repositorio
+  **público**, con lo que la protección de rama dejó de depender del plan de GitHub.
+  `main` está protegida y comprobada: un push directo se rechaza, y un PR en rojo no se
+  puede mergear (decisión #54, evidencia en `protocolos-calidad.md § 8`).
+  - **Consecuencia que conviene no olvidar: todo `docs/` es legible por cualquiera** — el
+    roadmap, las 54 decisiones, la estrategia de producto. Es una decisión de negocio,
+    tomada a sabiendas. Ningún secreto está expuesto: comprobado con `gitleaks git` sobre
+    el historial completo después del cambio.
+  - **La salida de emergencia sigue existiendo:** `gh pr merge --admin` se salta la regla,
+    porque Luciano es dueño del repo y eso no se puede quitar. La diferencia es que ahora
+    hay que escribirlo, y queda en el historial del PR.
 
 - ~~El enganche de pre-commit no revisa secretos~~ **Diagnosticado mal y corregido el
   mismo día.** Los commits de las sesiones de Claude imprimían «gitleaks no está
@@ -226,10 +227,11 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    `supabase`, `secretos` — en verde en menos de dos minutos y medio. El job `supabase`
    pasó a la primera; el de `gates` encontró tres cosas reales que llevaban días en el
    repo. **Falta que Luciano decida sobre GitHub Pro** (ver Bloqueos).
-9. ~~Prueba del gate rojo~~ **hecha a medias, y a propósito queda dicho cuál mitad**
-   (PR #10, cerrado sin mergear; detalle en `protocolos-calidad.md § 8`). **Probado:** el
-   CI se pone rojo en 1m14s y nombra los cinco tests que caen. **Sin probar, y sin poder
-   probarse hoy:** que el merge quede bloqueado — eso necesita la #54.
+9. ~~Prueba del gate rojo~~ **superada entera** (PRs #10 y #13, los dos cerrados sin
+   mergear; detalle en `protocolos-calidad.md § 8`). El CI se pone rojo y nombra los tests
+   que caen; el push directo a `main` se rechaza; y un PR en rojo **no se puede mergear**.
+   Con esto, **la Fase 0 tiene sus barreras cerradas de verdad**: lo que falta (D6–D8) es
+   la app y el sistema de diseño, no protección.
 10. Claude presenta **D6** (`feat/app-base`): `app.config.ts` con el bundleId de iOS,
    las dependencias base, `log.ts`, `sentry.ts`, `env.ts` con zod, `flags.ts`, la pantalla
    inicial de verdad, `metro.config.js`, `eas.json` y `eas init`. Es el paso en el que la
