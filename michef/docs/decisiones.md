@@ -710,6 +710,124 @@ no lo ofrece.
 
 ---
 
+### #56 · La identidad de la app: `com.mechef.app`, nombre corto `mechef`, dueño `lucogav8`
+
+Fecha: 2026-09-10 · **vigente** · la eligió Luciano, sobre la recomendación de Claude
+
+- **`ios.bundleIdentifier`: `com.mechef.app`.** Es el nombre de la app ante Apple y es
+  **permanente**: si cambia después de publicar, para Apple es otra app distinta. Neutro
+  entre Suiza y Colombia, y con el nombre del producto. El plan proponía `ch.michef.app`,
+  que ataba la app a Suiza y usaba la ortografía vieja.
+- **`slug` y `scheme`: `mechef`**, alineados con Sentry (`mechef`) **antes** de
+  `eas init`, que era cuando cambiarlo todavía era gratis. Después de `eas init` el
+  `slug` es el nombre del proyecto en expo.dev, y el `scheme` es el de los enlaces que
+  abren la app (`mechef://`). La carpeta del proyecto se queda como `michef`: no la ve
+  nadie y renombrarla solo movería rutas.
+- **`owner: 'lucogav8'`, fijado en `app.config.ts`.** La sesión de `eas` de Luciano tiene
+  dos cuentas, `lucogav8` y `tes0` (TESO). Sin el `owner`, el proyecto podía acabar
+  registrado bajo la de TESO. Resultado: **`@lucogav8/mechef`**, ID
+  `5360a08d-118b-4dc0-a012-c1955bedf59c` (no es secreto).
+
+### #57 · Lo que D6 cambió respecto al plan escrito, y por qué
+
+Fecha: 2026-09-10 · **vigente**
+
+1. **`@supabase/supabase-js` pasa a Fase 1.** Aprobado por Luciano. Es JavaScript puro:
+   no cambia la huella del build, así que meterla después cuesta lo mismo que hoy.
+   Instalarla sin usarla la dejaba sin test y marcada por `codigo-muerto` desde el primer
+   día. Entra con la sesión anónima, que es su primer uso, y con el test que la prueba.
+2. **El botón de prueba lanza un error de JavaScript, no `Sentry.nativeCrash()`.** Expo Go
+   no incluye el código nativo de Sentry. Comprobado en el código del SDK instalado
+   (`sdk.js`: «native errors features are not available in Expo Go»). El crash nativo se
+   prueba con un build de desarrollo, cuando haya licencia de Apple.
+3. **`ThemeProvider` pasa a D6.5.** El tema claro/oscuro es parte del sistema de diseño;
+   ponerlo ahora obligaba a decidir colores dos veces.
+4. **`SENTRY_AUTH_TOKEN` en EAS pasa a D7.** En D6 nada lo usa: Expo Go no sube mapas de
+   código. Y hay un problema conocido que conviene resolver en D7 con el primer build
+   delante: los **tokens de organización** de Sentry creados en organizaciones de la
+   **región EU** llevan dentro la dirección de EE. UU., y `sentry-cli` la usa por encima
+   de `SENTRY_URL`, así que la subida falla con `401 Invalid org token`
+   (getsentry/sentry-cli#3385, cerrado). La salida reconocida es un **token personal**
+   con `SENTRY_URL=https://de.sentry.io`. El token que hay hoy en GitHub Secrets es de
+   organización, así que **probablemente habrá que reemplazarlo en D7**.
+5. **`platforms: ['ios']`, explícito.** Sin él, Expo deducía `ios, android, web` de las
+   librerías instaladas, en contra de lo decidido en D1.
+6. **El DSN de Sentry es opcional; un interruptor mal escrito no.** Sin DSN la app arranca
+   sin avisos, para poder trabajar sin cuenta de Sentry. Un interruptor con un valor que
+   no se entiende **para la app al arrancar** en vez de quedarse apagado: uno que se apaga
+   en silencio es un error que cuesta una tarde encontrar.
+7. **`expo-system-ui` queda ignorada en `codigo-muerto`**, no borrada. Viene del scaffold y
+   Expo la usa para el tema en Android. Quitar una dependencia es su propio paso: se
+   decide en D6.5, junto con el tema.
+
+Añadido tras la revisión, que devolvió CAMBIOS y tenía razón en cada punto:
+
+8. **Las variables de entorno en EAS pasan a D7** (fila 0.10 de D0, decisión #39). El
+   plan las cargaba en D6, y se cayeron sin registrarse: lo cazó el revisor. Nada de D6
+   las necesita, porque Expo Go lee el `.env` del PC. El primer build de D7 sí: `.env`
+   está ignorado por git y un build de EAS no lo ve, así que sin ellas `env.ts` para la
+   app al arrancar y el smoke de Maestro falla. Se cargan en D7 con `eas env:create`,
+   junto con el token de Sentry.
+9. **El plugin de `expo-secure-store` no entra hasta su primer uso (Fase 1).**
+   `npx expo install` lo añadió solo a la configuración, y sin opciones mete en el build
+   un permiso de Face ID —en inglés— para una función que no existe. El **paquete** sí se
+   queda: entró con las nativas para que la huella cambie una sola vez. El **plugin**, que
+   solo escribe permisos, entra con su primer uso, con el texto en castellano o con
+   `faceIDPermission: false`.
+10. **Una dependencia con script de instalación, declarada.** `@sentry/react-native` trae
+    `@sentry/cli` 2.58.4, cuyo `postinstall` descarga el programa `sentry-cli` de
+    `downloads.sentry-cdn.com`. Es el mecanismo oficial de Sentry y es lo que sube los
+    mapas de código en D7. Además `npm audit` pasa de las 18 moderadas de la #46 a
+    **19**: la nueva es `@sentry/react-native`, vía `expo`. Cero altas, cero críticas. Se
+    acepta con la misma condición de revisión que la #46: al subir de SDK.
+11. **`eas.json`.** `appVersionSource: "remote"`: el número de build lo lleva EAS y no el
+    repo, así que dos builds no pueden chocar por un número que alguien olvidó subir ·
+    `node` fijado en 22.23.2, el mismo que `.node-version` · canales `simulator` y
+    `development` además de los del plan, uno por perfil, para que un update nunca
+    llegue a un build al que no va · `submit.production` vacío, se rellena en Fase 6.
+12. **El filtro de Sentry solo cubre los errores de JavaScript.** El SDK le quita
+    `beforeSend` y `beforeBreadcrumb` a las opciones de la parte nativa
+    (`@sentry/react-native/dist/js/wrapper.js:158`, comprobado): un crash nativo se envía
+    sin pasar por `limpiarEvento`. Y `setUser`, `setTag` y `setExtra` se copian a la parte
+    nativa sin filtrar. En Expo Go no hay parte nativa, así que hoy no aplica. En el build
+    de D7 sí: aviso en `estado.md`. Mientras tanto, la regla es no llamar a
+    `setUser`/`setTag`/`setExtra` con nada personal.
+
+Añadido tras la **segunda** revisión, que volvió a devolver CAMBIOS, esta vez por cosas
+nuevas:
+
+13. **Las reglas del filtro de Sentry.**
+    - **Un texto de más de 2.000 caracteres se quita entero, sin revisarlo.** Suele ser
+      un JSON o una imagen en base64, y una foto no puede salir del teléfono. Además,
+      revisarlo congelaba la app: la expresión de correos era **cuadrática** (3,4 s con
+      50.000 caracteres, medido), y este filtro corre con cada error y con cada miga.
+      Todas las repeticiones de las expresiones llevan ahora tope, y hay un test de
+      tiempo que lo vigila aunque algún día se quite el de 2.000.
+    - **Lo que CLAUDE.md prohíbe sacar —el objetivo físico y los comensales— se quita
+      también por el nombre del campo:** `objetivo`, `comensal`, `restriccion`, `peso`,
+      `edad`, `fechaNacimiento`, `alergias`… Solo como palabra entera: los `pesos` de un
+      precio no son el `peso` de nadie.
+    - **Y su límite, dicho tal cual, porque la primera versión de este punto prometía
+      más:** las columnas reales de esas tablas (`src/db/schema.ts`) se llaman `tipo`,
+      `valor`, `unidad`, `factorPorcion`, `noCome`. Esos nombres no delatan nada, y no
+      pueden estar en la lista sin borrar media app. Así que **una fila solo se protege
+      si va dentro de un campo llamado `objetivo`, `comensal` o `restriccion`**. La regla
+      que de verdad protege es otra: **nunca se pasa una fila de la base local a `log` ni
+      a Sentry.** Lo encontró el revisor pasando por el filtro todas las columnas del
+      esquema.
+    - **Los contextos que rellena el SDK** —una lista cerrada: `os`, `device`, `app`,
+      `runtime`, `culture`, `trace`, `replay`, `ota_updates`, `react_native_context`— se
+      limpian con una regla relajada, porque ahí `name` es «iOS» y `height` es la
+      pantalla. **Cualquier otro contexto** —uno propio, puesto con `setContext`— se
+      limpia en estricto. La primera versión aceptaba además todo lo que empezara por
+      `expo`: un `setContext('exportacion', …)` se habría saltado el modo estricto, y el
+      SDK no pone ningún contexto con ese nombre.
+    - **`calle` solo como palabra entera**, no como principio de otra: por esa regla,
+      `caller` y `callee` —palabras técnicas en inglés— caían por empezar por «calle».
+    - **Lo que ningún filtro atrapa:** un nombre propio suelto en un texto («Ana Pérez»).
+      La regla es no pasar nada personal a `log`, `setContext`, `setUser`, `setTag` ni
+      `setExtra`.
+
 ## Pendientes de decidir
 
 - Porciones para varias personas: ¿tres porciones iguales o cada comensal con su apetito?
@@ -723,7 +841,6 @@ no lo ofrece.
 - Granularidad del catálogo: «pollo» vs «pechuga sin piel»
 - Fórmula y pesos del ranking
 - Marketplace: ¿catálogo con reseñas, o recetas publicadas por usuarios?
-- `bundleIdentifier` (se decide en D6; es permanente)
 - Tokens del sistema de diseño (se deciden en D6.5, viendo la galería en el iPhone)
 
 ## Por verificar antes de depender de ello

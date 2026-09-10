@@ -43,6 +43,16 @@ npx expo start --tunnel
 
 Es más lento pero funciona aunque la red se porte mal.
 
+**Si al abrir sale una pantalla roja que dice «La app no arranca sin estas variables de
+entorno»**, no es un error del código: falta algo en `michef/.env` y la pantalla dice
+**cuál**. Se arregla en el `.env` (§ 9), se para el servidor con `Ctrl` + `C` y se vuelve a
+correr `npx expo start`. El `.env` solo se lee al arrancar el servidor.
+
+**En desarrollo, debajo de «ME CHEF» hay un botón rojo, «Provocar error».** Sirve para
+comprobar que Sentry recibe los errores. Al tocarlo la app muestra una pantalla roja de
+error: es lo esperado. Ese botón no existe en la app que llega a los usuarios, y hay un
+test que lo comprueba.
+
 ---
 
 ## 2 · Antes de arrancar: ¿en qué versión estoy?
@@ -171,9 +181,12 @@ directo a `main` sin PR ni sin que el CI esté en verde.
 npm run reglas:rama
 ```
 
-Hoy **te va a decir que no puede**, y te explicará por qué: GitHub no protege ramas en
-repositorios privados con cuenta gratuita. Cuando decidas (GitHub Pro, unos 4 USD al mes,
-o hacer el repo público), vuelves a correr este mismo comando y ya queda.
+**Ya está aplicado** desde el 2026-09-10, cuando el repositorio pasó a ser público
+(decisión #54). No hace falta volver a correrlo: solo si alguien cambia las reglas en
+GitHub y hay que dejarlas como estaban. Es seguro repetirlo.
+
+Si el repositorio vuelve a ser **privado**, este comando dirá que no puede: GitHub no
+protege ramas privadas con la cuenta gratuita. Ahí hay que volver a la decisión #54.
 
 **Levantar la base de datos en tu PC.** Hace falta que Docker Desktop esté abierto.
 La primera vez tarda porque se descarga; después son segundos.
@@ -331,6 +344,18 @@ gh auth status
 ```powershell
 eas whoami
 ```
+
+Debe decir `lucogav8`. **Si dice que no encuentra `eas`:** se instaló cuando usabas Node
+22.12.0, y desde D2 usas 22.23.2. Cada versión de Node tiene sus propios programas
+globales, así que hay que instalarlo otra vez, **una sola vez**:
+
+```powershell
+npm install -g eas-cli
+```
+
+Tu sesión de `eas` tiene **dos cuentas**: `lucogav8` (ME CHEF) y `tes0` (TESO). No pasa
+nada: `app.config.ts` fija `owner: 'lucogav8'`, así que ningún comando de ME CHEF puede
+acabar en la cuenta de TESO.
 
 ```powershell
 npx supabase projects list
