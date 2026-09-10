@@ -28,18 +28,26 @@ type Props = {
 };
 
 /**
- * El siguiente valor, un paso arriba o abajo. Cae siempre en la rejilla del
- * paso (con 0,5: 1 → 1,5 → 2) y dentro de los límites. Redondea a los decimales
- * del paso, porque en coma flotante 0,1 + 0,2 no da 0,3.
+ * El siguiente valor, un paso arriba o abajo, siempre dentro de los límites y en
+ * la rejilla que empieza en el mínimo (mínimo 0,5 y paso 1: 0,5 → 1,5 → 2,5).
+ * Redondea a los decimales del paso y del mínimo, porque en coma flotante
+ * 0,1 + 0,2 no da 0,3. Con un paso que no sirve (cero, negativo, NaN, infinito)
+ * no se mueve.
  */
 export function siguienteValor(
   valor: number,
   sentido: 1 | -1,
   { minimo, maximo, paso }: { minimo: number; maximo: number; paso: number }
 ): number {
-  const decimales = (String(paso).split('.')[1] ?? '').length;
-  const enRejilla = Math.round((valor + sentido * paso) / paso) * paso;
-  return Math.min(maximo, Math.max(minimo, Number(enRejilla.toFixed(decimales))));
+  if (!(Number.isFinite(paso) && paso > 0)) return valor;
+  const decimales = Math.max(decimalesDe(paso), decimalesDe(minimo));
+  const pasos = Math.round((valor + sentido * paso - minimo) / paso);
+  const enRejilla = Number((minimo + pasos * paso).toFixed(decimales));
+  return Math.min(maximo, Math.max(minimo, enRejilla));
+}
+
+function decimalesDe(n: number): number {
+  return (String(n).split('.')[1] ?? '').length;
 }
 
 export function Stepper({
@@ -55,9 +63,10 @@ export function Stepper({
   const puedeBajar = valor > minimo;
   const puedeSubir = valor < maximo;
   const mover = (sentido: 1 | -1) => {
-    if (sentido === 1 ? puedeSubir : puedeBajar) {
-      alCambiar(siguienteValor(valor, sentido, { minimo, maximo, paso }));
-    }
+    if (!(sentido === 1 ? puedeSubir : puedeBajar)) return;
+    const siguiente = siguienteValor(valor, sentido, { minimo, maximo, paso });
+    // Con un paso que no sirve, el número no cambia, y no se avisa de nada.
+    if (siguiente !== valor) alCambiar(siguiente);
   };
   const alAccionDeVoiceOver = (evento: AccessibilityActionEvent) => {
     if (evento.nativeEvent.actionName === 'increment') mover(1);
