@@ -1277,3 +1277,60 @@ aquí, **cualquier rama tiene que pasar por PR y por los tres checks**; ya no ha
 siquiera para un cambio de una línea en un documento.
 
 ---
+
+## 2026-09-10 · S-20260910-a · la regla que la protección de rama no puede imponer
+
+Tarea: regla #55 · Rama: `docs/F0-nunca-mergear-en-rojo` · Resultado: **escrita en los
+cuatro sitios donde un agente la va a leer.**
+
+Tocado: `docs/decisiones.md` (**#55**) · `docs/estado.md` («Las dos reglas que gobiernan
+todo», y el bloqueo de `main` actualizado) · `docs/protocolos-calidad.md` (§ 2 reglas de
+rama, § 4 punto 1 del DoD, § 6 reglas para trabajar con Claude Code) · `CLAUDE.md`
+(«Cómo trabajar conmigo», «Seguridad del código», «Cómo se verifica»).
+
+**De dónde sale.** Al cerrar D5 se reportó con honestidad que quedaba una salida de
+emergencia: `gh pr merge --admin` se salta el ruleset, porque GitHub deja que el
+administrador de un repositorio ignore sus propias reglas, y eso no se puede desactivar
+sin dejar de ser dueño. Luciano respondió con una frase que no admite lectura ambigua:
+
+> «No tienes permiso jamás para sobrepasarte el PR si los tests no están en verde.»
+
+**Por qué es una regla y no una preferencia.** Las cinco capas anteriores son mecánicas:
+el editor, el enganche de pre-commit, el de pre-push, el CI y la protección de rama. Cada
+una impide algo por sí sola, sin depender de que nadie se acuerde. **La sexta no puede
+serlo**, porque el mecanismo que la impondría es justo el que tiene la excepción. Ahí
+solo queda una regla escrita, y una regla escrita solo sirve si está escrita donde se
+lee: por eso va en los cuatro documentos y no en uno.
+
+**Qué queda prohibido, con nombre y apellido**, para que no haya que interpretar nada
+dentro de tres meses: `gh pr merge --admin` · `git push` directo a `main` · desactivar,
+relajar o borrar el ruleset · sacar un check de los obligatorios · y poner un `.skip`,
+bajar un umbral de cobertura o añadir una excepción a gitleaks **para que un PR concreto
+pase**. Lo último importa tanto como lo primero: rodear el gate por debajo cuenta igual
+que saltarlo por arriba.
+
+**Y qué se hace en su lugar.** Se arregla lo que está rojo. Si lo rojo es el gate y no el
+código, se arregla el gate en su propio PR, que también tiene que ponerse verde. Y si no
+se sabe cómo, **se para y se avisa**, con el check que falla y lo que dice, tal cual. La
+salida que sigue existiendo es de Luciano y de nadie más: si algún día decide mergear en
+rojo, lo hace él y escribe por qué en el PR.
+
+**La generalización, que es la #47 vista desde el otro lado.** Veníamos repitiendo que un
+gate que nunca ha bloqueado nada se ve igual que uno que funciona. Esto es el reverso:
+**un gate que se puede saltar cuando molesta y un gate que no existe son, en la práctica,
+el mismo gate.** Lo que costó la Fase 0 — 189 tests, 22 candados de RLS, 19 del proxy,
+tres checks, la prueba del gate rojo hecha dos veces — vale exactamente lo que valga el
+día que menos ganas haya de respetarlo.
+
+Corrido, tal cual: PR con los tres checks en verde. Sin código tocado; solo documentos.
+
+Decisiones nuevas: **#55**.
+
+Avances de Luciano: hizo el repositorio público (cerrando #54) y fijó la #55.
+
+Pendiente: **Claude:** presentar **D6** (`feat/app-base`). **Luciano:** «adelante» a D6.
+
+Para la siguiente sesión: la #55 es de las que hay que leer antes de tocar nada, junto con
+la #34. Está arriba del todo en `estado.md`, en «Las dos reglas que gobiernan todo».
+
+---
