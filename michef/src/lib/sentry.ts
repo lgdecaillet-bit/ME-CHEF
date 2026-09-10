@@ -42,6 +42,8 @@
 import * as Sentry from '@sentry/react-native';
 import type { Breadcrumb, ErrorEvent } from '@sentry/react-native';
 
+import { log } from './log';
+
 const QUITADO = '[quitado]';
 
 const TOPE_DE_TEXTO = 2000;
@@ -349,7 +351,17 @@ export function limpiarEvento(evento: ErrorEvent): ErrorEvent {
  */
 export function iniciarSentry(dsn: string | undefined): boolean {
   const recortado = dsn?.trim();
-  if (!recortado) return false;
+  if (!recortado) {
+    // Un servicio que se apaga solo tiene que decirlo. En D6 el DSN estaba
+    // vacío en el .env, Sentry no se inició y nada lo dijo: el aviso de la
+    // prueba no llegó a sentry.io y costó averiguar por qué. Solo en
+    // desarrollo: `log.warn` calla en producción.
+    log.warn(
+      'Sentry está apagado: falta EXPO_PUBLIC_SENTRY_DSN. Los errores no llegan a ningún sitio.',
+      { donde: 'michef/.env' }
+    );
+    return false;
+  }
 
   Sentry.init({
     dsn: recortado,

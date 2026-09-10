@@ -48,6 +48,12 @@ entorno»**, no es un error del código: falta algo en `michef/.env` y la pantal
 **cuál**. Se arregla en el `.env` (§ 9), se para el servidor con `Ctrl` + `C` y se vuelve a
 correr `npx expo start`. El `.env` solo se lee al arrancar el servidor.
 
+**Si la terminal dice «Sentry está apagado: falta EXPO_PUBLIC_SENTRY_DSN»**, la app
+funciona, pero sus errores no llegan a Sentry y nadie se entera de ellos. Falta el DSN en
+la línea `EXPO_PUBLIC_SENTRY_DSN=` del `.env` (§ 9). Está en sentry.io → Settings →
+Projects → **mechef** → **Client Keys (DSN)**, y empieza por `https://`. Se pega, se para
+el servidor con `Ctrl` + `C` y se vuelve a arrancar.
+
 **En desarrollo, debajo de «ME CHEF» hay un botón rojo, «Provocar error».** Sirve para
 comprobar que Sentry recibe los errores. Al tocarlo la app muestra una pantalla roja de
 error: es lo esperado. Ese botón no existe en la app que llega a los usuarios, y hay un

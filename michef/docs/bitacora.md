@@ -1618,3 +1618,96 @@ ruta completa (aviso escrito en `estado.md`). Y el CI hizo su trabajo: es la cap
 depende del PATH de nadie, y para eso existe.
 
 ---
+
+## 2026-09-10 · S-20260910-a · D6 en el iPhone: el aviso no llegó a Sentry, y por qué
+
+Tarea: F0-D6 · Rama: `feat/F0-D6-app-base` · PR #16 · Resultado: **la prueba en el iPhone
+encontró un fallo real**, que es para lo que existe.
+
+**Lo que funcionó.** Luciano abrió la app en Expo Go y tocó «Provocar error». El teléfono
+y la terminal mostraron el error con el archivo y la línea exactos
+(`src/app/index.tsx:28:24`). La parte local está bien.
+
+**Lo que no.** En sentry.io, «Waiting for this project's first error»: **el aviso no
+llegó.** La causa: la línea 35 del `.env`, `EXPO_PUBLIC_SENTRY_DSN=`, estaba **vacía**.
+La plantilla de D0 decía «Todavía no se usa: entra en el paso D6. Déjala vacía por
+ahora», y nada en D6 pidió rellenarla. Sin DSN, la app no inicia Sentry y no manda
+nada. No era la región EU, que era la primera sospecha escrita.
+
+**Dos errores míos, dichos tal cual:**
+1. **Le dije a Luciano «tu `.env` pasa la validación (URL, llave y DSN)».** Era verdad y
+   era engañoso: el DSN es opcional, así que uno vacío también pasa. Mi comprobación no
+   podía distinguir «DSN correcto» de «no hay DSN», que era justo lo que importaba. Es
+   la #47 otra vez: **una comprobación que no puede fallar en el caso que te importa no es
+   una comprobación.**
+2. **El diseño: sin DSN, `iniciarSentry` apagaba Sentry en silencio.** Eso es lo que escondió
+   el problema. Se decidió así para poder trabajar sin cuenta de Sentry, y la decisión
+   sigue siendo buena, pero **un servicio que se apaga solo tiene que decirlo**. Arreglado:
+   en desarrollo avisa en la terminal nombrando la variable. Test en rojo antes del arreglo,
+   y una mutación que devuelve el silencio y el test la caza.
+
+**Y la lección de fondo:** este fallo lo encontró una persona con un teléfono en la mano,
+después de 366 tests, 34 mutaciones y cuatro revisiones. Ninguna de esas capas miraba si
+el `.env` de verdad tenía el DSN. Por eso el DoD exige la prueba en el dispositivo
+(punto 7), y por eso no se mergeó antes.
+
+**Cómo se diagnosticó.** No se corrió el asistente que Sentry propone en su página de
+bienvenida: habría reescrito la configuración hecha a mano. Se miró el `.env` sin
+imprimir ningún valor, y se dejó `debug: true` en Sentry **solo en el PC y sin
+commitear**, para la repetición de la prueba.
+
+**Una mutación que no se aplicaba no es una mutación cazada.** En la última corrida, dos
+dieron «sin cazar»: prettier había partido esas líneas al hacer el commit y el script ya
+no encontraba el texto. Se actualizaron las anclas y se volvieron a correr: rojas las dos.
+
+Corrido, tal cual: **366 tests** · cobertura 100 % · **34 de 34 mutaciones cazadas** ·
+`codigo-muerto` limpio.
+
+Pendiente: **Luciano:** pegar el DSN en la línea 35 del `.env`, repetir la prueba, la del
+segundo, y decir qué se hace con el párrafo de `COMANDOS.md` § 5. **Claude:** quitar
+`debug: true`, revisión de este cambio, commit y CI.
+
+---
+
+## 2026-09-10 · S-20260910-a · D6 en el iPhone: segunda prueba, el aviso llegó
+
+Tarea: F0-D6 · Rama: `feat/F0-D6-app-base` · PR #16 · Resultado: **verificación en el
+dispositivo superada** (DoD punto 7).
+
+**Lo que hizo Luciano.** Buscó el DSN en sentry.io (Settings → Projects → mechef →
+Client Keys) y lo pegó en la línea 35 del `.env`. Se comprobó **sin imprimirlo**: una sola
+línea, no vacía, con la forma de un DSN con llave, de la región EU y sin comillas. Reinició
+Expo con `npx expo start -c` y tocó «Provocar error».
+
+**Lo que se vio.**
+- En la terminal, Sentry encendido, sin el aviso de «Sentry está apagado», y
+  `Captured error event 'Prueba de Sentry: botón de desarrollo'`, sin errores de envío.
+- En sentry.io, **el aviso llegó**. Luciano: «sí, sí, llegó».
+- El cambio de texto en el iPhone ya se había visto al instante en la primera prueba: el
+  hito de la fase.
+
+**Lo que cerró Claude antes del commit.**
+- **`debug: true` fuera.** Antes, un test nuevo, «no inicia en modo diagnóstico», en rojo con
+  el modo puesto y en verde sin él. Y una mutación nueva que lo vuelve a meter: el test la
+  caza. El modo diagnóstico imprime cada evento en la consola, también en la app publicada;
+  lo que se enciende para una prueba no puede depender de que alguien se acuerde de
+  apagarlo.
+- Se revisó el diff buscando «TEMPORAL» y `debug: true`: solo aparecen en textos que
+  explican por qué no pueden volver.
+- **La línea nueva del script de mutaciones salió rota** (el mismo fallo de antes: saltos
+  de línea reales dentro de un texto de Python). `py_compile` lo vio antes de correrlo. Se
+  arregló escribiendo la barra con `chr(92)`.
+
+**El párrafo de `COMANDOS.md` § 5.** Luciano no entendía la pregunta, y era justo: estaba
+mal planteada. Explicada de nuevo, en términos de orden y no de contenido, eligió **A: se
+queda en este PR, con su anotación** en la descripción, donde se dice que corrige un texto
+de D5.
+
+Corrido, tal cual: `npm run gates` en verde · **367 tests** · cobertura 100 % · **35 de 35
+mutaciones cazadas**.
+
+Pendiente: commit, gitleaks por su ruta completa, push, descripción del PR, **CI en verde**
+y merge. Si el CI sale rojo, se arregla o se para y se le dice a Luciano (#55). La nota de
+«D6 mergeado» va en el primer commit de D6.5, porque a `main` no se escribe directo.
+
+---

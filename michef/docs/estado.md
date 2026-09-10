@@ -10,10 +10,10 @@ Actualizado: 2026-09-10 · por sesión S-20260910-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D6 hecho**, espera que Luciano lo vea en el iPhone (Expo Go + Sentry) antes del merge. Siguiente: **D6.5**, el sistema de diseño |
+| **Paso actual** | **D6 hecho y verificado en el iPhone** (2026-09-10): Expo Go, cambio al instante y el error llegó a Sentry. Falta el CI en verde y el merge del PR #16. Siguiente: **D6.5**, el sistema de diseño |
 | **Decisiones vigentes** | hasta **#57** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `feat/F0-D6-app-base` — espera la verificación en el iPhone y el merge |
+| **Rama de trabajo** | `feat/F0-D6-app-base` — iPhone verificado; espera el CI en verde y el merge |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -66,7 +66,7 @@ Se vacía al cambiar de día.
 | Arreglo de BUG-9 | `fix/F1-bug9-redondeo-mercado` | S-20260909-g | 2026-09-09 | **mergeada** (PR #7) |
 | D4 · Supabase como código | `chore/F0-D4-supabase` | S-20260909-g | 2026-09-09 | **mergeada** (PR #8) |
 | D5 · CI y reglas de rama | `chore/F0-D5-ci` | S-20260910-a | 2026-09-10 | **mergeada** (PR #9, #11) |
-| D6 · app base | `feat/F0-D6-app-base` | S-20260910-a | 2026-09-10 | espera verificación en el iPhone |
+| D6 · app base | `feat/F0-D6-app-base` | S-20260910-a | 2026-09-10 | iPhone verificado; espera CI y merge (PR #16) |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -86,7 +86,7 @@ desde el primer PR de código.
 | D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ✅ mergeado (PR #4, `72a0d1a`) |
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ✅ mergeado (PR #8) |
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho, entero |
-| D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ hecho, **falta que Luciano lo vea en el iPhone** |
+| D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ hecho y **verificado en el iPhone** (2026-09-10); falta el merge del PR #16 |
 | D6.5 | Sistema de diseño + galería | Claude | ⏳ |
 | D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
 | D8 | README | Claude | ⏳ |
@@ -294,14 +294,25 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    `peso`, `edad` o `comensal` por su nombre. Una **tercera**, con tres cosas pequeñas: un
    contexto propio llamado `exportacion` se saltaba el modo estricto, faltaba `restriccion`
    (las alergias), y un comentario de `_layout.tsx` decía algo falso de `Sentry.wrap`.
-   **364 tests, 33 de 33 mutaciones cazadas.**
-   **Falta lo que solo puede hacer Luciano, y el PR no se mergea sin esto** (DoD punto 7):
+   **367 tests, 35 de 35 mutaciones cazadas.**
+   **Lo que solo podía hacer Luciano, y sin lo cual el PR no se mergeaba** (DoD punto 7),
+   **hecho el 2026-09-10:**
    - abrir la app en Expo Go (`npx expo start`, `COMANDOS.md` § 1) y ver «ME CHEF»;
    - que Claude cambie un texto y ver que el iPhone cambia en un segundo: **el hito de la
      fase**;
    - tocar «Provocar error» y confirmar en sentry.io que llegó el aviso, con archivo y
      línea. Si no llega, **no es que falle la app**: es la primera prueba de la región EU,
      y se investiga antes del merge.
+   - **Primera prueba, 2026-09-10: el aviso no llegó.** No era la región EU: el DSN estaba
+     **vacío** en el `.env` (la plantilla decía dejarlo vacío hasta D6). Y la app apagaba
+     Sentry sin decirlo; ahora lo avisa en la terminal.
+   - **Segunda prueba, con el DSN puesto: el aviso llegó a sentry.io** (región EU), con
+     archivo y línea. El cambio de texto se vio al instante. **La verificación está
+     superada.** El modo diagnóstico de Sentry (`debug: true`) se quitó antes del commit,
+     y un test impide que vuelva.
+   - El párrafo de `COMANDOS.md` § 5 (corrige un texto de D5) **se queda en este PR, con
+     su anotación en la descripción**: decisión de Luciano (opción A).
+   - Queda: CI en verde y merge. **Nunca en rojo** (#55).
 12. Claude presenta **D6.5** (`feat/sistema-diseno`): tokens, tema claro/oscuro,
    componentes base y la galería para verlos en el iPhone. No se ejecuta nada sin
    «adelante» (#34). Mobbin (de pago) queda aparcado por decisión de Luciano; si lo

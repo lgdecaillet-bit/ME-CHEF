@@ -260,10 +260,37 @@ describe('limpiarEvento', () => {
 
 describe('iniciarSentry', () => {
   it('sin DSN no inicia nada y lo dice', () => {
+    // El aviso de «Sentry está apagado» se prueba abajo; aquí solo haría ruido.
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
     expect(iniciarSentry(undefined)).toBe(false);
     expect(iniciarSentry('')).toBe(false);
     expect(iniciarSentry('   ')).toBe(false);
     expect(Sentry.init).not.toHaveBeenCalled();
+  });
+
+  // Regresión de la verificación de D6 en el iPhone: el DSN estaba vacío en el
+  // .env, Sentry no se inició, y nada lo dijo. El aviso no llegó a sentry.io y
+  // costó averiguar por qué. Un servicio que se apaga solo tiene que decirlo.
+  it('sin DSN, en desarrollo lo dice en la terminal, nombrando la variable', () => {
+    const aviso = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    iniciarSentry(undefined);
+    expect(aviso).toHaveBeenCalledWith(
+      expect.stringContaining('EXPO_PUBLIC_SENTRY_DSN'),
+      expect.anything()
+    );
+  });
+
+  it('sin DSN, en producción no ensucia la consola', () => {
+    const g = globalThis as unknown as { __DEV__: boolean };
+    const antes = g.__DEV__;
+    g.__DEV__ = false;
+    const aviso = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      iniciarSentry(undefined);
+      expect(aviso).not.toHaveBeenCalled();
+    } finally {
+      g.__DEV__ = antes;
+    }
   });
 
   it('recorta el DSN, como hace env.ts: pegado con espacios, Sentry lo descartaría callado', () => {
@@ -287,6 +314,14 @@ describe('iniciarSentry', () => {
       tracesSampleRate: 0,
     });
     expect(opciones.beforeSend).toBe(limpiarEvento);
+  });
+
+  // En la verificación de D6 en el iPhone se encendió `debug: true` para ver qué
+  // hacía Sentry. Ese modo imprime cada evento en la consola, también en la app
+  // publicada. Este test impide que un diagnóstico temporal llegue a commitearse.
+  it('no inicia en modo diagnóstico', () => {
+    iniciarSentry('https://abc@o1.ingest.de.sentry.io/1');
+    expect((Sentry.init as jest.Mock).mock.calls[0][0]).not.toHaveProperty('debug');
   });
 
   it('en producción se marca como producción', () => {
