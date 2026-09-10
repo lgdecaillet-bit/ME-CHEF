@@ -1736,3 +1736,84 @@ exigir la accesibilidad desde los tipos, desde ESLint y desde los tests. Luciano
 Pendiente: construir D6.5a y, antes del merge, que Luciano la vea en el iPhone.
 
 ---
+
+## 2026-09-10 · S-20260910-a · D6.5a: la base del sistema de diseño, y lo que el revisor destapó
+
+Tarea: F0-D6.5a · Rama: `feat/F0-D6.5a-sistema-diseno` · Resultado: **construido y
+revisado**. Falta la prueba en el iPhone y el CI.
+
+**Lo que hay.** Los tokens en claro y en oscuro, el tema que sigue al teléfono, `Texto`
+con Dynamic Type, todos los textos en `es.ts` con `t()`, la galería solo en desarrollo, las
+reglas de ESLint de interfaz, el contraste AA como test y la pantalla inicial rehecha. Sin
+dependencias nuevas. Lo que se decidió al construir está en la #58, puntos 5 a 11, para
+que Luciano lo confirme.
+
+**Tres cosas que salieron mal por el camino, y cómo se vieron:**
+1. **Cuatro archivos de tests no arrancaban.** `@sentry/react-native` y
+   `standard-navigation` (que expo-router usa desde el SDK 57) se publican como módulos
+   ES, y Jest no los transformaba. Hasta ahora ningún test cargaba expo-router ni el
+   logger real, así que nadie lo había visto.
+2. **Un color del primer borrador no llegaba a AA:** el acento claro sobre `superficie2`
+   daba 4,28:1. Se vio con un cálculo antes de escribir los tokens, y el test de contraste
+   lo habría parado igual. Se oscureció a `#1A6B35`.
+3. **Le dije a Luciano «las 20 reglas».** Eran 16 comprobaciones. Lo vio el revisor: un
+   número mal dicho es un número que no se ha contado.
+
+**El revisor devolvió CAMBIOS, y tenía razón en todo.** Probó a saltarse las reglas nuevas,
+y lo consiguió:
+- un texto dentro de un condicional (`{x ? 'Abrir' : 'Cerrar'}`);
+- un `Pressable` de `react-native-gesture-handler`, `Animated.Text` y un `Link`;
+- un color con nombre (`'white'`).
+
+Y la #58.4 decía que «nadie dibuja un botón sin pasar por `src/ui/`». Es la #57.13 otra
+vez: **una protección que promete más de lo que hace es peor que una que dice su
+límite**, porque nadie mira por el hueco.
+- **Los huecos baratos se cerraron.** Los que quedan están escritos tal cual en la #58 y en
+  `diseno.md` § 4: un texto guardado en una variable, una suma larga con el texto al
+  principio, un color que no sea hex, `rgb()`, `hsl()` o un nombre de CSS, un control de
+  otra librería y `require()`.
+- **`probar-reglas` buscaba el mensaje en toda la salida**, y varios selectores comparten
+  mensaje: uno muerto quedaba tapado por otro vivo. Ahora cada línea del fixture dice qué
+  espera, y se comprueba línea a línea: **53 comprobaciones**, incluidos 14 controles
+  negativos (líneas que no pueden tener ninguna queja).
+- **Las reglas se aplicaban a todo `src/`**, y una cadena `'#abc'` del motor habría caído
+  como color. Ahora solo miran `src/app/` y `src/ui/`, y hay un fixture que lo comprueba.
+- **Al cerrar uno de los huecos abrí otro:** la regla de color en atributos saltaba con
+  `<Texto color="texto2">`, que es un token. Lint lo vio en la galería antes de cualquier
+  commit. Se quitó, y volvió en la tercera pasada bien hecha: solo mira los 148 nombres
+  de color de CSS, así que un token no choca nunca.
+- Faltaba mover `Hoja` en `fase-2-nevera.md`, y sobraba `'×'` como excepción que nadie
+  usaba.
+
+**Segunda vuelta: CAMBIOS otra vez, con tres cosas pequeñas, y también con razón.**
+- Un token bajo una clave `color` (`{ color: 'texto2' }`) saltaba como color: el mismo
+  choque de antes, en objetos. D6.5b se lo habría encontrado con el primer mapa de estados.
+- La #58.4 decía que `rgb()` se cazaba en cualquier sitio, y dentro de una plantilla no.
+- Decía que los atributos cubrían las sumas, y solo cubrían un nivel. El selector de dos
+  niveles de los hijos, además, no tenía ninguna línea en el fixture.
+
+Cerradas las tres, cada una con su línea y su mutación. Una promesa escrita que el código no
+cumple se vio dos veces en el mismo PR; la segunda, en la frase que corregía la primera.
+
+Corrido, tal cual: `npm run gates` en verde · **474 tests** · cobertura 100 % en líneas y
+ramas · **53 comprobaciones de reglas** · **56 de 56 mutaciones cazadas**, contando ahora los
+selectores sueltos y no solo las reglas enteras · `codigo-muerto` limpio · 0 secretos en
+el bundle · gitleaks por su ruta completa, sin hallazgos.
+
+Para después, del revisor:
+- el `Boton` de D6.5b tiene que usar el texto visible como etiqueta de VoiceOver
+  (WCAG 2.5.3);
+- con «Grande», React Native agranda los títulos más que iOS; el tope solo es exacto con
+  la letra máxima;
+- `t()` escribe «1.5» y no «1,5»: importa cuando lleguen las porciones con decimales;
+- `sobreAcento` sobre `rojo` no está en el test de contraste, porque nadie lo usa todavía;
+- dos incoherencias viejas de los documentos: `HojaCuenta` frente a `TarjetaCuenta`, y el
+  `appId` de `smoke.yaml` en fase-0, que sigue diciendo `ch.michef.app`. Se arreglan en
+  D7, que es quien escribe ese archivo;
+- `sentry-rendimiento.test.ts` falló una vez al revisor con la máquina cargada. Es un test
+  de tiempo, y vigilarlo.
+
+Pendiente: **Luciano:** el iPhone y la confirmación de la #58, puntos 5 a 11.
+**Claude:** commit, push, PR y CI en verde. Nunca en rojo (#55).
+
+---
