@@ -146,7 +146,7 @@ Lo que hace por dentro, por si quieres correr solo uno:
 |---|---|---|
 | `npm run typecheck` | Que no hay errores de tipos | Un nombre mal escrito o algo que falta importar |
 | `npm run lint` | Errores y malas prácticas | Un `console.log` olvidado |
-| `npm run depcruise` | Las reglas de arquitectura | El motor importando algo que no debe |
+| `npm run arquitectura` | Las reglas de arquitectura | El motor importando algo que no debe |
 | `npm test` | Que todos los tests pasan | Un test roto de verdad |
 | `npm run reglas` | Que las reglas de arquitectura siguen vivas | Alguien tocó una regla y la dejó muerta |
 
@@ -154,7 +154,7 @@ Y estos tres, que no entran en `gates` porque tardan más:
 
 | Comando | Qué comprueba |
 |---|---|
-| `npm run knip` | Código y librerías que ya nadie usa |
+| `npm run codigo-muerto` | Código y librerías que ya nadie usa |
 | `npm run secrets:bundle` | Que ninguna contraseña acabó dentro de la app |
 | `npx expo-doctor` | Que el proyecto Expo está sano (`21/21`) |
 
@@ -163,6 +163,17 @@ Y estos tres, que no entran en `gates` porque tardan más:
 ```powershell
 npm run test:watch
 ```
+
+**Proteger la rama `main`.** Hace que nadie — ni tú por accidente — pueda subir algo
+directo a `main` sin PR ni sin que el CI esté en verde.
+
+```powershell
+npm run reglas:rama
+```
+
+Hoy **te va a decir que no puede**, y te explicará por qué: GitHub no protege ramas en
+repositorios privados con cuenta gratuita. Cuando decidas (GitHub Pro, unos 4 USD al mes,
+o hacer el repo público), vuelves a correr este mismo comando y ya queda.
 
 **Levantar la base de datos en tu PC.** Hace falta que Docker Desktop esté abierto.
 La primera vez tarda porque se descarga; después son segundos.

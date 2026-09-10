@@ -1,0 +1,39 @@
+# Escaneo de secretos, en GitHub y no solo en tu máquina.
+#
+# El enganche de pre-commit ya busca secretos, pero depende de que gitleaks esté
+# instalado Y alcanzable. Lo segundo falló durante tres pasos enteros — estaba
+# instalado y fuera del PATH — y el enganche avisaba y dejaba pasar. Esto no
+# depende de ninguna máquina.
+#
+# `fetch-depth: 0` trae el historial completo a propósito: un secreto que se
+# commiteó y se borró después sigue estando en el historial, y sigue siendo un
+# secreto filtrado. Mirar solo el último commit no lo vería.
+
+name: gitleaks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# `pull-requests: read` no estaba y el job fallaba con «Resource not accessible
+# by integration»: la accion pide la lista de commits del PR para saber que
+# rango escanear, y con solo `contents: read` GitHub se lo niega. Lo destapo el
+# primer CI, no la maquina de nadie.
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gitleaks:
+    name: secretos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

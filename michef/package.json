@@ -48,7 +48,7 @@
   "scripts": {
     "start": "expo start",
     "ios": "expo start --ios",
-    "gates": "npm run typecheck && npm run lint && npm run depcruise && npm run reglas && npm run test",
+    "gates": "npm run typecheck && npm run lint && npm run arquitectura && npm run reglas && npm run test",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
@@ -56,15 +56,24 @@
     "format:check": "prettier --check .",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "depcruise": "depcruise src --config .dependency-cruiser.cjs",
+    "arquitectura": "depcruise src --config .dependency-cruiser.cjs",
     "reglas": "node scripts/probar-reglas.js",
-    "knip": "knip",
+    "codigo-muerto": "knip",
     "secrets:bundle": "node scripts/secrets-bundle.js",
     "prepare": "cd .. && husky michef/.husky",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:reset": "npx supabase db reset",
-    "supabase:test": "node scripts/probar-supabase.js"
+    "supabase:test": "node scripts/probar-supabase.js",
+    "reglas:rama": "node scripts/reglas-de-rama.js"
   },
-  "private": true
+  "private": true,
+  "expo": {
+    "install": {
+      "exclude": [
+        "jest",
+        "@types/jest"
+      ]
+    }
+  }
 }

@@ -5,15 +5,15 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-09 · por sesión S-20260909-g
+Actualizado: 2026-09-10 · por sesión S-20260910-a
 
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D4 hecho** (`chore/F0-D4-supabase`, espera merge). Siguiente: **D5**, CI y reglas de rama |
-| **Decisiones vigentes** | hasta **#52** |
+| **Paso actual** | **D5 hecho** salvo la protección de `main`, que necesita GitHub Pro (#54). Siguiente: **D6**, la app base |
+| **Decisiones vigentes** | hasta **#54** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `chore/F0-D4-supabase` — espera merge. D5 sale de `main` |
+| **Rama de trabajo** | `chore/F0-D5-ci` — espera merge. D6 sale de `main` |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -32,6 +32,14 @@ aprueba el siguiente.
 Cada sesión anota su ID aquí **antes de hacer nada** (letra siguiente a la última).
 Se vacía al cambiar de día.
 
+**2026-09-10**
+
+| Sesión | Ventana / propósito | Estado |
+|---|---|---|
+| S-20260910-a | D5 · CI y reglas de rama | abierta |
+
+**2026-09-09** (día anterior, se conserva por trazabilidad)
+
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
 | S-20260909-a | planificación + D0.5 | cerrada |
@@ -40,7 +48,7 @@ Se vacía al cambiar de día.
 | S-20260909-d | D1 · chore/bootstrap | cerrada |
 | S-20260909-e | D2 · tooling de calidad | cerrada |
 | S-20260909-f | D3 · tests del motor | cerrada |
-| S-20260909-g | arreglo de BUG-1, 4, 5 y 7 (adelanto de Fase 1) | abierta |
+| S-20260909-g | BUG-1/4/5/7 y BUG-9, más D4 | cerrada |
 
 ## Tareas tomadas
 
@@ -49,7 +57,8 @@ Se vacía al cambiar de día.
 | D0.5 · memoria del proyecto | `main` (solo docs, pre-Git-flow) | S-20260909-a | 2026-09-09 | **hecha** |
 | Arreglo de BUG-1, 4, 5 y 7 | `fix/F1-motor-cuatro-bugs` | S-20260909-g | 2026-09-09 | **mergeada** (PR #5) |
 | Arreglo de BUG-9 | `fix/F1-bug9-redondeo-mercado` | S-20260909-g | 2026-09-09 | **mergeada** (PR #7) |
-| D4 · Supabase como código | `chore/F0-D4-supabase` | S-20260909-g | 2026-09-09 | espera merge |
+| D4 · Supabase como código | `chore/F0-D4-supabase` | S-20260909-g | 2026-09-09 | **mergeada** (PR #8) |
+| D5 · CI y reglas de rama | `chore/F0-D5-ci` | S-20260910-a | 2026-09-10 | espera merge |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -68,7 +77,7 @@ desde el primer PR de código.
 | D2 | Tooling: ESLint, Prettier, Husky, commitlint, depcruise, knip, gitleaks, Jest | Claude | ✅ mergeado (PR #2 y #3) |
 | D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ✅ mergeado (PR #4, `72a0d1a`) |
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ✅ hecho (PR espera merge) |
-| D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ⏳ |
+| D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho **salvo rulesets** (#54) |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init`, secretos EAS | Claude + Luciano | ⏳ |
 | D6.5 | Sistema de diseño + galería | Claude | ⏳ |
 | D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
@@ -122,6 +131,17 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 ---
 
 ## Bloqueos
+
+- **⚠️ `main` no está protegida, y no se puede proteger** (decisión #54). GitHub no
+  permite proteger ramas en repos **privados** con cuenta gratuita: tanto rulesets como
+  la protección clásica devuelven `403 Upgrade to GitHub Pro`.
+  - **Lo que significa hoy:** el CI ya dice rojo o verde en cada PR, pero **nada impide
+    mergear en rojo, ni hacer `git push` directo a `main` saltándose el CI entero**. La
+    última barrera vuelve a ser la disciplina de una persona.
+  - **Lo decide Luciano:** GitHub Pro (~4 USD/mes, recomendado) o repo público.
+  - `scripts/reglas-de-rama.js` está listo y es idempotente. El día que haya plan:
+    `npm run reglas:rama`.
+  - **Mientras tanto, convenio en firme: no se mergea nada en rojo, aunque se pueda.**
 
 - ~~El enganche de pre-commit no revisa secretos~~ **Diagnosticado mal y corregido el
   mismo día.** Los commits de las sesiones de Claude imprimían «gitleaks no está
@@ -202,14 +222,20 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    estaban abiertas de verdad — se comprobó escribiendo un precio como `anon` antes de
    tocar nada. Ahora: dos migraciones, RLS en las quince, **20 tests pgTAP** y **16 del
    proxy**, y `npm run supabase:test`. Espera merge.
-8. Claude presenta **D5** (`chore/ci`): `ci.yml` con los dos jobs (gates y supabase),
-   `gitleaks.yml`, `eval.yml` vacío, `scripts/branch-rules.sh` para el ruleset de `main`,
-   y **la prueba del gate rojo**. No se ejecuta nada sin «adelante» (#34).
+8. ~~D5~~ **hecho** salvo la protección de rama (#53 y #54). Los tres checks — `gates`,
+   `supabase`, `secretos` — en verde en menos de dos minutos y medio. El job `supabase`
+   pasó a la primera; el de `gates` encontró tres cosas reales que llevaban días en el
+   repo. **Falta que Luciano decida sobre GitHub Pro** (ver Bloqueos).
+9. Claude presenta **D6** (`feat/app-base`): `app.config.ts` con el bundleId de iOS,
+   las dependencias base, `log.ts`, `sentry.ts`, `env.ts` con zod, `flags.ts`, la pantalla
+   inicial de verdad, `metro.config.js`, `eas.json` y `eas init`. Es el paso en el que la
+   app deja de ser una pantalla en blanco. No se ejecuta nada sin «adelante» (#34).
 
-   **Aviso para D5, de las decisiones #47, #51 y #52:** un CI que nunca ha bloqueado nada
-   se ve igual que uno que funciona. La prueba del gate rojo no es opcional: rama con un
-   test roto a propósito → PR → rojo → merge bloqueado → arreglar → verde → merge.
-   Y hay que fijar `actions/setup-node` en **22.23.2**.
+   **Avisos para D6, ya escritos:** el `bundleIdentifier` se elige una vez y cambiarlo
+   después cuesta · comprobar si `@sentry/wizard` necesita `SENTRY_URL=https://de.sentry.io`
+   por ser organización de región EU (#42) · `expo-sqlite` con SQLCipher y `expo-camera`
+   **no** entran todavía: cada plugin nativo entra en su fase para que el fingerprint
+   cambie una vez por motivo.
 
 Propuesto aparte, dos minutos, cuando Luciano quiera: **regla de rama básica en `main`**
 (solo PRs, sin push directo, sin force-push). No depende de que exista CI; los checks

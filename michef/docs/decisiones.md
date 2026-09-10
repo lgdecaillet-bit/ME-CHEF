@@ -12,7 +12,7 @@
 > `### #N · Título` · fecha · estado · texto con el porqué · qué reemplaza · qué archivos
 > de `fases/` cambian.
 
-Vigentes: **#1–#3, #5–#52**. Reemplazadas: #4 (por #29).
+Vigentes: **#1–#3, #5–#54**. Reemplazadas: #4 (por #29).
 
 ---
 
@@ -581,6 +581,65 @@ firma HS256 válida. Sin la comprobación de `alg`, ese pasa.
 comprobar cuál es la línea de código que, al quitarla, lo pone rojo.**
 
 **Archivos de `fases/` que cambian:** `fase-0-fundaciones.md` § D4.
+
+
+### #53 · Lo que encontró el primer CI, y por qué se arregló así
+Fecha: 2026-09-10 · **vigente**
+El primer CI encontró tres cosas que llevaban días en el repo sin que nada las dijera. Es
+exactamente para lo que existe: una máquina limpia no tiene el PATH de nadie, ni sus
+enganches, ni sus herramientas a medio instalar.
+
+**1 · `depcruise` y `knip` como nombres de script chocaban con `node_modules/.bin`.**
+`npm run depcruise` ejecutaba un script que invoca un binario que se llama igual. Funciona
+— por eso nadie lo había visto — pero es un nombre sombreando a otro, esperando a que
+alguien cambie uno y crea haber cambiado el otro. Pasan a llamarse **`arquitectura`** y
+**`codigo-muerto`**, que además dicen qué hacen. Actualizados `gates`, el CI, `COMANDOS.md`
+y `protocolos-calidad.md`.
+
+**2 · jest 30.5.1 frente al `~29.7` que espera el SDK 57.** Todo funciona: 189 tests con
+`jest-expo@57.0.5`. Se declara la excepción en `expo.install.exclude` en vez de fingir que
+no existe o de bajar a jest 29 sin motivo. **Se revisa en cada subida de SDK**, junto con
+#44, #46 y #48 — ya son cuatro cesiones al ecosistema de Expo, todas con su condición de
+revisión escrita.
+
+**3 · gitleaks fallaba con «Resource not accessible by integration».** La acción pide la
+lista de commits del PR para saber qué rango escanear, y el workflow solo daba
+`contents: read`. Añadido `pull-requests: read`. Un permiso de menos no se ve en local
+porque en local no hay permisos.
+
+**Dos desviaciones del plan de D5, las dos deliberadas:**
+- **Sin `paths-ignore`.** El plan ponía `['research/**', '**.md']`. Un check que no se
+  ejecuta queda **pendiente para siempre**, y el día que sea obligatorio bloquea el PR sin
+  forma de desbloquearlo salvo saltándose la regla. Dos minutos en un PR de documentación
+  cuestan menos que esa trampa. `research/` ni siquiera está en el repo.
+- **`reglas-de-rama.js` en Node, no `branch-rules.sh`.** Luciano trabaja en PowerShell;
+  `node scripts/...` le funciona igual que los otros dos scripts del repo, y un `.sh` le
+  pediría abrir otra terminal.
+
+**Archivos de `fases/` que cambian:** `fase-0-fundaciones.md` § D5.
+
+### #54 · `main` no se puede proteger hasta que Luciano decida sobre GitHub Pro
+Fecha: 2026-09-10 · **vigente, pendiente de decisión de Luciano**
+**GitHub no permite proteger ramas en repositorios privados con cuenta gratuita.**
+Comprobado, no supuesto: tanto `repos/.../rulesets` como la protección clásica devuelven
+`403 Upgrade to GitHub Pro or make this repository public`.
+
+Consecuencia concreta, y conviene no maquillarla: **el CI ya dice rojo o verde, pero hoy
+nada impide mergear en rojo ni hacer `git push` directo a `main` saltándose el CI entero.**
+La última barrera sigue siendo la disciplina de una persona, que es justo lo que la Fase 0
+existe para no necesitar.
+
+Dos salidas, las dos de Luciano:
+1. **GitHub Pro**, unos 4 USD al mes. Es lo recomendado.
+2. **Repo público**, gratis. Probablemente no es lo que quiere para el producto.
+
+`scripts/reglas-de-rama.js` está escrito, probado hasta donde llega y es idempotente: el
+día que haya plan, `npm run reglas:rama` lo aplica. Falla con una explicación en castellano
+y código 2, no con un error críptico, precisamente para que dentro de tres meses nadie
+tenga que averiguar por qué no funcionó.
+
+**Mientras tanto:** el flujo de un PR por tarea se mantiene por convenio y el revisor sigue
+pasando antes de cada PR. **No se mergea nada en rojo**, aunque se pueda.
 
 ---
 

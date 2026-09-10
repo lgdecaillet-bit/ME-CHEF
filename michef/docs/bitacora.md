@@ -1145,3 +1145,78 @@ Las dos cosas aplican tal cual a D5, donde el gate de CI tiene que fallar por lo
 existe, no solo por lo que hay hoy.
 
 ---
+
+## 2026-09-10 · S-20260910-a · D5: el CI encontró tres cosas el primer día
+
+Tarea: F0-D5 · Rama: `chore/F0-D5-ci` · Resultado: **tres checks en verde** — `gates`,
+`supabase`, `secretos` — en menos de dos minutos y medio. **Falta la protección de `main`,
+que GitHub no permite con la cuenta actual.**
+
+Tocado: `.github/workflows/{ci,gitleaks,eval}.yml` (nuevos) ·
+`michef/scripts/reglas-de-rama.js` (nuevo) · `michef/package.json` (dos scripts renombrados,
+uno nuevo, `expo.install.exclude`) · `../COMANDOS.md` · `docs/protocolos-calidad.md` ·
+`docs/{estado,decisiones,bitacora}.md` · `docs/fases/fase-0-fundaciones.md`.
+
+**Por qué importa este paso.** Hasta hoy todas las barreras vivían en la máquina de
+Luciano: los enganches de git y `npm run gates`. Eso protege mientras las cosas van bien.
+Un `--no-verify`, un enganche sin instalar, o una herramienta fuera del PATH dejan pasar
+cualquier cosa sin ruido — y lo tercero **ya había pasado**, con gitleaks, durante tres
+pasos enteros. El CI corre en una máquina limpia que no tiene el PATH de nadie.
+
+**Y lo demostró a la primera.** El job `supabase` pasó sin tocar nada: levantó Postgres,
+aplicó las dos migraciones en limpio, corrió los 22 candados pgTAP, el `db lint` y los 19
+tests del proxy con un `deno` de verdad. El job `gates` encontró **tres problemas que
+llevaban días en el repo sin que nada los dijera**:
+
+1. **`depcruise` y `knip` como nombres de script chocaban con `node_modules/.bin`.**
+   Funcionaba — por eso nadie lo había visto — pero es un nombre sombreando a otro,
+   esperando a que alguien cambie uno y crea haber cambiado el otro. Renombrados a
+   **`arquitectura`** y **`codigo-muerto`**, que además dicen qué hacen.
+2. **jest 30.5.1 frente al `~29.7` que espera el SDK 57.** Todo funciona con
+   `jest-expo@57.0.5`, así que se declara la excepción en `expo.install.exclude` en vez de
+   fingir que no existe. Ya son cuatro cesiones al ecosistema de Expo (#44, #46, #48, #53),
+   todas con su condición de revisión escrita.
+3. **gitleaks fallaba con «Resource not accessible by integration».** La acción pide la
+   lista de commits del PR para saber qué rango escanear, y el workflow solo daba
+   `contents: read`. Un permiso de menos no se ve en local, porque en local no hay
+   permisos.
+
+Tras arreglarlos, `expo-doctor` pasa 21/21. Quedó como **decisión #53**.
+
+**Dos desviaciones del plan, deliberadas.** El plan pedía
+`paths-ignore: ['research/**', '**.md']`; no se puso, porque **un check que no se ejecuta
+queda pendiente para siempre** y el día que sea obligatorio bloquea el PR sin forma de
+desbloquearlo salvo saltándose la regla. Dos minutos en un PR de documentación cuestan
+menos que esa trampa, y `research/` ni siquiera está en el repo. Y el script de las reglas
+de rama se escribió en Node y no en `.sh`, porque Luciano trabaja en PowerShell.
+
+**El tope, y no se puede rodear: `main` no se puede proteger.** Comprobado, no supuesto:
+tanto `repos/.../rulesets` como la protección clásica devuelven
+`403 Upgrade to GitHub Pro or make this repository public`. GitHub no protege ramas en
+repos privados con cuenta gratuita.
+
+Consecuencia sin maquillar: **el CI ya dice rojo o verde, pero hoy nada impide mergear en
+rojo ni hacer `git push` directo a `main`.** La última barrera vuelve a ser la disciplina
+de una persona, que es exactamente lo que la Fase 0 existe para no necesitar. Es decisión
+de Luciano — GitHub Pro, unos 4 USD al mes, o repo público — y quedó como **#54**.
+`scripts/reglas-de-rama.js` está escrito, es idempotente, y falla con una explicación en
+castellano y código 2 en vez de con un error críptico, para que dentro de tres meses nadie
+tenga que averiguar por qué no funcionó.
+
+Corrido, tal cual: los tres checks del PR #9 en verde · `gates` 1m48s · `supabase` 2m17s ·
+`secretos` 7s · `expo-doctor` 21/21 · 189 tests de la app con cobertura 100 % · 22 pgTAP ·
+19 del proxy · `npm run reglas` las nueve disparan.
+
+Decisiones nuevas: **#53** y **#54**.
+
+Avances de Luciano: aprobó D5. Le queda decidir sobre GitHub Pro.
+
+Pendiente: **Luciano:** decidir sobre la protección de `main` (#54). **Claude:** la prueba
+del gate rojo, en cuanto D5 esté en `main`. Después, presentar D6.
+
+Para la siguiente sesión: la prueba del gate rojo está a medias por diseño. Se puede
+demostrar que **el CI se pone rojo**; no se puede demostrar que **bloquea el merge**, y no
+se podrá hasta que se resuelva la #54. Que quede claro cuál de las dos mitades está
+probada, porque son cosas distintas y la segunda es la que de verdad protege.
+
+---
