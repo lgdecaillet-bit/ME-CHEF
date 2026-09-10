@@ -36,12 +36,12 @@ tamaño o un radio escrito a mano. ESLint lo impide.
 ```
 color       fondo · superficie · superficie2 · texto · texto2 · texto3
             acento (el verde de «seguro») · ambar (el de «posible») · rojo (error, «se daña»)
-            borde · sombra
+            sobreAcento (el texto encima del acento) · borde · sombra
             → cada uno con variante light y dark. Semánticos, no «verde500».
 
 tipografia  titulo1 (34/41 · bold) · titulo2 (28/34) · titulo3 (22/28)
             cuerpo (17/22) · cuerpoFuerte · secundario (15/20) · nota (13/18)
-            → escala de iOS. Fuente del sistema (SF Pro). Soporta Dynamic Type.
+            → escala de iOS. Fuente del sistema (SF Pro). Dynamic Type, con tope por estilo (#58).
 
 espacio     xs 4 · s 8 · m 12 · l 16 · xl 24 · xxl 32 · xxxl 48      (rejilla de 4 pt)
 radio       s 8 · m 12 · l 16 · xl 24 · circulo 999
@@ -78,7 +78,8 @@ Cada componente: archivo, test RNTL con **todos** sus estados, y entrada en la g
 ### 2.3 · La galería — `src/app/(dev)/galeria.tsx`
 
 Un Storybook de bolsillo que corre en Expo Go. Solo en `__DEV__`. Renderiza **cada
-componente en cada estado**, en claro y en oscuro, con Dynamic Type en tres tamaños.
+componente en cada estado**, en claro y en oscuro, con Dynamic Type en tres tamaños: el del
+iPhone y dos simulados (decisión #58).
 
 - Es donde se diseña un componente antes de que exista la pantalla que lo usa.
 - **Desde D7** (decisión #58), Maestro le hace capturas en cada PR que toque `src/ui/` (`galeria.yaml`) → las capturas
@@ -178,7 +179,7 @@ Se suman a los de `protocolos-calidad.md`.
 | Textos y controles solo desde `src/ui/` | `no-restricted-imports` de `Text`, `Pressable` y los demás controles de `react-native` fuera de `src/ui/` | commit |
 | Estados cubiertos | Test RNTL por pantalla con los estados del brief. Sin test, el PR no cumple DoD | merge |
 | Regresión visual | **Desde D7** (#58): Maestro `galeria.yaml` + `takeScreenshot` en cada PR que toque `src/ui/` → capturas en el PR | revisión humana |
-| Contraste | Script `scripts/contraste.ts` que verifica cada par texto/fondo de `tokens.ts` ≥ 4,5:1 (AA) en claro y oscuro | CI |
+| Contraste | Test `src/ui/__tests__/contraste.test.ts` (decisión #58): cada color de texto sobre cada fondo de `tokens.ts` ≥ 4,5:1 (AA), y el borde ≥ 3:1, en claro y oscuro | pre-push y CI |
 
 ---
 

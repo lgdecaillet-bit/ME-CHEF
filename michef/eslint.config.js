@@ -61,6 +61,70 @@ const MOTOR_NO_ENTORNO = {
     'El motor es puro y testeable sin red ni dispositivo: entra un objeto, sale un objeto.',
 };
 
+// ── Interfaz (diseno.md § 4, decisión #58) ────────────────────────────────────
+//
+// Los textos y los controles solo se dibujan con las piezas de src/ui/, y así
+// cada uno lleva el tema, Dynamic Type y su etiqueta de VoiceOver sin que nadie
+// tenga que acordarse. Es también lo que hace, sin plugin, el trabajo de
+// accesibilidad: eslint-plugin-react-native-a11y no es compatible con ESLint 9.
+const CONTROLES_SOLO_EN_UI = {
+  name: 'react-native',
+  importNames: [
+    'Text',
+    'TextInput',
+    'Pressable',
+    'Button',
+    'TouchableOpacity',
+    'TouchableHighlight',
+    'TouchableWithoutFeedback',
+  ],
+  message:
+    'Los textos y los controles solo se importan en src/ui/. Fuera, se usan sus piezas (Texto…), que llevan el tema, Dynamic Type y la etiqueta de VoiceOver (diseno.md § 4).',
+};
+
+// La misma prohibición por la puerta de atrás.
+const RN_POR_DENTRO = {
+  group: ['react-native/Libraries/**'],
+  message: 'Se importa de «react-native», no de sus archivos internos.',
+};
+
+// Las propiedades de estilo que son tipografía, espacio o radio.
+const MEDIDAS =
+  '^(fontSize|lineHeight|letterSpacing|gap|rowGap|columnGap|(padding|margin)(Top|Bottom|Left|Right|Start|End|Horizontal|Vertical)?|border(TopLeft|TopRight|BottomLeft|BottomRight|TopStart|TopEnd|BottomStart|BottomEnd)?Radius)$';
+
+const COLOR_A_MANO =
+  'Color escrito a mano. Los colores viven en src/ui/tokens.ts y se piden con useTema() (diseno.md § 4).';
+const MEDIDA_A_MANO =
+  'Medida escrita a mano. Los tamaños de letra, los espacios y los radios viven en src/ui/tokens.ts y se piden con useTema() (diseno.md § 4).';
+const TEXTO_A_MANO =
+  'Texto de lo que se ve o de lo que lee VoiceOver, escrito a mano. Va en src/i18n/es.ts y se pide con t().';
+
+// Los atributos cuyo texto se ve o se oye. `testID` no está: no lo ve nadie.
+const ATRIBUTOS_CON_TEXTO =
+  'JSXAttribute[name.name=/^(accessibilityLabel|accessibilityHint|aria-label|placeholder|etiqueta|descripcion)$/]';
+
+const SIN_VALORES_A_MANO = [
+  {
+    selector: 'Literal[value=/^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]',
+    message: COLOR_A_MANO,
+  },
+  { selector: 'Literal[value=/^(rgb|hsl)a?\\(/i]', message: COLOR_A_MANO },
+  // El 0 sí se puede escribir: no es una medida, es la ausencia de una.
+  {
+    selector: `Property[key.name=/${MEDIDAS}/] > Literal.value:not([value=0])`,
+    message: MEDIDA_A_MANO,
+  },
+  {
+    selector: `Property[key.name=/${MEDIDAS}/] > UnaryExpression.value`,
+    message: MEDIDA_A_MANO,
+  },
+  { selector: `${ATRIBUTOS_CON_TEXTO} > Literal`, message: TEXTO_A_MANO },
+  {
+    selector: `${ATRIBUTOS_CON_TEXTO} > JSXExpressionContainer > :matches(Literal, TemplateLiteral)`,
+    message: TEXTO_A_MANO,
+  },
+];
+
 module.exports = [
   {
     ignores: [
@@ -93,7 +157,10 @@ module.exports = [
       // ejecutar. Es la forma más silenciosa de romper el gate.
       'no-only-tests/no-only-tests': 'error',
 
-      'no-restricted-imports': ['error', { patterns: [SDK_DE_MODELOS] }],
+      'no-restricted-imports': [
+        'error',
+        { paths: [CONTROLES_SOLO_EN_UI], patterns: [SDK_DE_MODELOS, RN_POR_DENTRO] },
+      ],
 
       // «TypeScript estricto. Nada de `any` sin comentario que lo justifique»
       // (CLAUDE.md). Con comentario se permite; a secas, no.
@@ -163,6 +230,33 @@ module.exports = [
     },
   },
 
+  // ── Interfaz: nada escrito a mano (diseno.md § 4) ─────────────────────────
+  // Colores, medidas y textos salen de los tokens y de es.ts. tokens.ts es el
+  // único archivo que escribe valores. Cada regla tiene su fixture en
+  // src/__fixtures__/ y src/ui/__fixtures__/, que scripts/probar-reglas.js revisa.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/ui/tokens.ts'],
+    rules: {
+      'no-restricted-syntax': ['error', ...SIN_VALORES_A_MANO],
+      // Los atributos no cuentan aquí (`testID="home"` no lo ve nadie); los que
+      // se ven o se oyen los vigila no-restricted-syntax, arriba.
+      'react/jsx-no-literals': [
+        'error',
+        { noStrings: true, ignoreProps: true, allowedStrings: ['·', '%', '×'] },
+      ],
+    },
+  },
+
+  // ── src/ui/ es donde viven Text y Pressable: ahí sí se importan ────────────
+  // OJO: redefine no-restricted-imports, así que repite SDK_DE_MODELOS.
+  {
+    files: ['src/ui/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [SDK_DE_MODELOS, RN_POR_DENTRO] }],
+    },
+  },
+
   // ── Scripts de línea de comandos ───────────────────────────────────────────
   // Su salida por consola ES su interfaz: la lee una persona o el log de CI.
   {
@@ -191,6 +285,9 @@ module.exports = [
     rules: {
       'no-console': 'off',
       'no-restricted-imports': ['error', { patterns: [SDK_DE_MODELOS] }],
+      // Un test escribe textos y colores a mano para comprobar lo que sale.
+      'react/jsx-no-literals': 'off',
+      'no-restricted-syntax': 'off',
     },
   },
 

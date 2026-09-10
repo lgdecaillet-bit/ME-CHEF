@@ -3,7 +3,9 @@ import { Stack } from 'expo-router';
 
 import { leerEntorno } from '@/config/env';
 import { leerFlags } from '@/config/flags';
+import { t } from '@/i18n';
 import { iniciarSentry } from '@/lib/sentry';
+import { ProveedorTema, useTema } from '@/ui/tema';
 
 // Al arrancar, en este orden y a propósito:
 //
@@ -17,7 +19,41 @@ leerEntorno();
 leerFlags();
 
 function RootLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <ProveedorTema>
+      <Pila />
+    </ProveedorTema>
+  );
+}
+
+// La pila de pantallas va aparte porque pinta con el tema, y el tema solo
+// existe dentro de <ProveedorTema>.
+function Pila() {
+  const tema = useTema();
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: tema.color.fondo },
+      }}
+    >
+      {/* La galería solo existe en desarrollo. Con `guard` en falso,
+          expo-router la saca de la navegación: no queda ruta a la que ir. */}
+      <Stack.Protected guard={__DEV__}>
+        <Stack.Screen
+          name="(dev)/galeria"
+          options={{
+            headerShown: true,
+            title: t('galeria.titulo'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: tema.color.superficie },
+            headerTintColor: tema.color.acento,
+            headerTitleStyle: { color: tema.color.texto },
+          }}
+        />
+      </Stack.Protected>
+    </Stack>
+  );
 }
 
 // `wrap` añade las migas de los toques, el perfilador y el widget de opiniones

@@ -367,7 +367,7 @@ van a construir todas. Detalle completo en [`../diseno.md`](../diseno.md) §2.
 4. `src/i18n/es.ts` — todos los textos, con clave semántica. `t()`. La guía de tono en la cabecera.
 5. `src/app/(dev)/galeria.tsx` — cada componente en cada estado, claro y oscuro, tres tamaños de Dynamic Type. Solo en `__DEV__`.
 6. Gates de interfaz en ESLint: sin hex ni tamaños numéricos fuera de `tokens.ts`; sin texto literal en JSX; `Text`, `Pressable` y los demás controles solo dentro de `src/ui/`. **Sin `eslint-plugin-react-native-a11y`**: no es compatible con ESLint 9, y la accesibilidad la exigen los tipos, ESLint y los tests (#58).
-7. `scripts/contraste.ts` — verifica AA (≥ 4,5:1) en cada par texto/fondo de los tokens, claro y oscuro. En CI.
+7. Contraste — verifica AA (≥ 4,5:1) en cada par texto/fondo de los tokens, claro y oscuro. En CI. **Es un test** (`src/ui/__tests__/contraste.test.ts`), no un script (#58).
 8. **Pasa a D7** (#58). `maestro/flows/galeria.yaml` — abre la galería y hace `takeScreenshot` de cada sección. Corre en PRs que toquen `src/ui/`.
 9. La pantalla inicial de D6 se **reescribe** con estos componentes. Sigue vacía; ahora está vacía *con* el sistema.
 
