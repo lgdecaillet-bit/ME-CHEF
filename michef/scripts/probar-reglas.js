@@ -45,16 +45,6 @@ function debeAparecer(salida, marca, comoSeLlama) {
   }
 }
 
-// El control negativo: una regla que dispara donde no debe también está rota.
-function noDebeAparecer(salida, marca, comoSeLlama) {
-  if (salida.includes(marca)) {
-    console.log(`  FALLA ${comoSeLlama}`);
-    fallos.push(comoSeLlama);
-  } else {
-    console.log(`  ok    ${comoSeLlama}`);
-  }
-}
-
 console.log('\ndependency-cruiser · con la exclusión de fixtures levantada');
 const dep = correr(
   'npx depcruise src --config .dependency-cruiser.cjs --exclude "(^|/)(coverage|dist)(/|$)"'
@@ -93,44 +83,85 @@ debeAparecer(lint, 'no-explicit-any', 'no-explicit-any dispara');
 debeAparecer(lint, 'no-console', 'no-console dispara');
 debeAparecer(lint, 'no-only-tests', 'no-only-tests dispara');
 
+// ── Interfaz: línea a línea ──────────────────────────────────────────────────
+//
+// Los fixtures de interfaz marcan cada línea con «@espera <trozo del mensaje>»
+// o «@permitido». Se comprueba cada una con la salida JSON de ESLint. Buscar el
+// mensaje en toda la salida no bastaba: varios selectores comparten mensaje, y
+// uno muerto quedaba tapado por otro vivo que dice lo mismo (lo vio el revisor
+// de D6.5a).
+const fs = require('node:fs');
+
+const MARCA = /(?:\/\/|\{\/\*)\s*@(espera|permitido)\b\s*(.*?)\s*(?:\*\/\})?$/;
+
+function comprobarPorLinea(ruta) {
+  let salida;
+  try {
+    salida = execSync(`npx eslint "${ruta}" --no-ignore --no-inline-config -f json`, {
+      cwd: raiz,
+      encoding: 'utf8',
+      stdio: 'pipe',
+    });
+  } catch (e) {
+    // ESLint sale con 1 cuando se queja, que es lo que se espera aquí.
+    salida = e.stdout ?? '';
+  }
+  let informe;
+  try {
+    informe = JSON.parse(salida);
+  } catch {
+    console.error(`  ESLint no devolvió un informe para ${ruta}. Revisa el comando.`);
+    process.exit(1);
+  }
+  const quejas = new Map();
+  for (const m of informe[0]?.messages ?? []) {
+    const lista = quejas.get(m.line) ?? [];
+    lista.push(`${m.ruleId ?? 'sin regla'}: ${m.message}`);
+    quejas.set(m.line, lista);
+  }
+  const lineas = fs.readFileSync(path.join(raiz, ruta), 'utf8').split(/\r?\n/);
+  let marcadas = 0;
+  lineas.forEach((texto, i) => {
+    // Las líneas que son solo comentario explican el fixture; no son casos.
+    if (texto.trimStart().startsWith('//')) return;
+    const marca = texto.match(MARCA);
+    if (!marca) return;
+    marcadas += 1;
+    const n = i + 1;
+    const codigo = texto.slice(0, marca.index).trim();
+    const dichas = quejas.get(n) ?? [];
+    if (marca[1] === 'espera') {
+      if (dichas.some((d) => d.includes(marca[2]))) {
+        console.log(`  ok    ${ruta}:${n}  ${codigo}`);
+      } else {
+        console.log(`  FALLA ${ruta}:${n}  ${codigo}  (esperaba «${marca[2]}»)`);
+        fallos.push(`${ruta}:${n} no dispara`);
+      }
+    } else if (dichas.length === 0) {
+      console.log(`  ok    ${ruta}:${n}  ${codigo}  (permitido)`);
+    } else {
+      console.log(
+        `  FALLA ${ruta}:${n}  ${codigo}  (permitido, y dice: ${dichas.join(' / ')})`
+      );
+      fallos.push(`${ruta}:${n} dispara donde no debe`);
+    }
+  });
+  if (marcadas === 0) {
+    console.error(`  ${ruta} no tiene ninguna línea marcada. Revisa el fixture.`);
+    process.exit(1);
+  }
+}
+
 console.log(
   '\nESLint · interfaz, sobre una pantalla que viola cada regla (diseno.md § 4)'
 );
-const pantalla = correr('npx eslint src/__fixtures__ --no-ignore --no-inline-config');
-if (pantalla.trim() === '') {
-  console.error('  ESLint no devolvió nada. Revisa el comando antes de fiarte de esto.');
-  process.exit(1);
-}
-debeAparecer(pantalla, 'Color escrito a mano', 'un color hex fuera de tokens.ts no pasa');
-debeAparecer(
-  pantalla,
-  'Medida escrita a mano',
-  'un tamaño o un espacio con número no pasa'
-);
-debeAparecer(pantalla, 'jsx-no-literals', 'un texto suelto en JSX no pasa');
-debeAparecer(
-  pantalla,
-  'lo que lee VoiceOver',
-  'una etiqueta de VoiceOver escrita a mano no pasa'
-);
-debeAparecer(
-  pantalla,
-  'solo se importan en src/ui/',
-  'Text y Pressable fuera de src/ui/ no pasan'
-);
+comprobarPorLinea('src/__fixtures__/pantalla.tsx');
 
 console.log('\nESLint · interfaz, dentro de src/ui/');
-const ui = correr('npx eslint src/ui/__fixtures__ --no-ignore --no-inline-config');
-if (ui.trim() === '') {
-  console.error('  ESLint no devolvió nada. Revisa el comando antes de fiarte de esto.');
-  process.exit(1);
-}
-debeAparecer(ui, 'Color escrito a mano', 'dentro de src/ui/ tampoco hay colores a mano');
-noDebeAparecer(
-  ui,
-  'solo se importan en src/ui/',
-  'dentro de src/ui/ Text sí se puede importar'
-);
+comprobarPorLinea('src/ui/__fixtures__/componente.tsx');
+
+console.log('\nESLint · fuera de la interfaz, las reglas de interfaz no aplican');
+comprobarPorLinea('src/lib/__fixtures__/fuera-de-la-interfaz.ts');
 
 if (fallos.length > 0) {
   console.error(`\n${fallos.length} regla(s) NO disparan. Están muertas:\n`);

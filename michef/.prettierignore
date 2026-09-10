@@ -18,3 +18,8 @@ assets/
 # Especificacion de producto de 1 MB, escrita a mano en HTML. Prettier no la
 # entiende y reformatearla no aporta nada.
 docs/producto.html
+
+# Los fixtures de las reglas marcan cada línea con un comentario al final
+# (scripts/probar-reglas.js). Prettier los movería y la comprobación leería
+# la línea equivocada.
+src/**/__fixtures__/

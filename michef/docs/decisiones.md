@@ -851,13 +851,30 @@ Claude y Luciano lo aprobó
    no soporta. La accesibilidad básica la exigen, en su lugar, tres cosas:
    - **los tipos:** las piezas de `src/ui/` piden la etiqueta de VoiceOver como prop
      obligatoria; sin ella, `npm run typecheck` falla;
-   - **ESLint:** `Text`, `Pressable` y los demás controles de `react-native` solo se
-     importan dentro de `src/ui/`, así que nadie dibuja un botón sin pasar por esas
-     piezas; y un texto para VoiceOver escrito a mano (`accessibilityLabel="…"`) no pasa;
+   - **ESLint:** `Text`, `Pressable` y los demás controles —los de `react-native`, los de
+     `react-native-gesture-handler`, el `Link` de expo-router y `Animated.Text`— solo se
+     usan dentro de `src/ui/`; y un texto para VoiceOver escrito a mano
+     (`accessibilityLabel="…"`, también dentro de un condicional o de una suma) no pasa;
    - **los tests RNTL**, que buscan cada control por su rol y su nombre, como lo hace
      VoiceOver.
 
    Se revisa si el plugin publica soporte para ESLint 9, junto con la #44.
+
+   **Lo que ninguna regla ve, dicho tal cual.** La primera versión de este punto decía
+   que nadie podía dibujar un botón sin pasar por `src/ui/`, y era falso: el revisor de
+   D6.5a probó a saltarse las reglas y lo consiguió con un `Pressable` de
+   gesture-handler, con un texto dentro de un condicional y con un color con nombre.
+   Esos huecos se cerraron, cada uno con su línea en un fixture. Quedan estos:
+   - un texto o un color guardados antes en una variable (`const s = 'Hola'` y después
+     `{s}`), o montados por una función;
+   - un color con nombre en un atributo (`color="red"`): nuestras piezas reciben ahí el
+     nombre de un token (`<Texto color="texto2">`), y una regla no distingue uno de
+     otro. Los hex y `rgb()` sí se cazan en cualquier sitio;
+   - un control de una librería que no esté en la lista de `eslint.config.js`;
+   - un `require()` en lugar de un `import`.
+
+   Eso lo cubre la revisión del PR. Y las reglas de interfaz se aplican solo a `src/app/`
+   y `src/ui/`: fuera de ahí, un `gap` del motor o una cadena `'#abc'` no son estilo.
 
 Añadido al construir D6.5a. Estos los decidió Claude sobre la marcha, y quedan escritos
 para que Luciano los confirme o los cambie al revisar el PR:

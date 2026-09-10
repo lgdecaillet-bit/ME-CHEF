@@ -67,20 +67,59 @@ const MOTOR_NO_ENTORNO = {
 // cada uno lleva el tema, Dynamic Type y su etiqueta de VoiceOver sin que nadie
 // tenga que acordarse. Es también lo que hace, sin plugin, el trabajo de
 // accesibilidad: eslint-plugin-react-native-a11y no es compatible con ESLint 9.
-const CONTROLES_SOLO_EN_UI = {
-  name: 'react-native',
-  importNames: [
-    'Text',
-    'TextInput',
-    'Pressable',
-    'Button',
-    'TouchableOpacity',
-    'TouchableHighlight',
-    'TouchableWithoutFeedback',
-  ],
-  message:
-    'Los textos y los controles solo se importan en src/ui/. Fuera, se usan sus piezas (Texto…), que llevan el tema, Dynamic Type y la etiqueta de VoiceOver (diseno.md § 4).',
-};
+//
+// Tiene límites, escritos en la #58 y en diseno.md § 4: un texto guardado antes
+// en una variable, o un control de una librería que no está en esta lista, no
+// lo ve ninguna regla. Lo cubre la revisión del PR.
+const CONTROLES =
+  'Los textos y los controles solo se usan en src/ui/. Fuera, se usan sus piezas (Texto…), que llevan el tema, Dynamic Type y la etiqueta de VoiceOver (diseno.md § 4).';
+
+const CONTROLES_SOLO_EN_UI = [
+  {
+    name: 'react-native',
+    importNames: [
+      'Text',
+      'TextInput',
+      'Pressable',
+      'Button',
+      'Switch',
+      'TouchableOpacity',
+      'TouchableHighlight',
+      'TouchableWithoutFeedback',
+      'TouchableNativeFeedback',
+    ],
+    message: CONTROLES,
+  },
+  // Trae sus propios controles, y está instalada: la usa expo-router.
+  {
+    name: 'react-native-gesture-handler',
+    importNames: [
+      'Pressable',
+      'TextInput',
+      'Switch',
+      'TouchableOpacity',
+      'TouchableHighlight',
+      'TouchableWithoutFeedback',
+      'TouchableNativeFeedback',
+      'RectButton',
+      'BaseButton',
+      'BorderlessButton',
+    ],
+    message: CONTROLES,
+  },
+  // `Link` dibuja su propio texto tocable. Para navegar desde una pantalla:
+  // `router.push`, desde una pieza de src/ui/.
+  { name: 'expo-router', importNames: ['Link'], message: CONTROLES },
+];
+
+// `Animated.Text`, o `RN.Text` tras un `import * as RN`: el mismo `Text` con
+// otro nombre. Solo fuera de src/ui/.
+const CONTROLES_EN_JSX = [
+  {
+    selector: 'JSXMemberExpression[property.name=/^(Text|TextInput)$/]',
+    message: CONTROLES,
+  },
+];
 
 // La misma prohibición por la puerta de atrás.
 const RN_POR_DENTRO = {
@@ -103,12 +142,34 @@ const TEXTO_A_MANO =
 const ATRIBUTOS_CON_TEXTO =
   'JSXAttribute[name.name=/^(accessibilityLabel|accessibilityHint|aria-label|placeholder|etiqueta|descripcion)$/]';
 
+// Una cadena de verdad: su código empieza por comilla. Así no cuentan los
+// números ni `null`.
+const CADENA = `Literal[raw=/^['"]/]`;
+// Lo que monta un texto: un condicional, un «y/o», o una suma de cadenas. Solo
+// la suma: `modo === 'oscuro'` es una comparación, no un texto.
+const MONTA_TEXTO =
+  ":matches(ConditionalExpression, LogicalExpression, BinaryExpression[operator='+'])";
+// Un hijo de un elemento, no un atributo: `testID={x ? 'a' : 'b'}` no se ve.
+const HIJO_DE_JSX = ':matches(JSXElement, JSXFragment) > JSXExpressionContainer';
+
 const SIN_VALORES_A_MANO = [
   {
     selector: 'Literal[value=/^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]',
     message: COLOR_A_MANO,
   },
   { selector: 'Literal[value=/^(rgb|hsl)a?\\(/i]', message: COLOR_A_MANO },
+  {
+    selector: 'TemplateElement[value.raw=/#[0-9a-fA-F]{3,8}\\b/]',
+    message: COLOR_A_MANO,
+  },
+  // Un color con nombre («white», «red») en un estilo. `transparent` no es un
+  // color que se elija: es la ausencia de uno. En un atributo JSX no se mira:
+  // `<Texto color="texto2">` recibe el nombre de un token, y un selector no
+  // distingue «texto2» de «red». Queda escrito como límite en la #58.
+  {
+    selector: `Property[key.name=/[cC]olor$/] > ${CADENA}.value:not([value='transparent'])`,
+    message: COLOR_A_MANO,
+  },
   // El 0 sí se puede escribir: no es una medida, es la ausencia de una.
   {
     selector: `Property[key.name=/${MEDIDAS}/] > Literal.value:not([value=0])`,
@@ -123,6 +184,18 @@ const SIN_VALORES_A_MANO = [
     selector: `${ATRIBUTOS_CON_TEXTO} > JSXExpressionContainer > :matches(Literal, TemplateLiteral)`,
     message: TEXTO_A_MANO,
   },
+  {
+    selector: `${ATRIBUTOS_CON_TEXTO} > JSXExpressionContainer > ${MONTA_TEXTO} > ${CADENA}`,
+    message: TEXTO_A_MANO,
+  },
+  // El texto suelto que react/jsx-no-literals no ve: dentro de un condicional,
+  // de un «y/o», de una suma (dos niveles: 'a' + x + 'b') o de una plantilla.
+  { selector: `${HIJO_DE_JSX} > ${MONTA_TEXTO} > ${CADENA}`, message: TEXTO_A_MANO },
+  {
+    selector: `${HIJO_DE_JSX} > ${MONTA_TEXTO} > ${MONTA_TEXTO} > ${CADENA}`,
+    message: TEXTO_A_MANO,
+  },
+  { selector: `${HIJO_DE_JSX} > TemplateLiteral`, message: TEXTO_A_MANO },
 ];
 
 module.exports = [
@@ -159,7 +232,7 @@ module.exports = [
 
       'no-restricted-imports': [
         'error',
-        { paths: [CONTROLES_SOLO_EN_UI], patterns: [SDK_DE_MODELOS, RN_POR_DENTRO] },
+        { paths: CONTROLES_SOLO_EN_UI, patterns: [SDK_DE_MODELOS, RN_POR_DENTRO] },
       ],
 
       // «TypeScript estricto. Nada de `any` sin comentario que lo justifique»
@@ -231,30 +304,42 @@ module.exports = [
   },
 
   // ── Interfaz: nada escrito a mano (diseno.md § 4) ─────────────────────────
-  // Colores, medidas y textos salen de los tokens y de es.ts. tokens.ts es el
-  // único archivo que escribe valores. Cada regla tiene su fixture en
-  // src/__fixtures__/ y src/ui/__fixtures__/, que scripts/probar-reglas.js revisa.
+  // Colores, medidas y textos salen de los tokens y de es.ts; tokens.ts es el
+  // único archivo que escribe valores. Solo en la interfaz: en el motor, en la
+  // base o en el logger, un `gap` o una cadena '#abc' no son estilo.
+  // src/__fixtures__/ cuenta como pantalla: es la que viola cada regla a
+  // propósito, y scripts/probar-reglas.js la revisa línea a línea.
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: [
+      'src/app/**/*.{ts,tsx}',
+      'src/ui/**/*.{ts,tsx}',
+      'src/__fixtures__/**/*.{ts,tsx}',
+    ],
     ignores: ['src/ui/tokens.ts'],
     rules: {
-      'no-restricted-syntax': ['error', ...SIN_VALORES_A_MANO],
+      'no-restricted-syntax': ['error', ...SIN_VALORES_A_MANO, ...CONTROLES_EN_JSX],
       // Los atributos no cuentan aquí (`testID="home"` no lo ve nadie); los que
       // se ven o se oyen los vigila no-restricted-syntax, arriba.
       'react/jsx-no-literals': [
         'error',
-        { noStrings: true, ignoreProps: true, allowedStrings: ['·', '%', '×'] },
+        { noStrings: true, ignoreProps: true, allowedStrings: ['·', '%'] },
       ],
     },
   },
 
-  // ── src/ui/ es donde viven Text y Pressable: ahí sí se importan ────────────
-  // OJO: redefine no-restricted-imports, así que repite SDK_DE_MODELOS.
+  // ── src/ui/ es donde viven Text y Pressable: ahí sí se usan ──────────────
+  // OJO: los dos bloques redefinen reglas enteras, así que repiten lo que haga
+  // falta: SDK_DE_MODELOS en los imports, y los valores a mano en la sintaxis.
   {
     files: ['src/ui/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', { patterns: [SDK_DE_MODELOS, RN_POR_DENTRO] }],
     },
+  },
+  {
+    files: ['src/ui/**/*.{ts,tsx}'],
+    ignores: ['src/ui/tokens.ts'],
+    rules: { 'no-restricted-syntax': ['error', ...SIN_VALORES_A_MANO] },
   },
 
   // ── Scripts de línea de comandos ───────────────────────────────────────────
