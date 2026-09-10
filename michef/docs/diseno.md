@@ -176,7 +176,7 @@ Se suman a los de `protocolos-calidad.md`.
 | Sin colores ni tamaños a mano | ESLint `no-restricted-syntax` sobre literales hex y sobre `fontSize:`, `padding:` numéricos fuera de `src/ui/tokens.ts` | commit |
 | Sin texto literal en JSX | `react/jsx-no-literals` (excepciones: `·`, `%`, números), y `no-restricted-syntax` para el texto dentro de un condicional, un «y/o», una suma o una plantilla | commit |
 | Accesibilidad básica | **Sin plugin**: `eslint-plugin-react-native-a11y` no es compatible con ESLint 9 (decisión #58). La etiqueta de VoiceOver es prop obligatoria en las piezas de `src/ui/` (typecheck), y un `accessibilityLabel` escrito a mano no pasa (`no-restricted-syntax`) | commit |
-| Textos y controles solo desde `src/ui/` | `no-restricted-imports` de `Text`, `Pressable` y los demás controles de `react-native` fuera de `src/ui/` | commit |
+| Textos y controles solo desde `src/ui/` | `no-restricted-imports` de `Text`, `Pressable` y los demás controles de `react-native` y de `react-native-gesture-handler`, y del `Link` de expo-router, fuera de `src/ui/`; `Animated.Text` con `no-restricted-syntax` | commit |
 | Estados cubiertos | Test RNTL por pantalla con los estados del brief. Sin test, el PR no cumple DoD | merge |
 | Regresión visual | **Desde D7** (#58): Maestro `galeria.yaml` + `takeScreenshot` en cada PR que toque `src/ui/` → capturas en el PR | revisión humana |
 | Contraste | Test `src/ui/__tests__/contraste.test.ts` (decisión #58): cada color de texto sobre cada fondo de `tokens.ts` ≥ 4,5:1 (AA), y el borde ≥ 3:1, en claro y oscuro | pre-push y CI |
@@ -184,8 +184,9 @@ Se suman a los de `protocolos-calidad.md`.
 Las reglas de ESLint de esta tabla se aplican a `src/app/` y `src/ui/`, no al resto de
 `src/`. Cada una tiene su línea en un fixture, y `npm run reglas` las comprueba una a una.
 **Lo que no ven** (decisión #58, punto 4): un texto o un color guardados antes en una
-variable, un color con nombre en un atributo (`color="red"`, que no se distingue de
-`color="texto2"`), un control de una librería que no está en la lista, y un `require()`. Eso lo
+variable, una suma larga con el texto al principio, un color que no sea hex, `rgb()`,
+`hsl()` o un nombre de CSS, un control de una librería que no está en la lista, y un
+`require()`. Eso lo
 cubre la revisión del PR.
 
 ---

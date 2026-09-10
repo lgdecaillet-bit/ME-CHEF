@@ -864,12 +864,15 @@ Claude y Luciano lo aprobó
    que nadie podía dibujar un botón sin pasar por `src/ui/`, y era falso: el revisor de
    D6.5a probó a saltarse las reglas y lo consiguió con un `Pressable` de
    gesture-handler, con un texto dentro de un condicional y con un color con nombre.
-   Esos huecos se cerraron, cada uno con su línea en un fixture. Quedan estos:
+   Esos huecos se cerraron, cada uno con su línea en un fixture. En la segunda vuelta
+   encontró tres más, también cerrados: un token bajo una clave `color`
+   (`{ color: 'texto2' }`) saltaba como color, un `rgb()` dentro de una plantilla pasaba,
+   y en los atributos una suma de dos niveles pasaba. Quedan estos:
    - un texto o un color guardados antes en una variable (`const s = 'Hola'` y después
      `{s}`), o montados por una función;
-   - un color con nombre en un atributo (`color="red"`): nuestras piezas reciben ahí el
-     nombre de un token (`<Texto color="texto2">`), y una regla no distingue uno de
-     otro. Los hex y `rgb()` sí se cazan en cualquier sitio;
+   - una suma larga con el texto al principio (`'Hay ' + a + b + c`): las sumas se
+     miran hasta dos niveles;
+   - un color que no sea hex, `rgb()`, `hsl()` o uno de los 148 nombres de CSS;
    - un control de una librería que no esté en la lista de `eslint.config.js`;
    - un `require()` en lugar de un `import`.
 
