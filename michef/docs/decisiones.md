@@ -983,9 +983,12 @@ cambie al revisar el PR
     por primera vez en D7.
 15. **La etiqueta de `Campo` se coloca con la letra de ahora.** El sitio de arriba crece
     con Dynamic Type (la escala de la galería o la del iPhone, con el tope del cuerpo), y
-    así la etiqueta encogida nunca tapa lo escrito. La primera versión la subía siempre
-    16 pt, y con la letra más grande tapaba 36 pt del texto: lo vio el revisor, con la
-    cuenta hecha sobre los tokens.
+    la etiqueta va en **una sola línea**, cortada con «…» si no cabe; VoiceOver la oye
+    entera, porque es el nombre del campo. Así la etiqueta encogida no tapa lo escrito.
+    El revisor lo vio dos veces: la primera versión la subía siempre 16 pt y con la letra
+    más grande tapaba 36 pt del texto; la segunda dejaba que una etiqueta larga se
+    partiera en dos líneas, y la segunda línea volvía a tapar. Una etiqueta de campo
+    tiene que caber en una línea: si no cabe, el texto de `es.ts` es demasiado largo.
 
 ## Pendientes de decidir
 

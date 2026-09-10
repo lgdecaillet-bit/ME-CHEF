@@ -176,6 +176,18 @@ describe('Campo', () => {
     }
   );
 
+  it('la etiqueta va en una sola línea y dentro de la caja: una larga se corta, no se parte (lo vio el revisor)', async () => {
+    await dibujar(elCampo({ etiqueta: 'Nombre del hogar donde vives' }));
+    const texto = screen.getByText('Nombre del hogar donde vives', conOcultos);
+    expect(texto.props.numberOfLines).toBe(1);
+    expect(estiloDe(screen.getByTestId('c.etiqueta', conOcultos))).toMatchObject({
+      left: espacio.l,
+      right: espacio.l,
+    });
+    // VoiceOver la oye entera: es el nombre del campo.
+    expect(screen.getByLabelText('Nombre del hogar donde vives')).toBe(entrada());
+  });
+
   it('con animación, la etiqueta viaja en el tiempo rápido del tema, y se para si cambia a mitad', async () => {
     reducido.mockReturnValue(false);
     const parar = jest.fn();

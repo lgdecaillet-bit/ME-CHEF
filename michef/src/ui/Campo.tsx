@@ -8,7 +8,9 @@
  *   Cuando aparece un error, además lo dice en voz alta.
  * - El error va debajo, en rojo y con un icono: no depende solo del color.
  * - La letra sigue Dynamic Type, como `Texto`, y el sitio de la etiqueta crece
- *   con ella: con la letra que sea, la etiqueta de arriba no tapa lo escrito.
+ *   con ella. La etiqueta va en una sola línea, y si no cabe se corta con «…»:
+ *   así, con la letra que sea, la de arriba no tapa lo escrito. VoiceOver la oye
+ *   entera, porque es el nombre del campo.
  */
 import { useEffect, useState } from 'react';
 import {
@@ -114,6 +116,9 @@ export function Campo({
             estilos.etiqueta,
             {
               left: tema.espacio.l,
+              // Sin borde derecho, una etiqueta larga crecería hasta partirse en
+              // dos líneas, y la de arriba volvería a tapar lo escrito.
+              right: tema.espacio.l,
               // Abajo, en la línea donde se escribe; arriba, pegada al borde.
               top: arribaDelTexto,
               transform: [
@@ -133,7 +138,9 @@ export function Campo({
             },
           ]}
         >
-          <Texto color={error != null ? 'rojo' : 'texto2'}>{etiqueta}</Texto>
+          <Texto color={error != null ? 'rojo' : 'texto2'} numberOfLines={1}>
+            {etiqueta}
+          </Texto>
         </Animated.View>
         <TextInput
           value={valor}
