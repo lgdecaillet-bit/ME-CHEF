@@ -1,0 +1,137 @@
+# CI · ME CHEF
+#
+# Hasta aquí, todas las barreras vivían en la máquina de Luciano: los enganches
+# de git y `npm run gates`. Eso protege mientras las cosas van bien, pero un
+# `--no-verify`, un enganche que no se instaló, o una herramienta que no está en
+# el PATH — que ya pasó con gitleaks — dejan pasar cualquier cosa sin ruido.
+# Esto corre en GitHub, en una máquina limpia, y no depende de nadie.
+#
+# NO lleva `paths-ignore`, aunque el plan lo pedía, y conviene saber por qué:
+# un check que no se ejecuta queda «pendiente» para siempre, y el día que sea
+# obligatorio bloquea el PR sin forma de desbloquearlo salvo saltándose la
+# regla. Dos minutos en un PR de documentación cuestan menos que esa trampa.
+# (`research/` tampoco está en el repo, así que ignorarlo no ahorraba nada.)
+#
+# Versiones: las acciones de GitHub van por versión mayor; las de terceros y
+# todo lo que instalan lleva versión exacta, que es lo que pide CLAUDE.md. La
+# de Node sale de `michef/.node-version`, para que CI y la máquina de Luciano
+# lean el mismo archivo y no se puedan separar.
+
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Un push nuevo cancela la ejecución anterior de la misma rama: no tiene
+# sentido gastar minutos comprobando un commit que ya nadie va a mergear.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    name: gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: michef
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: michef/.node-version
+          cache: npm
+          cache-dependency-path: michef/package-lock.json
+
+      # `npm ci` y no `npm install`: instala exactamente lo del lockfile y falla
+      # si el lockfile y el package.json no cuadran. En CI, una instalación que
+      # "arregla" el lockfile por su cuenta es una forma de probar otro árbol de
+      # dependencias que el que se revisó.
+      - name: instalar
+        run: npm ci
+
+      # Cada gate por separado, con su nombre. Si se encadenaran con && , el log
+      # diría "el paso falló" y habría que leerlo entero para saber cuál.
+      - name: expo-doctor
+        run: npx expo-doctor
+
+      - name: typecheck
+        run: npm run typecheck
+
+      - name: lint
+        run: npm run lint
+
+      - name: reglas de arquitectura
+        run: npm run depcruise
+
+      # El control positivo: comprueba que las nueve reglas DISPARAN de verdad
+      # sobre fixtures que las violan a propósito. Sin esto, una regla muerta se
+      # ve igual que una que funciona (decisión #47).
+      - name: las reglas disparan
+        run: npm run reglas
+
+      - name: tests y cobertura
+        run: npm run test
+
+      # Mira lo que se instalaría en el teléfono, no el repo. Una key puede
+      # entrar por una variable EXPO_PUBLIC_ o por una dependencia, y gitleaks
+      # no lo vería. Tarda, por eso no está en `npm run gates`.
+      - name: secretos en el bundle
+        run: npm run secrets:bundle
+
+      # `continue-on-error` a propósito, y con fecha de caducidad: knip señala
+      # código muerto, que en Fase 0–1 aparece por construir de abajo arriba.
+      # **Se pone en bloqueante al empezar la Fase 2**, cuando ya hay pantallas
+      # que consumen el motor y lo que sobre, sobra de verdad.
+      - name: codigo muerto (avisa, no bloquea)
+        run: npm run knip
+        continue-on-error: true
+
+  supabase:
+    name: supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.6
+
+      # Levanta Postgres, aplica las dos migraciones desde cero y comprueba que
+      # el esquema se puede crear en limpio. Si una migración no es aplicable,
+      # se sabe aquí y no en el teléfono.
+      - name: levantar supabase
+        working-directory: michef
+        run: supabase start
+
+      # Los 22 candados: que `anon` NO pueda escribir precios, leer el caché de
+      # modelos, ver borradores, ni vaciar una tabla. Siembran filas primero,
+      # porque con RLS y sin política un `select` devuelve cero filas sin error
+      # y sobre una tabla vacía eso es indistinguible de no tener candado.
+      - name: candados de la base (pgTAP)
+        working-directory: michef
+        run: supabase test db
+
+      - name: lint del esquema
+        working-directory: michef
+        run: supabase db lint
+
+      # Aquí sí hay un `deno` de verdad, así que no hace falta el contenedor que
+      # usa `scripts/probar-supabase.js` en la máquina de Luciano.
+      - name: tests del proxy de IA
+        working-directory: michef/supabase/functions
+        run: deno test --allow-env tests/

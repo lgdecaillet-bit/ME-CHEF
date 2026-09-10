@@ -64,7 +64,8 @@
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:reset": "npx supabase db reset",
-    "supabase:test": "node scripts/probar-supabase.js"
+    "supabase:test": "node scripts/probar-supabase.js",
+    "reglas:rama": "node scripts/reglas-de-rama.js"
   },
   "private": true
 }

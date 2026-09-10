@@ -1,0 +1,28 @@
+# Evaluación de los prompts de visión. VACÍO A PROPÓSITO hasta la Fase 2.
+#
+# Existe ya, sin contenido, por dos razones. La primera es que el día que haya
+# un prompt que valga dinero, el sitio donde se evalúa ya está decidido y no se
+# improvisa. La segunda es que arranca **a mano** (`workflow_dispatch`) y nunca
+# en un PR: correr 200 fotos contra un modelo cuesta, y eso no puede pasar por
+# accidente al abrir una rama.
+#
+# Lo que irá aquí (fase-2-nevera.md): Promptfoo contra el set de 200 fotos
+# etiquetadas, con umbral de precisión > 95 % y coste por foto registrado.
+
+name: eval
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  aviso:
+    name: todavia no
+    runs-on: ubuntu-latest
+    steps:
+      - name: decir por que no hace nada
+        run: |
+          echo "Este workflow se rellena en la Fase 2, con el set de 200 fotos."
+          echo "Ver docs/fases/fase-2-nevera.md."
