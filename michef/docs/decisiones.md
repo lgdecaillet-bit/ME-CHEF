@@ -831,7 +831,8 @@ nuevas:
 ### #58 · D6.5 se parte en dos, y lo que cambia del plan del sistema de diseño
 
 Fecha: 2026-09-10 · **vigente** · los puntos 1 a 3 los decidió Luciano; el 4 lo propuso
-Claude y Luciano lo aprobó
+Claude y Luciano lo aprobó; los 5 a 11 los decidió Claude al construir y **Luciano los
+confirmó todos** el 2026-09-10, antes del merge
 
 1. **Dos PRs.** **D6.5a**, la base: tokens, tema, `Texto`, `es.ts`, la galería, las reglas
    de ESLint de interfaz, el contraste y la pantalla inicial. **D6.5b**, los once
@@ -879,8 +880,8 @@ Claude y Luciano lo aprobó
    Eso lo cubre la revisión del PR. Y las reglas de interfaz se aplican solo a `src/app/`
    y `src/ui/`: fuera de ahí, un `gap` del motor o una cadena `'#abc'` no son estilo.
 
-Añadido al construir D6.5a. Estos los decidió Claude sobre la marcha, y quedan escritos
-para que Luciano los confirme o los cambie al revisar el PR:
+Añadido al construir D6.5a. Estos los decidió Claude sobre la marcha, y Luciano los
+confirmó al revisar el PR (2026-09-10):
 
 5. **`BotonDeDesarrollo`, provisional.** Desde D6.5a, `Pressable` no se puede importar
    fuera de `src/ui/`, y la pantalla inicial tiene dos botones de desarrollo: el de Sentry
@@ -902,7 +903,8 @@ para que Luciano los confirme o los cambie al revisar el PR:
    da 2,2:1 sobre blanco), y en oscuro el texto sobre el acento es negro. Hay un color que
    el plan no tenía, `sobreAcento`, porque el texto de un botón principal necesita el suyo.
    **Se deciden viendo la galería en el iPhone**: cambiar uno es cambiar una línea, y el
-   test de contraste dice si sigue llegando a AA.
+   test de contraste dice si sigue llegando a AA. **Decidido el 2026-09-10:** Luciano los
+   vio en el iPhone y se quedan tal cual («así la tenía pensada»).
 9. **Jest.** `src/app/` entra en la cobertura, como anunciaba `jest.config.js`, con tests de
    pantalla y de navegación. `src/ui/` y `src/i18n/` tienen umbral propio del 100 %. Y Jest
    transforma ahora `@sentry/*` y `standard-navigation` (la usa expo-router desde el SDK
@@ -928,7 +930,6 @@ para que Luciano los confirme o los cambie al revisar el PR:
 - Granularidad del catálogo: «pollo» vs «pechuga sin piel»
 - Fórmula y pesos del ranking
 - Marketplace: ¿catálogo con reseñas, o recetas publicadas por usuarios?
-- Tokens del sistema de diseño: hay una primera propuesta (#58, punto 8). Se confirman viendo la galería en el iPhone
 
 ## Por verificar antes de depender de ello
 
