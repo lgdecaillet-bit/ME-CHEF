@@ -35,19 +35,36 @@ describe('siguienteValor', () => {
     expect(siguienteValor(0.2, 1, { minimo: 0, maximo: 1, paso: 0.1 })).toBe(0.3);
   });
 
-  it('siempre dentro de los límites y en la rejilla del paso, con cualquier valor', () => {
+  it('cuenta los pasos desde el mínimo, no desde cero (lo vio el revisor)', () => {
+    expect(siguienteValor(0.5, 1, { minimo: 0.5, maximo: 8, paso: 1 })).toBe(1.5);
+    expect(siguienteValor(1, 1, { minimo: 1, maximo: 9, paso: 2 })).toBe(3);
+    expect(siguienteValor(3, -1, { minimo: 1, maximo: 9, paso: 2 })).toBe(1);
+  });
+
+  it.each([0, Number.NaN, -1, Number.POSITIVE_INFINITY])(
+    'con un paso que no sirve (%s), no se mueve',
+    (paso) => {
+      expect(siguienteValor(2, 1, { minimo: 0, maximo: 8, paso })).toBe(2);
+      expect(siguienteValor(2, -1, { minimo: 0, maximo: 8, paso })).toBe(2);
+    }
+  );
+
+  it('siempre dentro de los límites y en la rejilla que empieza en el mínimo', () => {
     fc.assert(
       fc.property(
-        fc.constantFrom(0.1, 0.25, 0.5, 1),
-        fc.integer({ min: 0, max: 5 }),
+        fc.constantFrom(0.1, 0.25, 0.3, 0.5, 1, 2),
+        // Mínimos que no son enteros: con uno entero, el mínimo siempre cae en la
+        // rejilla y el fallo de contar desde cero no se ve.
+        fc.integer({ min: 0, max: 40 }).map((n) => n / 4),
         fc.integer({ min: 0, max: 20 }),
         fc.double({ min: -50, max: 50, noNaN: true }),
         fc.constantFrom(1 as const, -1 as const),
         (paso, minimo, ancho, valor, sentido) => {
           const maximo = minimo + ancho;
           const r = siguienteValor(valor, sentido, { minimo, maximo, paso });
-          const pasos = r / paso;
-          return r >= minimo && r <= maximo && Math.abs(pasos - Math.round(pasos)) < 1e-9;
+          const pasos = (r - minimo) / paso;
+          const enRejilla = Math.abs(pasos - Math.round(pasos)) < 1e-9;
+          return r >= minimo && r <= maximo && (enRejilla || r === maximo);
         }
       )
     );
@@ -160,6 +177,13 @@ describe('Stepper', () => {
     expect(mas().opacity).toBe(opacidad.pulsado);
     await levantarDedo(screen.getByTestId('s.mas'));
     expect(mas().opacity).toBeUndefined();
+  });
+
+  it('con un paso que no sirve, los botones y VoiceOver no mandan nada', async () => {
+    const alCambiar = await stepper({ paso: 0 });
+    await userEvent.setup().press(screen.getByTestId('s.mas'));
+    await voiceOver('decrement');
+    expect(alCambiar).not.toHaveBeenCalled();
   });
 
   it('sin paso, va de uno en uno', async () => {
