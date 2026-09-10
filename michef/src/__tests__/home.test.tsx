@@ -6,6 +6,11 @@ import { ProveedorTema } from '@/ui/tema';
 
 import Home from '../app/index';
 
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(() => Promise.resolve()),
+  ImpactFeedbackStyle: { Light: 'light' },
+}));
+
 const global_ = globalThis as unknown as { __DEV__: boolean };
 const devOriginal = global_.__DEV__;
 
@@ -28,14 +33,14 @@ describe('pantalla inicial', () => {
     expect(screen.getByRole('header', { name: 'ME CHEF' })).toBeTruthy();
   });
 
-  it('en desarrollo enseña sus dos herramientas, tocables y con nombre', async () => {
+  it('en desarrollo enseña sus dos herramientas: VoiceOver lee lo que se ve, y la pista dice qué hacen', async () => {
     await dibujar();
+    expect(screen.getByRole('button', { name: 'Galería' }).props.accessibilityHint).toBe(
+      'Enseña cada pieza del sistema de diseño'
+    );
     expect(
-      screen.getByRole('button', { name: 'Provocar un error de prueba para Sentry' })
-    ).toBeTruthy();
-    expect(
-      screen.getByRole('button', { name: 'Abrir la galería del sistema de diseño' })
-    ).toBeTruthy();
+      screen.getByRole('button', { name: 'Provocar error' }).props.accessibilityHint
+    ).toBe('Lanza un error de prueba, para ver si llega a Sentry');
   });
 
   it('el botón de error lanza un error de JavaScript con un mensaje reconocible', async () => {
