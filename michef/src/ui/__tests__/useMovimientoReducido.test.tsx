@@ -4,12 +4,13 @@ import { AccessibilityInfo, type EmitterSubscription } from 'react-native';
 import { useMovimientoReducido } from '../useMovimientoReducido';
 
 let preguntar: jest.SpyInstance;
+let suscribirse: jest.SpyInstance;
 let escuchar: (activado: boolean) => void;
 const dejarDeEscuchar = jest.fn();
 
 beforeEach(() => {
   preguntar = jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled');
-  jest
+  suscribirse = jest
     .spyOn(AccessibilityInfo, 'addEventListener')
     .mockImplementation((_evento, oyente) => {
       escuchar = oyente as unknown as (activado: boolean) => void;
@@ -55,6 +56,8 @@ describe('useMovimientoReducido', () => {
   it('si el usuario lo cambia con la app abierta, se entera', async () => {
     preguntar.mockResolvedValue(true);
     const { result } = await renderHook(() => useMovimientoReducido());
+    // El aviso de «Reducir movimiento», no el de otro ajuste.
+    expect(suscribirse).toHaveBeenCalledWith('reduceMotionChanged', expect.any(Function));
     await act(async () => escuchar(false));
     expect(result.current).toBe(false);
     await act(async () => escuchar(true));

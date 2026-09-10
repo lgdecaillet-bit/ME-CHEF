@@ -153,6 +153,13 @@ describe('Campo', () => {
     expect(estiloDe(entrada()).fontSize).toBeCloseTo(tipografia.cuerpo.fontSize * 1.353);
   });
 
+  it('con la letra más grande, se queda en el tamaño que le da iOS al cuerpo', async () => {
+    await dibujar(elCampo(), { escalaDeLetra: 3.571 });
+    expect(estiloDe(entrada()).fontSize).toBeCloseTo(
+      tipografia.cuerpo.fontSize * tipografia.cuerpo.escalaMaxima
+    );
+  });
+
   it('con animación, la etiqueta viaja en el tiempo rápido del tema, y se para si cambia a mitad', async () => {
     reducido.mockReturnValue(false);
     const parar = jest.fn();
