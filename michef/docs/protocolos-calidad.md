@@ -62,7 +62,7 @@ Configuradas como **GitHub Rulesets** sobre `main` (vía `gh api`, script en `sc
 | **Smoke E2E** | Maestro en EAS (`maestro` job, simulador iOS) | `maestro/flows/smoke.yaml` y un flujo por función central | pasa en cada PR que cambie lo nativo y en cada merge a `main` |
 | **Evals de IA** | Promptfoo, `eval/promptfooconfig.yaml` | las 200 fotos (locales, fuera de git) | **precisión de `seguro` > 95 %** para aceptar cualquier cambio de prompt, modelo o guía de cámara |
 | **Salud** | `npx expo-doctor`, `knip` | todo | 0 errores. `knip` avisa en Fase 0–1 y bloquea desde Fase 2 |
-| **Interfaz** | ESLint (tokens, textos, a11y) + `scripts/contraste.ts` + Maestro `galeria.yaml` con capturas | `src/ui/**`, `src/app/**` | Detalle en [`diseno.md`](diseno.md) §4. Sin colores a mano, sin texto literal, AA en todos los pares, capturas revisadas a ojo |
+| **Interfaz** | ESLint (tokens, textos, controles solo en `src/ui/`) + contraste AA + Maestro `galeria.yaml` con capturas (desde D7, #58) | `src/ui/**`, `src/app/**` | Detalle en [`diseno.md`](diseno.md) §4. Sin colores a mano, sin texto literal, AA en todos los pares, capturas revisadas a ojo |
 
 ### Property-based testing en el motor
 

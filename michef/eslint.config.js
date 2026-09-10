@@ -61,6 +61,308 @@ const MOTOR_NO_ENTORNO = {
     'El motor es puro y testeable sin red ni dispositivo: entra un objeto, sale un objeto.',
 };
 
+// ── Interfaz (diseno.md § 4, decisión #58) ────────────────────────────────────
+//
+// Los textos y los controles solo se dibujan con las piezas de src/ui/, y así
+// cada uno lleva el tema, Dynamic Type y su etiqueta de VoiceOver sin que nadie
+// tenga que acordarse. Es también lo que hace, sin plugin, el trabajo de
+// accesibilidad: eslint-plugin-react-native-a11y no es compatible con ESLint 9.
+//
+// Tiene límites, escritos en la #58 y en diseno.md § 4: un texto guardado antes
+// en una variable, o un control de una librería que no está en esta lista, no
+// lo ve ninguna regla. Lo cubre la revisión del PR.
+const CONTROLES =
+  'Los textos y los controles solo se usan en src/ui/. Fuera, se usan sus piezas (Texto…), que llevan el tema, Dynamic Type y la etiqueta de VoiceOver (diseno.md § 4).';
+
+const CONTROLES_SOLO_EN_UI = [
+  {
+    name: 'react-native',
+    importNames: [
+      'Text',
+      'TextInput',
+      'Pressable',
+      'Button',
+      'Switch',
+      'TouchableOpacity',
+      'TouchableHighlight',
+      'TouchableWithoutFeedback',
+      'TouchableNativeFeedback',
+    ],
+    message: CONTROLES,
+  },
+  // Trae sus propios controles, y está instalada: la usa expo-router.
+  {
+    name: 'react-native-gesture-handler',
+    importNames: [
+      'Pressable',
+      'TextInput',
+      'Switch',
+      'TouchableOpacity',
+      'TouchableHighlight',
+      'TouchableWithoutFeedback',
+      'TouchableNativeFeedback',
+      'RectButton',
+      'BaseButton',
+      'BorderlessButton',
+    ],
+    message: CONTROLES,
+  },
+  // `Link` dibuja su propio texto tocable. Para navegar desde una pantalla:
+  // `router.push`, desde una pieza de src/ui/.
+  { name: 'expo-router', importNames: ['Link'], message: CONTROLES },
+];
+
+// `Animated.Text`, o `RN.Text` tras un `import * as RN`: el mismo `Text` con
+// otro nombre. Solo fuera de src/ui/.
+const CONTROLES_EN_JSX = [
+  {
+    selector: 'JSXMemberExpression[property.name=/^(Text|TextInput)$/]',
+    message: CONTROLES,
+  },
+];
+
+// La misma prohibición por la puerta de atrás.
+const RN_POR_DENTRO = {
+  group: ['react-native/Libraries/**'],
+  message: 'Se importa de «react-native», no de sus archivos internos.',
+};
+
+// Las propiedades de estilo que son tipografía, espacio o radio.
+const MEDIDAS =
+  '^(fontSize|lineHeight|letterSpacing|gap|rowGap|columnGap|(padding|margin)(Top|Bottom|Left|Right|Start|End|Horizontal|Vertical)?|border(TopLeft|TopRight|BottomLeft|BottomRight|TopStart|TopEnd|BottomStart|BottomEnd)?Radius)$';
+
+const COLOR_A_MANO =
+  'Color escrito a mano. Los colores viven en src/ui/tokens.ts y se piden con useTema() (diseno.md § 4).';
+const MEDIDA_A_MANO =
+  'Medida escrita a mano. Los tamaños de letra, los espacios y los radios viven en src/ui/tokens.ts y se piden con useTema() (diseno.md § 4).';
+const TEXTO_A_MANO =
+  'Texto de lo que se ve o de lo que lee VoiceOver, escrito a mano. Va en src/i18n/es.ts y se pide con t().';
+
+// Los atributos cuyo texto se ve o se oye. `testID` no está: no lo ve nadie.
+const ATRIBUTOS_CON_TEXTO =
+  'JSXAttribute[name.name=/^(accessibilityLabel|accessibilityHint|aria-label|placeholder|etiqueta|descripcion)$/]';
+
+// Una cadena de verdad y con algo dentro: su código empieza por comilla, así
+// que no cuentan los números ni `null`, y una cadena vacía (`?? ''`) no es texto.
+const CADENA = `Literal[raw=/^['"]/][value=/\\S/]`;
+// Lo que monta un texto: un condicional, un «y/o», o una suma de cadenas. Solo
+// la suma: `modo === 'oscuro'` es una comparación, no un texto.
+const MONTA_TEXTO =
+  ":matches(ConditionalExpression, LogicalExpression, BinaryExpression[operator='+'])";
+// Un hijo de un elemento, no un atributo: `testID={x ? 'a' : 'b'}` no se ve.
+const HIJO_DE_JSX = ':matches(JSXElement, JSXFragment) > JSXExpressionContainer';
+
+// Los 148 nombres de color de CSS.
+const COLORES_CSS = [
+  'aliceblue',
+  'antiquewhite',
+  'aqua',
+  'aquamarine',
+  'azure',
+  'beige',
+  'bisque',
+  'black',
+  'blanchedalmond',
+  'blue',
+  'blueviolet',
+  'brown',
+  'burlywood',
+  'cadetblue',
+  'chartreuse',
+  'chocolate',
+  'coral',
+  'cornflowerblue',
+  'cornsilk',
+  'crimson',
+  'cyan',
+  'darkblue',
+  'darkcyan',
+  'darkgoldenrod',
+  'darkgray',
+  'darkgreen',
+  'darkgrey',
+  'darkkhaki',
+  'darkmagenta',
+  'darkolivegreen',
+  'darkorange',
+  'darkorchid',
+  'darkred',
+  'darksalmon',
+  'darkseagreen',
+  'darkslateblue',
+  'darkslategray',
+  'darkslategrey',
+  'darkturquoise',
+  'darkviolet',
+  'deeppink',
+  'deepskyblue',
+  'dimgray',
+  'dimgrey',
+  'dodgerblue',
+  'firebrick',
+  'floralwhite',
+  'forestgreen',
+  'fuchsia',
+  'gainsboro',
+  'ghostwhite',
+  'gold',
+  'goldenrod',
+  'gray',
+  'green',
+  'greenyellow',
+  'grey',
+  'honeydew',
+  'hotpink',
+  'indianred',
+  'indigo',
+  'ivory',
+  'khaki',
+  'lavender',
+  'lavenderblush',
+  'lawngreen',
+  'lemonchiffon',
+  'lightblue',
+  'lightcoral',
+  'lightcyan',
+  'lightgoldenrodyellow',
+  'lightgray',
+  'lightgreen',
+  'lightgrey',
+  'lightpink',
+  'lightsalmon',
+  'lightseagreen',
+  'lightskyblue',
+  'lightslategray',
+  'lightslategrey',
+  'lightsteelblue',
+  'lightyellow',
+  'lime',
+  'limegreen',
+  'linen',
+  'magenta',
+  'maroon',
+  'mediumaquamarine',
+  'mediumblue',
+  'mediumorchid',
+  'mediumpurple',
+  'mediumseagreen',
+  'mediumslateblue',
+  'mediumspringgreen',
+  'mediumturquoise',
+  'mediumvioletred',
+  'midnightblue',
+  'mintcream',
+  'mistyrose',
+  'moccasin',
+  'navajowhite',
+  'navy',
+  'oldlace',
+  'olive',
+  'olivedrab',
+  'orange',
+  'orangered',
+  'orchid',
+  'palegoldenrod',
+  'palegreen',
+  'paleturquoise',
+  'palevioletred',
+  'papayawhip',
+  'peachpuff',
+  'peru',
+  'pink',
+  'plum',
+  'powderblue',
+  'purple',
+  'rebeccapurple',
+  'red',
+  'rosybrown',
+  'royalblue',
+  'saddlebrown',
+  'salmon',
+  'sandybrown',
+  'seagreen',
+  'seashell',
+  'sienna',
+  'silver',
+  'skyblue',
+  'slateblue',
+  'slategray',
+  'slategrey',
+  'snow',
+  'springgreen',
+  'steelblue',
+  'tan',
+  'teal',
+  'thistle',
+  'tomato',
+  'turquoise',
+  'violet',
+  'wheat',
+  'white',
+  'whitesmoke',
+  'yellow',
+  'yellowgreen',
+].join('|');
+
+const SIN_VALORES_A_MANO = [
+  {
+    selector: 'Literal[value=/^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]',
+    message: COLOR_A_MANO,
+  },
+  { selector: 'Literal[value=/^(rgb|hsl)a?\\(/i]', message: COLOR_A_MANO },
+  {
+    selector: 'TemplateElement[value.raw=/#[0-9a-fA-F]{3,8}\\b/]',
+    message: COLOR_A_MANO,
+  },
+  { selector: 'TemplateElement[value.raw=/(rgb|hsl)a?\\(/i]', message: COLOR_A_MANO },
+  // Un color con nombre de CSS («white», «red»), en un estilo o en un atributo.
+  // Solo los nombres de CSS: nuestras piezas reciben en `color` el nombre de un
+  // token (`<Texto color="texto2">`), y eso no es un color escrito a mano. Y
+  // `transparent` no es un color que se elija: es la ausencia de uno.
+  {
+    selector: `Property[key.name=/[cC]olor$/] > Literal.value[value=/^(${COLORES_CSS})$/i]`,
+    message: COLOR_A_MANO,
+  },
+  {
+    selector: `JSXAttribute[name.name=/[cC]olor$/] > Literal[value=/^(${COLORES_CSS})$/i]`,
+    message: COLOR_A_MANO,
+  },
+  {
+    selector: `JSXAttribute[name.name=/[cC]olor$/] > JSXExpressionContainer > Literal[value=/^(${COLORES_CSS})$/i]`,
+    message: COLOR_A_MANO,
+  },
+  // El 0 sí se puede escribir: no es una medida, es la ausencia de una.
+  {
+    selector: `Property[key.name=/${MEDIDAS}/] > Literal.value:not([value=0])`,
+    message: MEDIDA_A_MANO,
+  },
+  {
+    selector: `Property[key.name=/${MEDIDAS}/] > UnaryExpression.value`,
+    message: MEDIDA_A_MANO,
+  },
+  { selector: `${ATRIBUTOS_CON_TEXTO} > Literal`, message: TEXTO_A_MANO },
+  {
+    selector: `${ATRIBUTOS_CON_TEXTO} > JSXExpressionContainer > :matches(Literal, TemplateLiteral)`,
+    message: TEXTO_A_MANO,
+  },
+  {
+    selector: `${ATRIBUTOS_CON_TEXTO} > JSXExpressionContainer > ${MONTA_TEXTO} > ${CADENA}`,
+    message: TEXTO_A_MANO,
+  },
+  {
+    selector: `${ATRIBUTOS_CON_TEXTO} > JSXExpressionContainer > ${MONTA_TEXTO} > ${MONTA_TEXTO} > ${CADENA}`,
+    message: TEXTO_A_MANO,
+  },
+  // El texto suelto que react/jsx-no-literals no ve: dentro de un condicional,
+  // de un «y/o», de una suma (dos niveles: 'a' + x + 'b') o de una plantilla.
+  { selector: `${HIJO_DE_JSX} > ${MONTA_TEXTO} > ${CADENA}`, message: TEXTO_A_MANO },
+  {
+    selector: `${HIJO_DE_JSX} > ${MONTA_TEXTO} > ${MONTA_TEXTO} > ${CADENA}`,
+    message: TEXTO_A_MANO,
+  },
+  { selector: `${HIJO_DE_JSX} > TemplateLiteral`, message: TEXTO_A_MANO },
+];
+
 module.exports = [
   {
     ignores: [
@@ -93,7 +395,10 @@ module.exports = [
       // ejecutar. Es la forma más silenciosa de romper el gate.
       'no-only-tests/no-only-tests': 'error',
 
-      'no-restricted-imports': ['error', { patterns: [SDK_DE_MODELOS] }],
+      'no-restricted-imports': [
+        'error',
+        { paths: CONTROLES_SOLO_EN_UI, patterns: [SDK_DE_MODELOS, RN_POR_DENTRO] },
+      ],
 
       // «TypeScript estricto. Nada de `any` sin comentario que lo justifique»
       // (CLAUDE.md). Con comentario se permite; a secas, no.
@@ -163,6 +468,45 @@ module.exports = [
     },
   },
 
+  // ── Interfaz: nada escrito a mano (diseno.md § 4) ─────────────────────────
+  // Colores, medidas y textos salen de los tokens y de es.ts; tokens.ts es el
+  // único archivo que escribe valores. Solo en la interfaz: en el motor, en la
+  // base o en el logger, un `gap` o una cadena '#abc' no son estilo.
+  // src/__fixtures__/ cuenta como pantalla: es la que viola cada regla a
+  // propósito, y scripts/probar-reglas.js la revisa línea a línea.
+  {
+    files: [
+      'src/app/**/*.{ts,tsx}',
+      'src/ui/**/*.{ts,tsx}',
+      'src/__fixtures__/**/*.{ts,tsx}',
+    ],
+    ignores: ['src/ui/tokens.ts'],
+    rules: {
+      'no-restricted-syntax': ['error', ...SIN_VALORES_A_MANO, ...CONTROLES_EN_JSX],
+      // Los atributos no cuentan aquí (`testID="home"` no lo ve nadie); los que
+      // se ven o se oyen los vigila no-restricted-syntax, arriba.
+      'react/jsx-no-literals': [
+        'error',
+        { noStrings: true, ignoreProps: true, allowedStrings: ['·', '%'] },
+      ],
+    },
+  },
+
+  // ── src/ui/ es donde viven Text y Pressable: ahí sí se usan ──────────────
+  // OJO: los dos bloques redefinen reglas enteras, así que repiten lo que haga
+  // falta: SDK_DE_MODELOS en los imports, y los valores a mano en la sintaxis.
+  {
+    files: ['src/ui/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [SDK_DE_MODELOS, RN_POR_DENTRO] }],
+    },
+  },
+  {
+    files: ['src/ui/**/*.{ts,tsx}'],
+    ignores: ['src/ui/tokens.ts'],
+    rules: { 'no-restricted-syntax': ['error', ...SIN_VALORES_A_MANO] },
+  },
+
   // ── Scripts de línea de comandos ───────────────────────────────────────────
   // Su salida por consola ES su interfaz: la lee una persona o el log de CI.
   {
@@ -191,6 +535,9 @@ module.exports = [
     rules: {
       'no-console': 'off',
       'no-restricted-imports': ['error', { patterns: [SDK_DE_MODELOS] }],
+      // Un test escribe textos y colores a mano para comprobar lo que sale.
+      'react/jsx-no-literals': 'off',
+      'no-restricted-syntax': 'off',
     },
   },
 

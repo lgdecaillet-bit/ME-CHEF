@@ -60,8 +60,10 @@ module.exports = {
     //
     // Viene del scaffold. Expo la usa para aplicar `userInterfaceStyle` (claro
     // u oscuro) en Android; con `platforms: ['ios']` (D6) knip ya no ve quién
-    // la usa. Quitarla es un cambio de dependencias con su propio paso, y se
-    // decide en D6.5, cuando entre el tema claro/oscuro.
+    // la usa. Revisado en D6.5a, y se queda por ahora: en iOS es la que pinta el
+    // fondo de la vista raíz (`backgroundColor` de app.config), y eso se decide
+    // viendo el modo oscuro en el iPhone. Si no hace falta, quitarla es un
+    // cambio de dependencias con su propio «adelante».
     'expo-system-ui',
     // Vienen del scaffold y las usa el runtime de Expo, no un import nuestro.
     'expo-font',

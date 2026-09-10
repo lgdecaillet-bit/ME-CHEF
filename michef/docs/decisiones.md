@@ -828,6 +828,93 @@ nuevas:
       La regla es no pasar nada personal a `log`, `setContext`, `setUser`, `setTag` ni
       `setExtra`.
 
+### #58 · D6.5 se parte en dos, y lo que cambia del plan del sistema de diseño
+
+Fecha: 2026-09-10 · **vigente** · los puntos 1 a 3 los decidió Luciano; el 4 lo propuso
+Claude y Luciano lo aprobó
+
+1. **Dos PRs.** **D6.5a**, la base: tokens, tema, `Texto`, `es.ts`, la galería, las reglas
+   de ESLint de interfaz, el contraste y la pantalla inicial. **D6.5b**, los once
+   componentes restantes, con `expo-symbols` y `expo-haptics`. Doce componentes con todos
+   sus estados en un solo PR eran demasiado para revisarlos bien, y la base tiene que
+   verse en el iPhone antes de construir encima.
+2. **`Hoja` pasa a Fase 2.** Su primer uso es la hoja de cuenta al tocar «Cocinar»
+   (`fase-2-nevera.md` § 2.9). Construirla ahora obligaba a elegir entre `@expo/ui` y
+   `@gorhom/bottom-sheet` sin un caso real que la probara. Queda en la lista de
+   componentes de Fase 2 (`diseno.md` § 5).
+3. **Las capturas de la galería con Maestro (`galeria.yaml`) pasan a D7**, que es el paso
+   donde entra Maestro. Hasta entonces la galería se revisa a ojo en el iPhone, que es lo
+   que el DoD pide de todas formas.
+4. **`eslint-plugin-react-native-a11y` no entra.** Su versión 3.5.1 declara compatibilidad
+   solo hasta ESLint 8 (`peerDependencies: eslint ^3 … ^8`), y el proyecto usa ESLint 9
+   (#44). Instalarlo exigía `--legacy-peer-deps`, que es forzar lo que el paquete dice que
+   no soporta. La accesibilidad básica la exigen, en su lugar, tres cosas:
+   - **los tipos:** las piezas de `src/ui/` piden la etiqueta de VoiceOver como prop
+     obligatoria; sin ella, `npm run typecheck` falla;
+   - **ESLint:** `Text`, `Pressable` y los demás controles —los de `react-native`, los de
+     `react-native-gesture-handler`, el `Link` de expo-router y `Animated.Text`— solo se
+     usan dentro de `src/ui/`; y un texto para VoiceOver escrito a mano
+     (`accessibilityLabel="…"`, también dentro de un condicional o de una suma) no pasa;
+   - **los tests RNTL**, que buscan cada control por su rol y su nombre, como lo hace
+     VoiceOver.
+
+   Se revisa si el plugin publica soporte para ESLint 9, junto con la #44.
+
+   **Lo que ninguna regla ve, dicho tal cual.** La primera versión de este punto decía
+   que nadie podía dibujar un botón sin pasar por `src/ui/`, y era falso: el revisor de
+   D6.5a probó a saltarse las reglas y lo consiguió con un `Pressable` de
+   gesture-handler, con un texto dentro de un condicional y con un color con nombre.
+   Esos huecos se cerraron, cada uno con su línea en un fixture. En la segunda vuelta
+   encontró tres más, también cerrados: un token bajo una clave `color`
+   (`{ color: 'texto2' }`) saltaba como color, un `rgb()` dentro de una plantilla pasaba,
+   y en los atributos una suma de dos niveles pasaba. Quedan estos:
+   - un texto o un color guardados antes en una variable (`const s = 'Hola'` y después
+     `{s}`), o montados por una función;
+   - una suma larga con el texto al principio (`'Hay ' + a + b + c`): las sumas se
+     miran hasta dos niveles;
+   - un color que no sea hex, `rgb()`, `hsl()` o uno de los 148 nombres de CSS;
+   - un control de una librería que no esté en la lista de `eslint.config.js`;
+   - un `require()` en lugar de un `import`.
+
+   Eso lo cubre la revisión del PR. Y las reglas de interfaz se aplican solo a `src/app/`
+   y `src/ui/`: fuera de ahí, un `gap` del motor o una cadena `'#abc'` no son estilo.
+
+Añadido al construir D6.5a. Estos los decidió Claude sobre la marcha, y quedan escritos
+para que Luciano los confirme o los cambie al revisar el PR:
+
+5. **`BotonDeDesarrollo`, provisional.** Desde D6.5a, `Pressable` no se puede importar
+   fuera de `src/ui/`, y la pantalla inicial tiene dos botones de desarrollo: el de Sentry
+   y el que abre la galería. Hacía falta una pieza en `src/ui/` para ellos, y `Boton` es de
+   D6.5b. Cumple lo mínimo de cualquier control (rol, etiqueta de VoiceOver obligatoria,
+   44 pt, colores del tema) y **se borra en D6.5b**, cuando llegue `Boton`.
+6. **El contraste es un test, no un script.** Vive en `src/ui/__tests__/contraste.test.ts`,
+   con la fórmula en `src/ui/contraste.ts`, en vez de `scripts/contraste.ts`. Los scripts
+   del repo son JavaScript y no pueden leer `tokens.ts` sin una herramienta más; como test
+   corre igual dentro de `npm run gates`, del pre-push y del CI. Revisa cada color de texto
+   sobre cada fondo (4,5:1) y, además, el borde sobre cada fondo (3:1, WCAG 1.4.11).
+7. **Dynamic Type con tope por estilo.** React Native multiplica todos los estilos por
+   igual (hasta ×3,571 con la letra más grande), y un título pasaría de 100 pt. Cada estilo
+   lleva un tope (`escalaMaxima`): el tamaño que iOS le da con la letra más grande, 60 pt el
+   título grande y 53 el cuerpo. La galería simula ×1,353 (la mayor antes de Accesibilidad)
+   y ×3,571; «Del iPhone» deja que mande el ajuste real.
+8. **Los valores de los tokens son una primera propuesta**, cerca de los grises de iOS. Dos
+   se movieron para llegar a AA: el acento claro se oscureció a `#1A6B35` (el verde de iOS
+   da 2,2:1 sobre blanco), y en oscuro el texto sobre el acento es negro. Hay un color que
+   el plan no tenía, `sobreAcento`, porque el texto de un botón principal necesita el suyo.
+   **Se deciden viendo la galería en el iPhone**: cambiar uno es cambiar una línea, y el
+   test de contraste dice si sigue llegando a AA.
+9. **Jest.** `src/app/` entra en la cobertura, como anunciaba `jest.config.js`, con tests de
+   pantalla y de navegación. `src/ui/` y `src/i18n/` tienen umbral propio del 100 %. Y Jest
+   transforma ahora `@sentry/*` y `standard-navigation` (la usa expo-router desde el SDK
+   57): se publican como módulos ES, y sin eso cualquier test que cargue expo-router falla
+   antes de empezar.
+10. **`t()` no rompe la pantalla.** Una clave que no es un texto (solo posible forzando el
+    tipo) se ve tal cual y se registra como error; un hueco sin valor se queda a la vista
+    (`{n}`) y avisa. Un fallo que se ve, en vez de una app que se cierra.
+11. **`expo-system-ui` se queda, por ahora.** El tema claro/oscuro no la necesita en iOS,
+    pero es la que pinta el fondo de la vista raíz. Se decide al ver el modo oscuro en el
+    iPhone; si sobra, quitarla es un cambio de dependencias con su propio «adelante».
+
 ## Pendientes de decidir
 
 - Porciones para varias personas: ¿tres porciones iguales o cada comensal con su apetito?
@@ -841,7 +928,7 @@ nuevas:
 - Granularidad del catálogo: «pollo» vs «pechuga sin piel»
 - Fórmula y pesos del ranking
 - Marketplace: ¿catálogo con reseñas, o recetas publicadas por usuarios?
-- Tokens del sistema de diseño (se deciden en D6.5, viendo la galería en el iPhone)
+- Tokens del sistema de diseño: hay una primera propuesta (#58, punto 8). Se confirman viendo la galería en el iPhone
 
 ## Por verificar antes de depender de ello
 

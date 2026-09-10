@@ -357,14 +357,18 @@ build y ve una feature, la fase se está saltando pasos.
 **Qué pasa.** Antes de la primera pantalla de producto existe el sistema con el que se
 van a construir todas. Detalle completo en [`../diseno.md`](../diseno.md) §2.
 
+> **Partido en dos PRs** (decisión #58). **D6.5a** hace los puntos 1, 2, 4, 5, 6, 7 y 9,
+> con `Texto` como único componente. **D6.5b** hace el resto del punto 3. `Hoja` pasa a
+> Fase 2 y el punto 8 pasa a D7.
+
 1. `src/ui/tokens.ts` — color (semántico, claro/oscuro), tipografía (escala iOS, Dynamic Type), espacio (rejilla 4 pt), radio, movimiento, tamaño táctil mínimo 44.
 2. `src/ui/tema.tsx` — `ProveedorTema` + `useTema()`. Se monta en `_layout.tsx`.
 3. Componentes base en `src/ui/`: `Texto`, `Boton`, `Chip`, `Tarjeta`, `Etiqueta`, `Campo`, `Stepper`, `EstadoVacio`, `Cargando`, `Aviso`, `Icono` (SF Symbols), `Progreso`. Cada uno con **todos** sus estados y su test RNTL.
 4. `src/i18n/es.ts` — todos los textos, con clave semántica. `t()`. La guía de tono en la cabecera.
 5. `src/app/(dev)/galeria.tsx` — cada componente en cada estado, claro y oscuro, tres tamaños de Dynamic Type. Solo en `__DEV__`.
-6. Gates de interfaz en ESLint: sin hex ni tamaños numéricos fuera de `tokens.ts`; sin texto literal en JSX; `eslint-plugin-react-native-a11y`; `<Text>` solo dentro de `Texto`.
-7. `scripts/contraste.ts` — verifica AA (≥ 4,5:1) en cada par texto/fondo de los tokens, claro y oscuro. En CI.
-8. `maestro/flows/galeria.yaml` — abre la galería y hace `takeScreenshot` de cada sección. Corre en PRs que toquen `src/ui/`.
+6. Gates de interfaz en ESLint: sin hex ni tamaños numéricos fuera de `tokens.ts`; sin texto literal en JSX; `Text`, `Pressable` y los demás controles solo dentro de `src/ui/`. **Sin `eslint-plugin-react-native-a11y`**: no es compatible con ESLint 9, y la accesibilidad la exigen los tipos, ESLint y los tests (#58).
+7. Contraste — verifica AA (≥ 4,5:1) en cada par texto/fondo de los tokens, claro y oscuro. En CI. **Es un test** (`src/ui/__tests__/contraste.test.ts`), no un script (#58).
+8. **Pasa a D7** (#58). `maestro/flows/galeria.yaml` — abre la galería y hace `takeScreenshot` de cada sección. Corre en PRs que toquen `src/ui/`.
 9. La pantalla inicial de D6 se **reescribe** con estos componentes. Sigue vacía; ahora está vacía *con* el sistema.
 
 **Cómo se ve.** La galería: una lista larga de botones, chips y tarjetas en todos sus
@@ -411,6 +415,8 @@ además del inicio.
    - assertVisible:
        id: home
    ```
+
+5. `maestro/flows/galeria.yaml` — viene de D6.5 (#58): abre la galería y hace `takeScreenshot` de cada sección. Corre en PRs que toquen `src/ui/`, y las capturas se revisan a ojo.
 
 **Qué debe funcionar.** Un PR que cambie `app.config.ts` → fingerprint distinto → build de
 simulador (~15–25 min) → Maestro abre la app en un simulador iOS en la nube y ve `home` →

@@ -14,9 +14,9 @@
 // propio umbral.
 //
 // Cómo lee Jest esto, que no es obvio: un archivo que casa con una clave de ruta
-// SALE del cómputo «global». Así que ahora mismo `global` mide `src/ai/` y
-// `src/db/` (los dos al 100 %), y `src/app/` se le sumará cuando tenga tests de
-// componente en D6.5. Si algún día todas las rutas tienen umbral propio, el
+// SALE del cómputo «global». Así que ahora mismo `global` mide `src/ai/`,
+// `src/db/`, `src/config/`, `src/lib/` y, desde D6.5a, `src/app/`, con sus
+// tests de componente. Si algún día todas las rutas tienen umbral propio, el
 // bucket global se queda vacío y Jest reporta 0 %: no es un fallo real, es esto.
 //
 // Bajar un umbral para que pase un PR está prohibido (CLAUDE.md). Solo suben.
@@ -24,6 +24,10 @@
 const OBJETIVO = {
   global: { lines: 60, branches: 40 },
   'src/engine/**/*.ts': { lines: 100, branches: 95 },
+  // La base de todas las pantallas (D6.5a): tokens, tema, `Texto` y los textos.
+  // Un fallo aquí se ve en toda la app, así que van al 100 %.
+  'src/ui/**/*.{ts,tsx}': { lines: 100, branches: 100 },
+  'src/i18n/**/*.ts': { lines: 100, branches: 100 },
 };
 
 const ACTIVO = OBJETIVO;
@@ -51,7 +55,6 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/**/__tests__/**',
     '!src/**/__fixtures__/**',
-    '!src/app/**', // pantallas: se cubren con tests de componente desde D6.5
     // `src/engine/index.ts` y `src/engine/types.ts` salen al 0 % en el informe
     // porque no tienen ni una sentencia ejecutable (uno son tipos, el otro es
     // `export *`). NO se excluyen: se comprobó que con cero sentencias el
@@ -63,7 +66,10 @@ module.exports = {
 
   coverageThreshold: ACTIVO,
 
+  // `@sentry/*` y `standard-navigation` (la usa expo-router desde el SDK 57) se
+  // publican como módulos ES y hay que transformarlos: sin ellos, un test que
+  // cargue expo-router o el logger real falla antes de empezar (D6.5a).
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg))',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|@sentry/.*|standard-navigation|native-base|react-native-svg))',
   ],
 };

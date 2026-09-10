@@ -5,7 +5,7 @@
 > pantalla antes de construirla, con qué piezas se construye, y cómo se verifica que
 > quedó bien** — con la misma seriedad que los gates de código.
 
-Última revisión: 2026-09-09
+Última revisión: 2026-09-10 (decisión #58)
 
 ---
 
@@ -36,12 +36,12 @@ tamaño o un radio escrito a mano. ESLint lo impide.
 ```
 color       fondo · superficie · superficie2 · texto · texto2 · texto3
             acento (el verde de «seguro») · ambar (el de «posible») · rojo (error, «se daña»)
-            borde · sombra
+            sobreAcento (el texto encima del acento) · borde · sombra
             → cada uno con variante light y dark. Semánticos, no «verde500».
 
 tipografia  titulo1 (34/41 · bold) · titulo2 (28/34) · titulo3 (22/28)
             cuerpo (17/22) · cuerpoFuerte · secundario (15/20) · nota (13/18)
-            → escala de iOS. Fuente del sistema (SF Pro). Soporta Dynamic Type.
+            → escala de iOS. Fuente del sistema (SF Pro). Dynamic Type, con tope por estilo (#58).
 
 espacio     xs 4 · s 8 · m 12 · l 16 · xl 24 · xxl 32 · xxxl 48      (rejilla de 4 pt)
 radio       s 8 · m 12 · l 16 · xl 24 · circulo 999
@@ -66,7 +66,7 @@ aquí** (con sus estados y su test), luego se usa.
 | `Etiqueta` | seguro · posible · supuesto · estimado · real · aviso | **La distinción visual del principio 4 vive aquí** |
 | `Campo` | vacío · con valor · error · deshabilitado | Entrada de texto. Etiqueta flotante |
 | `Stepper` | mín · normal · máx | Porciones. Soporta medias |
-| `Hoja` | — | Bottom sheet nativo (`@expo/ui` si cubre, si no `@gorhom/bottom-sheet`) |
+| `Hoja` | — | **Pasa a Fase 2** (decisión #58), con la hoja de cuenta, que es su primer uso. Bottom sheet nativo (`@expo/ui` si cubre, si no `@gorhom/bottom-sheet`) |
 | `EstadoVacio` | con acción · sin acción | Icono SF + título + texto + botón. **Siempre honesto** |
 | `Cargando` | inline · pantalla | Skeleton, nunca spinner a solas |
 | `Aviso` | info · exito · error | Toast no bloqueante, 3 s, accesible |
@@ -78,10 +78,11 @@ Cada componente: archivo, test RNTL con **todos** sus estados, y entrada en la g
 ### 2.3 · La galería — `src/app/(dev)/galeria.tsx`
 
 Un Storybook de bolsillo que corre en Expo Go. Solo en `__DEV__`. Renderiza **cada
-componente en cada estado**, en claro y en oscuro, con Dynamic Type en tres tamaños.
+componente en cada estado**, en claro y en oscuro, con Dynamic Type en tres tamaños: el del
+iPhone y dos simulados (decisión #58).
 
 - Es donde se diseña un componente antes de que exista la pantalla que lo usa.
-- Maestro le hace capturas en cada PR que toque `src/ui/` (`galeria.yaml`) → las capturas
+- **Desde D7** (decisión #58), Maestro le hace capturas en cada PR que toque `src/ui/` (`galeria.yaml`) → las capturas
   se adjuntan al PR → **se revisan a ojo**. Un cambio visual no intencionado se ve.
 - Es la primera pantalla que se abre para comprobar que el tema oscuro no rompió nada.
 
@@ -150,7 +151,7 @@ Checklist, en el PR, con ✓ explícito:
 
 - Solo componentes de `src/ui/`. Solo tokens. Solo textos de `es.ts`.
 - Los cuatro/cinco estados existen en código **y** en el test RNTL.
-- Cada `Pressable` tiene `accessibilityLabel` y `accessibilityRole`. ESLint lo exige.
+- Cada control tiene etiqueta de VoiceOver y rol. Lo exigen los tipos de `src/ui/` y ESLint (decisión #58).
 - Cada elemento que Maestro necesita tocar tiene `testID` estable (`nevera.confirmar`).
 
 ### Paso 5 · Verificación en dispositivo (la parte que no automatiza nadie)
@@ -173,12 +174,20 @@ Se suman a los de `protocolos-calidad.md`.
 | Gate | Herramienta | Qué bloquea |
 |---|---|---|
 | Sin colores ni tamaños a mano | ESLint `no-restricted-syntax` sobre literales hex y sobre `fontSize:`, `padding:` numéricos fuera de `src/ui/tokens.ts` | commit |
-| Sin texto literal en JSX | `react/jsx-no-literals` (excepciones: `·`, `%`, números) | commit |
-| Accesibilidad básica | `eslint-plugin-react-native-a11y`: `has-valid-accessibility-props`, `has-accessibility-hint` en acciones destructivas, `touchable-has-alt` | commit |
-| Un `<Text>` solo en `Texto` | `no-restricted-imports` de `react-native.Text` fuera de `src/ui/Texto.tsx` | commit |
+| Sin texto literal en JSX | `react/jsx-no-literals` (excepciones: `·`, `%`, números), y `no-restricted-syntax` para el texto dentro de un condicional, un «y/o», una suma o una plantilla | commit |
+| Accesibilidad básica | **Sin plugin**: `eslint-plugin-react-native-a11y` no es compatible con ESLint 9 (decisión #58). La etiqueta de VoiceOver es prop obligatoria en las piezas de `src/ui/` (typecheck), y un `accessibilityLabel` escrito a mano no pasa (`no-restricted-syntax`) | commit |
+| Textos y controles solo desde `src/ui/` | `no-restricted-imports` de `Text`, `Pressable` y los demás controles de `react-native` y de `react-native-gesture-handler`, y del `Link` de expo-router, fuera de `src/ui/`; `Animated.Text` con `no-restricted-syntax` | commit |
 | Estados cubiertos | Test RNTL por pantalla con los estados del brief. Sin test, el PR no cumple DoD | merge |
-| Regresión visual | Maestro `galeria.yaml` + `takeScreenshot` en cada PR que toque `src/ui/` → capturas en el PR | revisión humana |
-| Contraste | Script `scripts/contraste.ts` que verifica cada par texto/fondo de `tokens.ts` ≥ 4,5:1 (AA) en claro y oscuro | CI |
+| Regresión visual | **Desde D7** (#58): Maestro `galeria.yaml` + `takeScreenshot` en cada PR que toque `src/ui/` → capturas en el PR | revisión humana |
+| Contraste | Test `src/ui/__tests__/contraste.test.ts` (decisión #58): cada color de texto sobre cada fondo de `tokens.ts` ≥ 4,5:1 (AA), y el borde ≥ 3:1, en claro y oscuro | pre-push y CI |
+
+Las reglas de ESLint de esta tabla se aplican a `src/app/` y `src/ui/`, no al resto de
+`src/`. Cada una tiene su línea en un fixture, y `npm run reglas` las comprueba una a una.
+**Lo que no ven** (decisión #58, punto 4): un texto o un color guardados antes en una
+variable, una suma larga con el texto al principio, un color que no sea hex, `rgb()`,
+`hsl()` o un nombre de CSS, un control de una librería que no está en la lista, y un
+`require()`. Eso lo
+cubre la revisión del PR.
 
 ---
 
@@ -188,7 +197,7 @@ Se suman a los de `protocolos-calidad.md`.
 |---|---|---|---|
 | 0 | Sistema de diseño, galería, pantalla inicial vacía | todos los base | `fase-0-fundaciones.md` D6.5 |
 | 1 | Time to cook (v0) · inventario manual · 3 recetas · detalle · dos preguntas · hogar · ajustes | `TarjetaReceta`, `ContadorRecetas`, `Pregunta`, `FilaComensal` | `fase-1-motor-y-datos.md` §UX |
-| 2 | Cámara con guía · carga sobre la foto · resultado con overlay · hoja de cuenta al tocar «Cocinar» | `MarcoCamara`, `EtiquetaFlotante`, `ChipPregunta`, `HojaCuenta` | `fase-2-nevera.md` §UX |
+| 2 | Cámara con guía · carga sobre la foto · resultado con overlay · hoja de cuenta al tocar «Cocinar» | `Hoja` (base, viene de Fase 0 por la #58), `MarcoCamara`, `EtiquetaFlotante`, `ChipPregunta`, `HojaCuenta` | `fase-2-nevera.md` §UX |
 | 3 | Lista de mercado · foto de factura · confirmación de líneas · plan semanal · Time to cook completo | `LineaMercado`, `TotalPresupuesto`, `LineaFactura`, `SlotComida` | `fase-3-mercado.md` §UX |
 | 4 | Paso a paso · timers · pantalla de cierre con estrellas | `PasoCocina`, `Timer`, `Estrellas` | `fase-4-cocina.md` §UX |
 | 5 | Búsqueda del catálogo con pills · asistente · importar link | `Pill`, `BurbujaAsistente`, `CampoLink` | `fase-5-catalogo.md` §UX |
@@ -219,5 +228,5 @@ Se suman a los de `protocolos-calidad.md`.
 - `@expo/ui`: https://docs.expo.dev/versions/latest/sdk/ui/
 - Hápticos: https://docs.expo.dev/versions/latest/sdk/haptics/
 - WCAG 2.2 (contraste, objetivos táctiles): https://www.w3.org/TR/WCAG22/
-- eslint-plugin-react-native-a11y: https://github.com/FormidableLabs/eslint-plugin-react-native-a11y
+- eslint-plugin-react-native-a11y (no entra mientras no soporte ESLint 9, #58): https://github.com/FormidableLabs/eslint-plugin-react-native-a11y
 - Research: `../../research/reports/me-chef-recomendaciones.md` §1, §3, §5, §7, y patrones `01-onboarding.md`, `03-flujo-principal.md`, `05-cocina-guiada.md`, `06-notificaciones.md`

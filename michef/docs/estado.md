@@ -10,10 +10,10 @@ Actualizado: 2026-09-10 · por sesión S-20260910-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D6 hecho y verificado en el iPhone** (2026-09-10): Expo Go, cambio al instante y el error llegó a Sentry. Falta el CI en verde y el merge del PR #16. Siguiente: **D6.5**, el sistema de diseño |
-| **Decisiones vigentes** | hasta **#57** |
+| **Paso actual** | **D6.5a construido y revisado** (APROBADO en la tercera vuelta). Falta que Luciano lo vea en el iPhone, que confirme los puntos 5 a 11 de la #58, y el CI en verde |
+| **Decisiones vigentes** | hasta **#58** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `feat/F0-D6-app-base` — iPhone verificado; espera el CI en verde y el merge |
+| **Rama de trabajo** | `feat/F0-D6.5a-sistema-diseno` — espera el iPhone, la confirmación de la #58 y el CI |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -43,7 +43,7 @@ Se vacía al cambiar de día.
 
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
-| S-20260910-a | D5, la regla #55 y D6 · app base | abierta |
+| S-20260910-a | D5, la regla #55, D6 · app base y D6.5a · base del sistema de diseño | abierta |
 
 **2026-09-09** (día anterior, se conserva por trazabilidad)
 
@@ -66,7 +66,8 @@ Se vacía al cambiar de día.
 | Arreglo de BUG-9 | `fix/F1-bug9-redondeo-mercado` | S-20260909-g | 2026-09-09 | **mergeada** (PR #7) |
 | D4 · Supabase como código | `chore/F0-D4-supabase` | S-20260909-g | 2026-09-09 | **mergeada** (PR #8) |
 | D5 · CI y reglas de rama | `chore/F0-D5-ci` | S-20260910-a | 2026-09-10 | **mergeada** (PR #9, #11) |
-| D6 · app base | `feat/F0-D6-app-base` | S-20260910-a | 2026-09-10 | iPhone verificado; espera CI y merge (PR #16) |
+| D6 · app base | `feat/F0-D6-app-base` | S-20260910-a | 2026-09-10 | **mergeada** (PR #16, `0d4468f`) |
+| D6.5a · base del sistema de diseño | `feat/F0-D6.5a-sistema-diseno` | S-20260910-a | 2026-09-10 | construida y revisada; espera el iPhone |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -86,8 +87,9 @@ desde el primer PR de código.
 | D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ✅ mergeado (PR #4, `72a0d1a`) |
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ✅ mergeado (PR #8) |
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho, entero |
-| D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ hecho y **verificado en el iPhone** (2026-09-10); falta el merge del PR #16 |
-| D6.5 | Sistema de diseño + galería | Claude | ⏳ |
+| D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ mergeado (PR #16, `0d4468f`), verificado en el iPhone |
+| D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | 🔨 hecho y revisado; falta el iPhone |
+| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisión #58) | Claude | ⏳ |
 | D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
 | D8 | README | Claude | ⏳ |
 
@@ -312,11 +314,36 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
      y un test impide que vuelva.
    - El párrafo de `COMANDOS.md` § 5 (corrige un texto de D5) **se queda en este PR, con
      su anotación en la descripción**: decisión de Luciano (opción A).
-   - Queda: CI en verde y merge. **Nunca en rojo** (#55).
-12. Claude presenta **D6.5** (`feat/sistema-diseno`): tokens, tema claro/oscuro,
-   componentes base y la galería para verlos en el iPhone. No se ejecuta nada sin
-   «adelante» (#34). Mobbin (de pago) queda aparcado por decisión de Luciano; si lo
-   configura, este es el paso donde sirve.
+   - **Mergeado el 2026-09-10** (PR #16, `0d4468f`), con los tres checks en verde. El CI de
+     `main` sobre el commit del merge, también en verde. Rama borrada.
+12. ~~Presentar D6.5~~ **presentado y partido en dos** (decisión #58). Luciano decidió: la
+   `Hoja` pasa a Fase 2, con la hoja de cuenta, que es su primer uso; las capturas de la
+   galería con Maestro pasan a D7, que es donde entra Maestro; y el paso se hace en dos
+   PRs. Además, el plugin de accesibilidad del plan no es compatible con ESLint 9: no se
+   instala, y la accesibilidad la exigen los tipos, ESLint y los tests. Mobbin sigue
+   aparcado.
+13. **D6.5a construido** (`feat/F0-D6.5a-sistema-diseno`), sin dependencias nuevas:
+   `tokens.ts`, `tema.tsx`, `Texto`, `es.ts` con `t()`, la galería solo en desarrollo, las
+   reglas de ESLint de interfaz con un fixture línea a línea, el contraste AA como test y
+   la pantalla inicial rehecha. **474 tests**, cobertura 100 %, **53 comprobaciones de
+   reglas** y **56 de 56 mutaciones cazadas**. El revisor devolvió **CAMBIOS con razón** en la
+   primera vuelta (las reglas de ESLint tenían agujeros y la #58 prometía más de lo que
+   protegían), **CAMBIOS** otra vez en la segunda (tres huecos más pequeños) y
+   **APROBADO** en la tercera.
+   **Lo que solo puede hacer Luciano, y sin lo cual no hay merge:**
+   - abrir la app (`npx expo start`, `COMANDOS.md` § 1) y tocar «Galería»;
+   - mirar los colores en claro y en oscuro, con los botones de la galería y con el modo
+     del teléfono (Ajustes › Pantalla y brillo);
+   - subir la letra en Ajustes › Accesibilidad › Pantalla y tamaño del texto, y ver que la
+     app la sigue sin cortar nada;
+   - decir si los colores le gustan: son una primera propuesta (#58.8);
+   - confirmar o cambiar los puntos 5 a 11 de la #58.
+   Al forzar «Oscuro» con el teléfono en claro, la barra de arriba sigue en claro: la
+   pinta el tema del sistema, no el de la galería. Es lo esperado.
+14. Después, **D6.5b**: los 11 componentes que faltan, con `expo-symbols` y
+   `expo-haptics`. Se presenta y espera «adelante». **Borra `BotonDeDesarrollo`**
+   (#58.5), y el `Boton` nuevo usa el texto visible como etiqueta de VoiceOver y la
+   explicación como pista (WCAG 2.5.3): el provisional no lo hace.
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
 

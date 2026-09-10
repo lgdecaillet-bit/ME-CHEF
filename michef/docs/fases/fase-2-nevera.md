@@ -201,7 +201,9 @@ del usuario (lo cocinado, el inventario descontado, las reseñas) y por eso pide
 **Flujo de diseño:** [`../diseno.md`](../diseno.md) §3, con énfasis en el paso 2 (boceto
 de **todos** los estados: la cámara con marco rojo/verde, la carga sobre la foto, el
 resultado, y los cuatro «cuando no funciona»). Es la pantalla más importante de la app:
-el boceto se hace en Claude Design canvas, no en ASCII. Componentes nuevos: `MarcoCamara`,
+el boceto se hace en Claude Design canvas, no en ASCII. Componentes nuevos: `Hoja` (el panel base
+que sube desde abajo, viene de Fase 0 por la decisión #58: `@expo/ui` si cubre, si no
+`@gorhom/bottom-sheet`), `MarcoCamara`,
 `EtiquetaFlotante`, `ChipPregunta`, `TarjetaCuenta` — primero en la galería.
 
 Fuentes: `producto.html` §La función central, y research §3 (P1: resultado en tres capas,
