@@ -110,6 +110,21 @@ const CONTROLES_SOLO_EN_UI = [
   // `Link` dibuja su propio texto tocable. Para navegar desde una pantalla:
   // `router.push`, desde una pieza de src/ui/.
   { name: 'expo-router', importNames: ['Link'], message: CONTROLES },
+  // Desde D6.5b. Los iconos, solo con <Icono>: lleva el color del tema, crece
+  // con la letra y VoiceOver sabe si leerlo.
+  {
+    name: 'expo-symbols',
+    message:
+      'Los iconos se dibujan con <Icono> de src/ui/, que lleva el color del tema, Dynamic Type y VoiceOver (diseno.md § 2.2).',
+  },
+  // Una rueda sola no dice qué viene (diseno.md § 2.2): se usa <Cargando>, o
+  // un <Boton cargando>.
+  {
+    name: 'react-native',
+    importNames: ['ActivityIndicator'],
+    message:
+      'Una rueda de carga sola no dice qué viene: se usa <Cargando> o <Boton cargando> de src/ui/ (diseno.md § 2.2).',
+  },
 ];
 
 // `Animated.Text`, o `RN.Text` tras un `import * as RN`: el mismo `Text` con

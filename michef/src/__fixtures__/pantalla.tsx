@@ -19,6 +19,8 @@ import { Switch } from 'react-native'; // @espera solo se usan en src/ui/
 import { Pressable as PressableDeGestos } from 'react-native-gesture-handler'; // @espera solo se usan en src/ui/
 import { Link } from 'expo-router'; // @espera solo se usan en src/ui/
 import TextoInterno from 'react-native/Libraries/Text/Text'; // @espera archivos internos
+import { SymbolView } from 'expo-symbols'; // @espera Los iconos se dibujan con <Icono>
+import { ActivityIndicator } from 'react-native'; // @espera no dice qué viene
 
 const marca = '#FF0000'; // @espera Color escrito a mano
 const sombra = 'rgb(0, 0, 0)'; // @espera Color escrito a mano
@@ -59,6 +61,7 @@ export function PantallaMal({ x, n }: { x: boolean; n: number }) {
       <Pressable accessibilityLabel={String(n) ?? ''} />{/* @permitido */}
       <Animated.Text />{/* @espera solo se usan en src/ui/ */}
       <Switch /><PressableDeGestos /><Link href="/" /><TextoInterno />{/* @permitido */}
+      <SymbolView name="star" /><ActivityIndicator />{/* @permitido */}
       {[marca, sombra, linea, tinta, estados].length}
     </View>
   );
