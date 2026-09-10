@@ -197,13 +197,17 @@ trabajar en paralelo.
   corrido. Si un gate falló y lo saltaste, dilo en la primera línea.
 - Corre `npm run gates` antes de decir que algo está listo. Si no lo corriste, dilo.
 - **Prohibido `--no-verify`.** Si un hook estorba, se arregla el hook.
+- **Prohibido saltarse el PR.** Nada entra en `main` que no sea un PR con los tres checks
+  en verde. Sin `gh pr merge --admin`, sin push directo a `main`, sin desactivar un check
+  ni relajar el ruleset para desbloquear algo. Si el CI está rojo se arregla; si no se
+  sabe cómo, **se para y se avisa**. Decisión #55, y la puso Luciano.
 - Una feature = una rama = un PR. Nunca refactor y feature en el mismo PR.
 - Las instalaciones globales de npm (`npm i -g`) las corre Luciano, no el agente.
 
 ## Cómo se verifica
 
 Los gates están en `docs/protocolos-calidad.md`: editor → pre-commit → pre-push → CI →
-EAS Workflows → release. Un PR sin CI verde no se mergea. Un PR sin veredicto
+EAS Workflows → release. Un PR sin CI verde no se mergea, y no se rodea (#55). Un PR sin veredicto
 `APROBADO` del revisor y sin entrada en `docs/bitacora.md` no cumple el Definition of
 Done.
 
@@ -219,8 +223,11 @@ La calidad no es una fase: es una condición de cada PR. Reglas vivas en
   el diseño de la función probablemente está mal.
 - **Un bug encontrado se registra como test antes de arreglarse.** Primero el
   test que lo reproduce (rojo), después el arreglo (verde). Nunca al revés.
-- **Nada se mergea en rojo.** Sin `--no-verify`, sin `.skip` sin issue y fecha,
-  sin `.only`, sin bajar un umbral de cobertura para que pase.
+- **Nada se mergea en rojo.** Sin `--no-verify`, sin `gh pr merge --admin`, sin
+  `.skip` sin issue y fecha, sin `.only`, sin bajar un umbral de cobertura ni añadir
+  una excepción a gitleaks para que un PR concreto pase. Decisión #55: no existe la
+  circunstancia en la que un agente decida por su cuenta que este PR sí merece pasar
+  en rojo.
 - **Todo input externo se valida en la frontera** con `zod`: respuestas del
   proxy, filas de Supabase, variables de entorno, JSON de modelos. El motor
   nunca recibe un `unknown`.

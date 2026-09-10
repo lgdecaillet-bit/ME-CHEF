@@ -669,6 +669,47 @@ pasando antes de cada PR. **No se mergea nada en rojo**, aunque se pueda.
 
 ---
 
+### #55 · Ningún merge en rojo, y `--admin` no es una salida
+
+Fecha: 2026-09-10 · **vigente, sin fecha de revisión** · la fija Luciano, en estos términos
+
+> «No tienes permiso jamás para sobrepasarte el PR si los tests no están en verde.»
+
+**La regla, sin matices.** Ningún agente y ninguna sesión de Claude mete nada en `main`
+que no sea un PR con **los tres checks en verde**. Queda prohibido, en concreto:
+
+- `gh pr merge --admin`, en cualquier forma y por cualquier motivo.
+- `git push` directo a `main`, con o sin `--no-verify`.
+- Desactivar, relajar o borrar el ruleset «main protegida» para dejar pasar algo.
+- Sacar un check de la lista de obligatorios, aunque sea «un momento».
+- Poner un `.skip`, bajar un umbral de cobertura o añadir una excepción a gitleaks
+  **para que un PR concreto pase**.
+
+**Qué se hace cuando el CI está rojo.** Se arregla lo que está rojo. Si lo rojo es el
+gate y no el código, se arregla el gate en su propio PR, que también tiene que ponerse
+verde. Y si no se sabe cómo, **se para y se le dice a Luciano** — con el check que falla
+y lo que dice, tal cual — en vez de buscar la forma de rodearlo.
+
+**Por qué hace falta escribirla, si ya está la protección de rama.** Porque la protección
+**no lo impide**: Luciano es dueño del repositorio, y GitHub deja que un administrador se
+salte sus propias reglas (decisión #54). El candado técnico se acaba justo ahí. A partir
+de ese punto solo hay una regla escrita, y esta es esa regla. Es de Luciano, no una
+preferencia del agente: **no existe la circunstancia en la que un agente decida por su
+cuenta que este PR sí merece pasar en rojo.**
+
+**Y por qué importa más de lo que parece.** Un gate que se salta una vez «porque este
+caso era distinto» deja de ser un gate y pasa a ser una sugerencia. Todo lo que costó la
+Fase 0 — los 189 tests, los 22 candados de RLS, los tres checks, la prueba del gate rojo
+hecha dos veces — vale exactamente lo que valga el día que menos ganas haya de
+respetarlo. Es la lección de la #47 vista desde el otro lado: **un gate que nunca bloquea
+y un gate que se puede saltar cuando molesta son, en la práctica, el mismo gate.**
+
+**Lo único que queda fuera, y es solo de Luciano:** si algún día decide mergear en rojo,
+lo hace él, con su mano, y escribe por qué en el PR. No se le pide al agente, y el agente
+no lo ofrece.
+
+---
+
 ## Pendientes de decidir
 
 - Porciones para varias personas: ¿tres porciones iguales o cada comensal con su apetito?

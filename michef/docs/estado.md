@@ -11,16 +11,23 @@ Actualizado: 2026-09-10 · por sesión S-20260910-a
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
 | **Paso actual** | **D5 cerrado del todo**, `main` protegida y comprobada. Siguiente: **D6**, la app base |
-| **Decisiones vigentes** | hasta **#54** |
+| **Decisiones vigentes** | hasta **#55** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | ninguna. D6 sale de `main` |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
 
-## Regla que gobierna todo
+## Las dos reglas que gobiernan todo
 
-**Todo paso se aprueba antes de ejecutarse** (decisión #34). Un agente presenta el paso
+**1 · Nada se mergea en rojo, y `--admin` no es una salida** (decisión #55, la fija
+Luciano). Ningún agente mete nada en `main` que no sea un PR con los tres checks en
+verde. Ni `gh pr merge --admin`, ni push directo, ni desactivar un check, ni relajar el
+ruleset. Si el CI está rojo: se arregla, o **se para y se avisa**. La protección de rama
+no puede impedirlo — un administrador se salta sus propias reglas — así que desde ahí
+la barrera es esta regla y nada más.
+
+**2 · Todo paso se aprueba antes de ejecutarse** (decisión #34). Un agente presenta el paso
 (archivos, instalaciones con versión, test que lo protege, cómo se verifica), Luciano
 dice «adelante», el agente lo hace y reporta qué corrió y qué salió. Aprobar un paso no
 aprueba el siguiente.
@@ -36,7 +43,7 @@ Se vacía al cambiar de día.
 
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
-| S-20260910-a | D5 · CI y reglas de rama | abierta |
+| S-20260910-a | D5 · CI, reglas de rama y la regla #55 | abierta |
 
 **2026-09-09** (día anterior, se conserva por trazabilidad)
 
@@ -140,9 +147,11 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
     roadmap, las 54 decisiones, la estrategia de producto. Es una decisión de negocio,
     tomada a sabiendas. Ningún secreto está expuesto: comprobado con `gitleaks git` sobre
     el historial completo después del cambio.
-  - **La salida de emergencia sigue existiendo:** `gh pr merge --admin` se salta la regla,
-    porque Luciano es dueño del repo y eso no se puede quitar. La diferencia es que ahora
-    hay que escribirlo, y queda en el historial del PR.
+  - **La salida de emergencia sigue existiendo técnicamente, y queda cerrada por regla:**
+    `gh pr merge --admin` se salta la protección, porque Luciano es dueño del repo y eso
+    no se puede quitar. **Decisión #55: ningún agente la usa, jamás, por ningún motivo.**
+    Si algún día hay que mergear en rojo, lo hace Luciano con su mano y escribe por qué
+    en el PR.
 
 - ~~El enganche de pre-commit no revisa secretos~~ **Diagnosticado mal y corregido el
   mismo día.** Los commits de las sesiones de Claude imprimían «gitleaks no está
@@ -232,7 +241,12 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    que caen; el push directo a `main` se rechaza; y un PR en rojo **no se puede mergear**.
    Con esto, **la Fase 0 tiene sus barreras cerradas de verdad**: lo que falta (D6–D8) es
    la app y el sistema de diseño, no protección.
-10. Claude presenta **D6** (`feat/app-base`): `app.config.ts` con el bundleId de iOS,
+10. ~~Regla #55~~ **escrita.** Luciano la puso en una frase — «no tienes permiso jamás
+   para sobrepasarte el PR si los tests no están en verde» — y quedó en `decisiones.md`,
+   en las dos reglas de arriba de este tablero, en `protocolos-calidad.md` §§ 2, 4 y 6, y
+   en `CLAUDE.md`. Cierra por escrito el único hueco que la protección de rama no puede
+   tapar: que el dueño del repositorio se salta sus propias reglas.
+11. Claude presenta **D6** (`feat/app-base`): `app.config.ts` con el bundleId de iOS,
    las dependencias base, `log.ts`, `sentry.ts`, `env.ts` con zod, `flags.ts`, la pantalla
    inicial de verdad, `metro.config.js`, `eas.json` y `eas init`. Es el paso en el que la
    app deja de ser una pantalla en blanco. No se ejecuta nada sin «adelante» (#34).

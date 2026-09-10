@@ -39,6 +39,7 @@ Ordenadas de la más rápida a la más lenta. Cada una atrapa lo que la anterior
 Configuradas como **GitHub Rulesets** sobre `main` (vía `gh api`, script en `scripts/branch-rules.sh`).
 
 - **Nada entra a `main` sin PR.** Aunque el autor sea el único desarrollador. El PR es donde corren las capas 3 y 4; sin PR no hay barrera.
+- **Nada entra a `main` en rojo, y `--admin` no es una salida** (decisión #55). La protección de rama no puede impedirlo — un administrador se salta sus propias reglas — así que a partir de ahí la barrera es esta regla. Ningún agente mergea en rojo, ni desactiva un check, ni relaja el ruleset para dejar pasar algo: **para y avisa**. El día que haya que hacerlo, lo hace Luciano y escribe por qué en el PR.
 - **Checks obligatorios:** `ci / gates`, `ci / supabase`, `eas / fingerprint`, y `eas / maestro` cuando se ejecute.
 - **Historia lineal.** Sin merge commits, sin force-push, sin borrar `main`.
 - **Ramas cortas:** `feat/…`, `fix/…`, `chore/…`, `docs/…`. Vida objetivo < 3 días. Si una rama vive una semana, la feature está mal partida.
@@ -91,7 +92,7 @@ quitar el `.failing`. El bug queda registrado como código, no como nota.
 
 Un PR está listo cuando cumple **todo** esto. No hay "casi".
 
-1. CI verde: capas 3 y 4.
+1. CI verde: capas 3 y 4. **Los tres checks — `gates`, `supabase`, `secretos` — en verde de verdad.** No hay «casi verde» ni «ese falla por otra cosa» (decisión #55).
 2. Tests nuevos para lo nuevo. Test de caracterización **antes** de tocar un bug.
 3. Ninguna regla de `CLAUDE.md` rota. Si hubo que tomar una decisión nueva, está en `docs/decisiones.md` con fecha.
 4. Feature incompleta → detrás de un flag apagado.
@@ -156,6 +157,7 @@ Complementan la sección "Cómo trabajar conmigo" de `CLAUDE.md`.
 - **Una feature = una rama = un PR.** Nunca refactor y feature en el mismo PR.
 - Claude corre `npm run gates` antes de decir que algo está listo. Si no lo corrió, lo dice.
 - **Prohibido `--no-verify`.** Si un hook estorba, se arregla el hook.
+- **Prohibido `gh pr merge --admin`, y prohibido tocar el ruleset para desbloquear un PR** (decisión #55). Un PR en rojo se arregla o se para; no se rodea. Es la única barrera que queda después de la protección de rama, porque la protección no aplica al dueño del repo.
 - Un `test.skip` lleva comentario con motivo y fecha. CI falla si encuentra `.only`.
 - Cuando una tarea parece requerir romper una regla de `CLAUDE.md`, Claude **para y pregunta**. No busca el atajo.
 - Cuando algo no funciona, se dice. "No lo he corrido en el iPhone" es una frase válida y obligatoria cuando es verdad.
