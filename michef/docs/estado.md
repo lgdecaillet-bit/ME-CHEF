@@ -10,10 +10,10 @@ Actualizado: 2026-09-10 · por sesión S-20260910-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D6.5b en curso**: los 11 componentes base, con `expo-symbols` y `expo-haptics`. D6.5a quedó mergeado (PR #17, `e66df6d`) |
-| **Decisiones vigentes** | hasta **#58** |
+| **Paso actual** | **D6.5b construido y revisado** (APROBADO en la tercera vuelta). Falta que Luciano lo vea en el iPhone, que confirme la #59, y el CI en verde |
+| **Decisiones vigentes** | hasta **#59** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `feat/F0-D6.5b-componentes` — en curso |
+| **Rama de trabajo** | `feat/F0-D6.5b-componentes` — espera el iPhone, la confirmación de la #59 y el CI |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -68,7 +68,7 @@ Se vacía al cambiar de día.
 | D5 · CI y reglas de rama | `chore/F0-D5-ci` | S-20260910-a | 2026-09-10 | **mergeada** (PR #9, #11) |
 | D6 · app base | `feat/F0-D6-app-base` | S-20260910-a | 2026-09-10 | **mergeada** (PR #16, `0d4468f`) |
 | D6.5a · base del sistema de diseño | `feat/F0-D6.5a-sistema-diseno` | S-20260910-a | 2026-09-10 | **mergeada** (PR #17, `e66df6d`) |
-| D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | en curso |
+| D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | construida y revisada; espera el iPhone |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -90,7 +90,7 @@ desde el primer PR de código.
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho, entero |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ mergeado (PR #16, `0d4468f`), verificado en el iPhone |
 | D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | ✅ mergeado (PR #17, `e66df6d`), visto en el iPhone |
-| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisión #58) | Claude + Luciano | 🔨 en curso |
+| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58 y #59) | Claude + Luciano | 🔨 hecho y revisado; falta el iPhone |
 | D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
 | D8 | README | Claude | ⏳ |
 
@@ -335,15 +335,26 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    lo vio en el iPhone: los colores se quedan tal cual (#58.8), y confirmó los puntos 5 a
    11 de la #58. Al forzar «Oscuro» con el teléfono en claro, la barra de arriba sigue en claro: la
    pinta el tema del sistema, no el de la galería. Es lo esperado.
-14. **En curso: D6.5b** (`feat/F0-D6.5b-componentes`), presentado y con «adelante» de
-   Luciano. Los 11 componentes que faltan (`Boton`, `Chip`, `Tarjeta`, `Etiqueta`,
-   `Campo`, `Stepper`, `EstadoVacio`, `Cargando`, `Aviso`, `Icono`, `Progreso`), cada uno
-   con todos sus estados, su test y su sitio en la galería. Entran `expo-symbols` y
-   `expo-haptics` (~57.0.2, las dos van en Expo Go; `npm audit` igual que en `main`).
-   **Borra `BotonDeDesarrollo`** (#58.5), y `Boton` usa el texto visible como etiqueta de
-   VoiceOver (WCAG 2.5.3). Además, `t()` escribe los decimales con coma (el `Stepper` enseña
-   medias porciones) y `ProveedorTema` deja de rehacer el tema en cada dibujado. `Aviso` se
-   construye sin cola global: esa pieza llega con su primer uso, en Fase 1.
+14. **D6.5b construido** (`feat/F0-D6.5b-componentes`): los 11 componentes (`Boton`,
+   `Chip`, `Tarjeta`, `Etiqueta`, `Campo`, `Stepper`, `EstadoVacio`, `Cargando`, `Aviso`,
+   `Icono`, `Progreso`), cada uno con todos sus estados, su test y su sitio en la galería;
+   `expo-symbols` y `expo-haptics` (~57.0.2, en Expo Go); `BotonDeDesarrollo` borrado.
+   **628 tests**, cobertura 100 %, **59 comprobaciones de reglas** y **76 de 76
+   mutaciones cazadas**. El revisor devolvió **CAMBIOS** dos veces, con razón las dos, y
+   **APROBADO** en la tercera (la bitácora cuenta qué encontró). Lo que se decidió al
+   construir está en la **#59**, quince puntos, para que Luciano los confirme.
+   **Lo que solo puede hacer Luciano, y sin lo cual no hay merge:**
+   - abrir la galería (`npx expo start -c`, `COMANDOS.md` § 1) y mirar cada componente en
+     claro, en oscuro y con la letra «Grande» y «Máxima»;
+   - tocar un botón y notar la vibración;
+   - escribir en los campos y ver subir la etiqueta, también con la letra «Máxima»;
+     borrar el del error y verlo volver;
+   - «Ver los avisos» y verlos irse solos a los 3 s;
+   - si se anima: VoiceOver sobre un botón y sobre el stepper;
+   - confirmar o cambiar los puntos de la #59.
+15. Después, **D7**: EAS Workflows y Maestro (el smoke y las capturas de la galería). Será
+   también el primer build de simulador con `expo-symbols` y `expo-haptics` (#59.14). Se
+   presenta y espera «adelante».
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
 

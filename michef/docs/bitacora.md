@@ -1843,3 +1843,87 @@ que yo mismo puse sigue abierta, se pregunta.
 da lo mismo que en `main`: 19 moderadas, ninguna alta ni crítica.
 
 ---
+
+## 2026-09-10 · S-20260910-a · D6.5b: los 11 componentes, y tres vueltas de revisor
+
+Tarea: F0-D6.5b · Rama: `feat/F0-D6.5b-componentes` · Resultado: **construido y
+revisado**. Falta la prueba en el iPhone, la confirmación de la #59 y el CI.
+
+**Lo que hay.** `Boton`, `Chip`, `Tarjeta`, `Etiqueta`, `Campo`, `Stepper`, `EstadoVacio`,
+`Cargando`, `Aviso`, `Icono` y `Progreso`, cada uno con todos sus estados de `diseno.md`
+§ 2.2, su test y su sitio en la galería. `expo-symbols` y `expo-haptics`. `BotonDeDesarrollo`
+borrado. `t()` con coma decimal. Dos reglas de ESLint nuevas: `expo-symbols` y
+`ActivityIndicator`, solo en `src/ui/`. Lo que se decidió al construir, en la #59.
+
+**Lo que salió mal por el camino, antes del revisor:**
+1. **ESLint paró `useRef(new Animated.Value(1)).current`.** La regla `react-hooks/refs` de
+   React 19 no deja leer un `ref` mientras se dibuja. Se usa `useState(() => …)`.
+2. **El test del estado «pulsado» no volvía a su sitio.** `Pressable` deja algo pulsado al
+   menos 130 ms aunque el dedo se levante antes; la ayuda del test ahora espera eso.
+3. **El mock de React Native trae la letra al doble** (`fontScale: 2`), y un icono salía
+   de 96 pt en un test que esperaba 48.
+4. **knip** avisó de que `expo-font` ya no necesitaba su excepción (la importa
+   `expo-symbols`), y de un tipo exportado que nadie usaba.
+5. **Tres mutaciones siguieron verdes en la primera pasada:** un test que no miraba a qué
+   ajuste de iOS se suscribía el hook, otro que no llegaba al tope de la letra, y un ancla
+   que Prettier había partido en dos líneas y que por eso no mutaba nada.
+
+**El revisor, primera vuelta: CAMBIOS, con cinco cosas, y con razón en todas.**
+- Archivos fuera de la lista (`letra.ts`, `dibujar.tsx`, `knip.config.js`, lo nuevo de
+  `Texto`) que la #59 no nombraba.
+- **`Campo`, con la letra grande, tapaba lo escrito con la etiqueta:** 36 pt con la
+  máxima. La etiqueta subía siempre 16 pt, y el hueco de arriba no crecía con la letra.
+  Lo calculó sobre los tokens, sin iPhone.
+- **Un bug del `Stepper`:** contaba los pasos desde cero y no desde el mínimo (mínimo 0,5 y
+  paso 1: de 0,5 saltaba a 2), y con paso 0 o NaN mandaba `NaN`. La propiedad de
+  fast-check no lo veía porque solo generaba mínimos enteros. Primero el test en rojo
+  (`5c8bc36`), después el arreglo (`4b16e7f`).
+- Medidas de `Cargando` fuera de `tokens.ts`, cuando la #59.11 decía que no quedaba
+  ninguna.
+- Dos comentarios de `Progreso` que prometían más: en iOS, VoiceOver no dice «barra de
+  progreso», y con `Infinity` la barra no quedaba llena.
+
+**Segunda vuelta: CAMBIOS otra vez, por una sola cosa, y también con razón.** La etiqueta
+de `Campo` solo tenía borde izquierdo: una larga crecía hasta partirse en dos líneas, y la
+segunda volvía a tapar lo escrito, unos 48 pt con la letra máxima. Mi test medía el alto
+de **una** línea, así que no lo podía ver. Ahora la etiqueta va en una sola línea y se
+corta con «…»; VoiceOver la oye entera.
+
+**Tercera vuelta: APROBADO.**
+
+Por tercera vez en tres PRs (#57.13, #58.4 y ahora #59.11), un documento prometía algo que
+el código no hacía. Y el arreglo de un solape se probó midiendo el caso que ya funcionaba.
+**Una comprobación que solo mide el caso fácil no comprueba nada.**
+
+Corrido, tal cual: `npm run gates` en verde · **628 tests** · cobertura 100 % en líneas y
+ramas en `src/ui/` e `src/i18n/` · **59 comprobaciones de reglas** (18 controles
+negativos) · **76 de 76 mutaciones cazadas** · `codigo-muerto` limpio · 0 secretos en el
+bundle · gitleaks por su ruta completa, sin hallazgos · `npm audit` igual que en `main`.
+
+**El push lo paró Luciano** en la ventana de permisos, antes de la revisión. Se vuelve a
+pedir con el revisor en APROBADO.
+
+Para después, del revisor:
+- `Stepper` con `minimo > maximo` hace cosas raras; en un límite, VoiceOver no avisa de
+  nada; con Control por voz no se puede tocar solo el − o el +.
+- `numero()` escribe «NaN», «Infinity» y exponentes («1e+21»): junto con el separador de
+  miles, en Fase 3.
+- `Campo`: el error va como pista (quien las tiene apagadas no lo oye al enfocar), se
+  anuncia también al montar (la galería lo dice nada más abrirse), la etiqueta vacía queda
+  un poco por encima de la línea de escritura, y un `TextInput` de iOS no respeta
+  `lineHeight`.
+- «busy» sale de las cadenas de React Native, y `app.config.ts` no declara castellano: en
+  un build de EAS podría leerse en inglés.
+- El mock de `expo-haptics` está repetido en cuatro tests.
+- El borde del `Chip` supuesto apenas se ve.
+- La etiqueta de `Campo` se corta a su tamaño normal, antes de encogerse: una que cabría
+  encogida sale igualmente con «…» cuando está arriba. Cosmético.
+- En la tabla de tamaños de `Campo.test.tsx`, la fila sin escala usa la letra falsa de
+  Jest y prueba poco; las demás sí.
+- Solo en el dispositivo: si un `Aviso` y el error de un `Campo` se pisan al anunciarse, y
+  cómo lee VoiceOver una `Tarjeta` pulsable con una `Etiqueta` dentro.
+
+Pendiente: **Luciano:** el iPhone y la confirmación de la #59. **Claude:** push, PR y CI en
+verde, con su permiso para el push. Nunca en rojo (#55).
+
+---
