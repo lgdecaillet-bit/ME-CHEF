@@ -828,6 +828,37 @@ nuevas:
       La regla es no pasar nada personal a `log`, `setContext`, `setUser`, `setTag` ni
       `setExtra`.
 
+### #58 · D6.5 se parte en dos, y lo que cambia del plan del sistema de diseño
+
+Fecha: 2026-09-10 · **vigente** · los puntos 1 a 3 los decidió Luciano; el 4 lo propuso
+Claude y Luciano lo aprobó
+
+1. **Dos PRs.** **D6.5a**, la base: tokens, tema, `Texto`, `es.ts`, la galería, las reglas
+   de ESLint de interfaz, el contraste y la pantalla inicial. **D6.5b**, los once
+   componentes restantes, con `expo-symbols` y `expo-haptics`. Doce componentes con todos
+   sus estados en un solo PR eran demasiado para revisarlos bien, y la base tiene que
+   verse en el iPhone antes de construir encima.
+2. **`Hoja` pasa a Fase 2.** Su primer uso es la hoja de cuenta al tocar «Cocinar»
+   (`fase-2-nevera.md` § 2.9). Construirla ahora obligaba a elegir entre `@expo/ui` y
+   `@gorhom/bottom-sheet` sin un caso real que la probara. Queda en la lista de
+   componentes de Fase 2 (`diseno.md` § 5).
+3. **Las capturas de la galería con Maestro (`galeria.yaml`) pasan a D7**, que es el paso
+   donde entra Maestro. Hasta entonces la galería se revisa a ojo en el iPhone, que es lo
+   que el DoD pide de todas formas.
+4. **`eslint-plugin-react-native-a11y` no entra.** Su versión 3.5.1 declara compatibilidad
+   solo hasta ESLint 8 (`peerDependencies: eslint ^3 … ^8`), y el proyecto usa ESLint 9
+   (#44). Instalarlo exigía `--legacy-peer-deps`, que es forzar lo que el paquete dice que
+   no soporta. La accesibilidad básica la exigen, en su lugar, tres cosas:
+   - **los tipos:** las piezas de `src/ui/` piden la etiqueta de VoiceOver como prop
+     obligatoria; sin ella, `npm run typecheck` falla;
+   - **ESLint:** `Text`, `Pressable` y los demás controles de `react-native` solo se
+     importan dentro de `src/ui/`, así que nadie dibuja un botón sin pasar por esas
+     piezas; y un texto para VoiceOver escrito a mano (`accessibilityLabel="…"`) no pasa;
+   - **los tests RNTL**, que buscan cada control por su rol y su nombre, como lo hace
+     VoiceOver.
+
+   Se revisa si el plugin publica soporte para ESLint 9, junto con la #44.
+
 ## Pendientes de decidir
 
 - Porciones para varias personas: ¿tres porciones iguales o cada comensal con su apetito?

@@ -1711,3 +1711,28 @@ y merge. Si el CI sale rojo, se arregla o se para y se le dice a Luciano (#55). 
 «D6 mergeado» va en el primer commit de D6.5, porque a `main` no se escribe directo.
 
 ---
+
+## 2026-09-10 · S-20260910-a · D6 mergeado, y D6.5 partido en dos
+
+Tarea: F0-D6 y F0-D6.5a · Rama: `feat/F0-D6.5a-sistema-diseno` · Resultado: **D6 en
+`main`**; D6.5a tomada.
+
+**D6, cerrado.** El PR #16 se mergeó con squash (`0d4468f`) cuando los tres checks
+—`gates`, `supabase` y `secretos`— estaban en verde, y con `--match-head-commit`, para que
+no entrara nada distinto de lo que se revisó. El CI de `main` sobre el commit del merge
+(`ci` y `gitleaks`) también salió verde. Rama borrada. Esta nota va aquí y no en `main`
+porque a `main` no se escribe directo (#55).
+
+**D6.5, presentado.** Antes de proponerlo se comprobó lo que el plan daba por hecho, y una
+cosa no se sostenía: **`eslint-plugin-react-native-a11y` no es compatible con ESLint 9.**
+Su versión 3.5.1 declara hasta ESLint 8. Instalarlo exigía forzarlo, así que se propuso
+exigir la accesibilidad desde los tipos, desde ESLint y desde los tests. Luciano lo aprobó.
+
+**Lo que decidió Luciano** (decisión #58), después de preguntar qué era cada cosa:
+- la `Hoja` (el panel que sube desde abajo) pasa a Fase 2, con la hoja de cuenta;
+- las capturas de la galería con Maestro pasan a D7;
+- el paso se parte en dos PRs: D6.5a, la base, y D6.5b, los componentes.
+
+Pendiente: construir D6.5a y, antes del merge, que Luciano la vea en el iPhone.
+
+---
