@@ -164,6 +164,17 @@ Y estos tres, que no entran en `gates` porque tardan más:
 npm run test:watch
 ```
 
+**Proteger la rama `main`.** Hace que nadie — ni tú por accidente — pueda subir algo
+directo a `main` sin PR ni sin que el CI esté en verde.
+
+```powershell
+npm run reglas:rama
+```
+
+Hoy **te va a decir que no puede**, y te explicará por qué: GitHub no protege ramas en
+repositorios privados con cuenta gratuita. Cuando decidas (GitHub Pro, unos 4 USD al mes,
+o hacer el repo público), vuelves a correr este mismo comando y ya queda.
+
 **Levantar la base de datos en tu PC.** Hace falta que Docker Desktop esté abierto.
 La primera vez tarda porque se descarga; después son segundos.
 

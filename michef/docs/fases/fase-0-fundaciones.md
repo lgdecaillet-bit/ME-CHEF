@@ -276,6 +276,21 @@ comando.
 
 ### D5 · `chore/ci` — CI de GitHub Actions y reglas de rama
 
+> **✅ HECHO el 2026-09-10** salvo el punto 4 (decisiones #53 y #54). Lo de abajo
+> es el plan original. En lo que el resultado se apartó:
+>
+> · **Sin `paths-ignore`.** Un check que no se ejecuta queda pendiente para
+>   siempre y bloquea el PR el día que sea obligatorio.
+> · `scripts/reglas-de-rama.js` en Node, no `branch-rules.sh`: Luciano trabaja
+>   en PowerShell.
+> · **El punto 4 no se pudo aplicar.** GitHub no protege ramas en repos
+>   privados con cuenta gratuita (`403 Upgrade to GitHub Pro`). El script está
+>   listo; falta que Luciano decida. Decisión **#54**.
+> · El job `supabase` pasó a la primera. El job `gates` encontró tres cosas
+>   reales que llevaban días en el repo: dos nombres de script que chocaban con
+>   `node_modules/.bin`, jest 30 frente al 29 que espera el SDK, y un permiso de
+>   menos en el workflow de gitleaks. Decisión **#53**.
+
 1. `.github/workflows/ci.yml`:
    - `on: pull_request` y `push: main`. `paths-ignore: ['research/**', '**.md']`.
    - Job `gates` (ubuntu, Node 22, caché npm): `npm ci` → `npx expo-doctor` → `typecheck` → `lint` → `depcruise` → `test:coverage` → `secrets:bundle` → `knip` (`continue-on-error: true` en Fase 0–1).
