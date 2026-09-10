@@ -917,6 +917,51 @@ confirmó al revisar el PR (2026-09-10):
     pero es la que pinta el fondo de la vista raíz. Se decide al ver el modo oscuro en el
     iPhone; si sobra, quitarla es un cambio de dependencias con su propio «adelante».
 
+### #59 · Lo que D6.5b decidió al construir los componentes
+
+Fecha: 2026-09-10 · **vigente** · el plan lo aprobó Luciano («hagale manito»); estos puntos
+los decidió Claude al construir, y quedan escritos para que Luciano los confirme o los
+cambie al revisar el PR
+
+1. **`Aviso` sin cola global.** Se construye con sus tres tipos, sus 3 s y el anuncio de
+   VoiceOver; dónde se pone lo decide quien lo muestra. La pieza que los pone en cola y los
+   dibuja encima de cualquier pantalla llega con su primer uso (Fase 1), cuando se sepa qué
+   avisos hay. Y un error que pide hacer algo **no** va en un `Aviso`, que se va solo: va
+   en la pantalla, junto a lo que hay que arreglar (WCAG 2.2.1, tiempo suficiente).
+2. **Las animaciones, con `Animated` de React Native, no con Reanimated.** Son dos: el
+   latido de `Cargando` y la etiqueta de `Campo`, las dos en el hilo nativo
+   (`useNativeDriver`). Reanimated está instalada (la trae el scaffold), pero en Jest pide
+   montar su propio entorno, y para dos animaciones no compensa. Se revisa cuando llegue
+   una que la necesite: los gestos de la Fase 4.
+3. **«Reducir movimiento» cuenta como activado mientras iOS no contesta**
+   (`useMovimientoReducido`): es mejor no animar durante un instante que animar a quien
+   pidió que no.
+4. **Los iconos crecen con la letra del iPhone, hasta el doble** (`icono.escalaMaxima`).
+   Como los de las apps de Apple; sin tope, uno de 48 pt con la letra más grande pasaría
+   de 170 pt.
+5. **`Boton` destructivo: rojo sobre gris, no relleno de rojo**, como el «Eliminar» de iOS.
+   Lo que borra algo no debe ser lo que más llama la atención, y así no hace falta el par
+   `sobreAcento` sobre `rojo`, que el test de contraste no mide.
+6. **`Chip` mide 44 pt de alto**, como todo lo tocable, aunque un chip suela verse más bajo.
+   Seleccionado manda sobre el tipo (una pregunta respondida ya no es duda), y
+   deshabilitado manda sobre todo.
+7. **`Tarjeta` pulsable no pide etiqueta de VoiceOver**: lee lo que tiene dentro, que es lo
+   que se ve (WCAG 2.5.3).
+8. **`Stepper` es un solo control ajustable para VoiceOver**, que sube y baja deslizando el
+   dedo; los botones − y + son para el dedo. Redondea a los decimales del paso, porque en
+   coma flotante 0,1 + 0,2 no da 0,3.
+9. **`t()` escribe los números con coma decimal** («1,5 porciones»). Sin separador de
+   miles todavía: llega con los precios, en Fase 3, con su test.
+10. **Dos reglas de ESLint nuevas: `expo-symbols` y `ActivityIndicator`, solo en
+    `src/ui/`.** La primera estaba en el plan («único lugar con iconos»). La segunda no: es
+    «nunca una rueda sola» de `diseno.md` § 2.2 convertida en error de lint. Cada una con su
+    línea en un fixture y su mutación.
+11. **Los tokens crecen**: `icono` (tamaños y tope), `opacidad` (pulsado 0,6, latido 0,4,
+    sombra 0,15) y `duracion.aviso` (3 s). Siguen siendo el único archivo con valores.
+12. **En la galería, el modo y el tamaño de letra se eligen con `Chip`**, y
+    `BotonDeDesarrollo` se borró (#58.5). La pantalla inicial usa `Boton`: VoiceOver lee
+    «Galería» y «Provocar error», y lo que hacen va como pista.
+
 ## Pendientes de decidir
 
 - Porciones para varias personas: ¿tres porciones iguales o cada comensal con su apetito?

@@ -60,17 +60,17 @@ aquí** (con sus estados y su test), luego se usa.
 | Componente | Estados obligatorios | Notas |
 |---|---|---|
 | `Texto` | variantes de tipografía | Único lugar donde vive `<Text>`. Aplica Dynamic Type |
-| `Boton` | primario · secundario · terciario · destructivo · deshabilitado · cargando | Háptico `light` al pulsar. Altura ≥ 44 |
-| `Chip` | normal · seleccionado · pregunta (ámbar, punteado) · supuesto (gris) · deshabilitado | Es el componente más usado de la app |
+| `Boton` | primario · secundario · terciario · destructivo · deshabilitado · cargando | Háptico `light` al pulsar. Altura ≥ 44. VoiceOver lee el texto visible (WCAG 2.5.3); lo que hace va como pista. Destructivo: rojo sobre gris, como en iOS (#59) |
+| `Chip` | normal · seleccionado · pregunta (ámbar, punteado) · supuesto (gris) · deshabilitado | Es el componente más usado de la app. Altura ≥ 44. La selección manda sobre el tipo (#59) |
 | `Tarjeta` | normal · pulsable · con etiqueta | Base de `TarjetaReceta` |
 | `Etiqueta` | seguro · posible · supuesto · estimado · real · aviso | **La distinción visual del principio 4 vive aquí** |
 | `Campo` | vacío · con valor · error · deshabilitado | Entrada de texto. Etiqueta flotante |
 | `Stepper` | mín · normal · máx | Porciones. Soporta medias |
 | `Hoja` | — | **Pasa a Fase 2** (decisión #58), con la hoja de cuenta, que es su primer uso. Bottom sheet nativo (`@expo/ui` si cubre, si no `@gorhom/bottom-sheet`) |
 | `EstadoVacio` | con acción · sin acción | Icono SF + título + texto + botón. **Siempre honesto** |
-| `Cargando` | inline · pantalla | Skeleton, nunca spinner a solas |
-| `Aviso` | info · exito · error | Toast no bloqueante, 3 s, accesible |
-| `Icono` | — | Envuelve `expo-symbols` (SF Symbols). Único lugar con iconos |
+| `Cargando` | inline · pantalla | Skeleton, nunca spinner a solas: `ActivityIndicator` no se importa fuera de `src/ui/` (ESLint). Con «Reducir movimiento», no late |
+| `Aviso` | info · exito · error | Toast no bloqueante, 3 s, VoiceOver lo lee en voz alta. La cola que los muestra encima de todo llega con su primer uso (#59). Un error que pide hacer algo no va aquí: va en la pantalla |
+| `Icono` | — | Envuelve `expo-symbols` (SF Symbols). Único lugar con iconos: `expo-symbols` no se importa fuera de `src/ui/` (ESLint). Crece con la letra, hasta el doble (#59) |
 | `Progreso` | — | Barra «2 de 2» del onboarding |
 
 Cada componente: archivo, test RNTL con **todos** sus estados, y entrada en la galería.
@@ -176,7 +176,7 @@ Se suman a los de `protocolos-calidad.md`.
 | Sin colores ni tamaños a mano | ESLint `no-restricted-syntax` sobre literales hex y sobre `fontSize:`, `padding:` numéricos fuera de `src/ui/tokens.ts` | commit |
 | Sin texto literal en JSX | `react/jsx-no-literals` (excepciones: `·`, `%`, números), y `no-restricted-syntax` para el texto dentro de un condicional, un «y/o», una suma o una plantilla | commit |
 | Accesibilidad básica | **Sin plugin**: `eslint-plugin-react-native-a11y` no es compatible con ESLint 9 (decisión #58). La etiqueta de VoiceOver es prop obligatoria en las piezas de `src/ui/` (typecheck), y un `accessibilityLabel` escrito a mano no pasa (`no-restricted-syntax`) | commit |
-| Textos y controles solo desde `src/ui/` | `no-restricted-imports` de `Text`, `Pressable` y los demás controles de `react-native` y de `react-native-gesture-handler`, y del `Link` de expo-router, fuera de `src/ui/`; `Animated.Text` con `no-restricted-syntax` | commit |
+| Textos y controles solo desde `src/ui/` | `no-restricted-imports` de `Text`, `Pressable` y los demás controles de `react-native` y de `react-native-gesture-handler`, y del `Link` de expo-router, fuera de `src/ui/`; `Animated.Text` con `no-restricted-syntax`. Desde D6.5b, también `expo-symbols` (se usa `Icono`) y `ActivityIndicator` (se usa `Cargando`) | commit |
 | Estados cubiertos | Test RNTL por pantalla con los estados del brief. Sin test, el PR no cumple DoD | merge |
 | Regresión visual | **Desde D7** (#58): Maestro `galeria.yaml` + `takeScreenshot` en cada PR que toque `src/ui/` → capturas en el PR | revisión humana |
 | Contraste | Test `src/ui/__tests__/contraste.test.ts` (decisión #58): cada color de texto sobre cada fondo de `tokens.ts` ≥ 4,5:1 (AA), y el borde ≥ 3:1, en claro y oscuro | pre-push y CI |

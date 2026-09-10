@@ -359,7 +359,8 @@ van a construir todas. Detalle completo en [`../diseno.md`](../diseno.md) §2.
 
 > **Partido en dos PRs** (decisión #58). **D6.5a** hace los puntos 1, 2, 4, 5, 6, 7 y 9,
 > con `Texto` como único componente. **D6.5b** hace el resto del punto 3. `Hoja` pasa a
-> Fase 2 y el punto 8 pasa a D7.
+> Fase 2 y el punto 8 pasa a D7. Lo que D6.5b decidió al construir los componentes está
+> en la decisión #59.
 
 1. `src/ui/tokens.ts` — color (semántico, claro/oscuro), tipografía (escala iOS, Dynamic Type), espacio (rejilla 4 pt), radio, movimiento, tamaño táctil mínimo 44.
 2. `src/ui/tema.tsx` — `ProveedorTema` + `useTema()`. Se monta en `_layout.tsx`.
