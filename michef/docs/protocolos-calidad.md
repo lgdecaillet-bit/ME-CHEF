@@ -194,7 +194,8 @@ Al terminar la Fase 0 se hace esta prueba **y se anota aquí el resultado con fe
 
 | Fecha | Resultado | CI | EAS | Notas |
 |---|---|---|---|---|
-| 2026-09-10 | **mitad probada** | 1m14s | — | PR #10. Ver abajo. |
+| 2026-09-10 | **mitad probada** | 1m14s | — | PR #10. El CI se pone rojo. |
+| 2026-09-10 | **superada, entera** | 52s | — | PR #13, con `main` protegida. |
 
 ### 2026-09-10 · primera prueba, y qué mitad quedó sin probar
 
@@ -228,3 +229,38 @@ exactamente lo que la Fase 0 existe para no necesitar. Esta prueba se repite ent
 esta tabla se rellena de verdad — el día que `npm run reglas:rama` pueda aplicarse.
 
 **La columna de EAS queda vacía**: los builds y Maestro llegan en D7.
+
+### 2026-09-10, más tarde · segunda prueba: la mitad que faltaba
+
+Luciano hizo el repositorio **público**, con lo que la protección de rama dejó de estar
+bloqueada por el plan de GitHub (decisión #54). `npm run reglas:rama` aplicó el ruleset y
+la prueba se repitió entera.
+
+**1 · Push directo a `main`.** Se hizo un commit en `main` y se intentó empujar, con
+`--no-verify` para saltarse también el enganche local:
+
+```
+remote: - 3 of 3 required status checks are expected.
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+```
+
+**Rechazado.** Este era el agujero más grande que podía tener el proyecto: los gates no
+corren en lo que no pasa por un PR.
+
+**2 · Merge de un PR en rojo.** Rama `test/gate-rojo-2`, con `redondearParaComprar`
+devuelto a `Math.floor` otra vez. CI rojo en **52 s** (`gates` falla; `supabase` y
+`secretos` siguen en verde, que es lo correcto). Y al intentar mergear de verdad:
+
+```
+X Pull request #13 is not mergeable: the base branch policy prohibits the merge.
+```
+
+**Bloqueado.** El PR se cerró sin mergear y la rama se borró.
+
+**La salida de emergencia que sigue existiendo, dicha en voz alta.** `gh pr merge --admin`
+puede saltarse la regla, porque Luciano es administrador del repo. Eso es deliberado y no
+se puede quitar sin dejar de ser dueño del repositorio. La diferencia con antes es que
+**ahora hay que escribir `--admin`**: saltarse el gate pasó de ser lo que ocurre por
+descuido a ser un acto consciente que queda escrito en el historial del PR.
+
+**Las dos mitades comprobadas.** Con esto, `main` solo se toca por PR y solo en verde.
