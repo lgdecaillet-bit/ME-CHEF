@@ -2,7 +2,7 @@ import { render } from '@testing-library/react-native';
 import { useColorScheme } from 'react-native';
 
 import { ProveedorTema, useTema, type Tema } from '../tema';
-import { colores, tipografia } from '../tokens';
+import { colores, duracion, icono, opacidad, tipografia } from '../tokens';
 
 // El modo del iPhone. `react-native` lo lee de este módulo.
 jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
@@ -75,5 +75,35 @@ describe('useTema', () => {
     await expect(render(<Sonda alVer={() => undefined} />)).rejects.toThrow(
       'useTema() se usó fuera de <ProveedorTema>. El proveedor se monta en src/app/_layout.tsx.'
     );
+  });
+});
+
+describe('ProveedorTema, al volver a dibujarse', () => {
+  it('trae también los iconos, las opacidades y la duración del aviso', async () => {
+    modoDelIphone.mockReturnValue('light');
+    const tema = await leerTema();
+    expect(tema.icono).toBe(icono);
+    expect(tema.opacidad).toBe(opacidad);
+    expect(tema.duracion).toBe(duracion);
+  });
+
+  it('entrega el mismo tema mientras no cambie el modo ni la escala, y uno nuevo si cambian', async () => {
+    modoDelIphone.mockReturnValue('light');
+    const vistos: Tema[] = [];
+    const arbol = (
+      props: { esquema?: 'claro' | 'oscuro'; escalaDeLetra?: number } = {}
+    ) => (
+      <ProveedorTema {...props}>
+        <Sonda alVer={(tema) => vistos.push(tema)} />
+      </ProveedorTema>
+    );
+    const { rerender } = await render(arbol());
+    await rerender(arbol());
+    expect(vistos.at(-1)).toBe(vistos[0]);
+    await rerender(arbol({ esquema: 'oscuro' }));
+    expect(vistos.at(-1)).not.toBe(vistos[0]);
+    const oscuro = vistos.at(-1);
+    await rerender(arbol({ esquema: 'oscuro', escalaDeLetra: 2 }));
+    expect(vistos.at(-1)).not.toBe(oscuro);
   });
 });

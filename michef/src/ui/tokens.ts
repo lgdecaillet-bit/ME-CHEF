@@ -126,3 +126,23 @@ export const movimiento = { rapido: 150, normal: 250, lento: 400 } as const;
 
 /** Lo mínimo que Apple pide para algo que se toca, en puntos. */
 export const tactil = { minimo: 44 } as const;
+
+/**
+ * Los iconos (SF Symbols), en puntos. Crecen con el tamaño de letra del iPhone,
+ * como los de las apps de Apple, pero solo hasta el doble: un icono de 48 pt
+ * multiplicado por 3,5 ya no cabría en la pantalla.
+ */
+export const icono = {
+  tamano: { s: 16, m: 22, l: 28, xl: 48 },
+  escalaMaxima: 2,
+} as const;
+
+/**
+ * `pulsado`: lo que se apaga algo mientras el dedo lo toca. `latido`: hasta dónde
+ * se apaga un bloque de «Cargando» en cada latido. `sombra`: la de un `Aviso`,
+ * que flota encima de la pantalla.
+ */
+export const opacidad = { pulsado: 0.6, latido: 0.4, sombra: 0.15 } as const;
+
+/** Milisegundos. Lo que un `Aviso` se queda en pantalla (diseno.md § 2.2). */
+export const duracion = { aviso: 3000 } as const;
