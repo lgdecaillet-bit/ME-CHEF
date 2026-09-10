@@ -47,10 +47,22 @@ module.exports = {
     // drizzle-kit estuvo aquí hasta que `src/db/__tests__/schema.test.ts` empezó
     // a importar `drizzle-kit/api` para generar el DDL. El ignore decía «se usa
     // por línea de comandos, no se importa», y dejó de ser cierto. knip lo avisó.
-    // Validación en la frontera. Entra en uso en D4 (respuestas del proxy) y D6 (env).
-    'zod',
-    // knip la infiere del preset de Expo aunque no esté instalada. Entra en D6.
-    'expo-updates',
+    // zod estuvo aquí hasta D6: `src/config/env.ts` la importa. Se quitó.
+    // expo-updates y expo-dev-client también: desde que la configuración es
+    // `app.config.ts`, knip las ve como runtime de Expo. Él mismo avisó de que
+    // las excepciones sobraban.
+    //
+    // Nativa que entró en D6 con las demás, para que la huella del build cambie
+    // una sola vez. Su plugin no entra hasta su primer uso (decisión #57, punto
+    // 9), así que hasta entonces nada la usa. Sale de aquí en Fase 1, con la
+    // sesión anónima.
+    'expo-secure-store',
+    //
+    // Viene del scaffold. Expo la usa para aplicar `userInterfaceStyle` (claro
+    // u oscuro) en Android; con `platforms: ['ios']` (D6) knip ya no ve quién
+    // la usa. Quitarla es un cambio de dependencias con su propio paso, y se
+    // decide en D6.5, cuando entre el tema claro/oscuro.
+    'expo-system-ui',
     // Vienen del scaffold y las usa el runtime de Expo, no un import nuestro.
     'expo-font',
     'expo-status-bar',

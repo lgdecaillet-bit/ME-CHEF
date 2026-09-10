@@ -304,6 +304,13 @@ comando.
 
 ### D6 · `feat/app-base` — la app base, en Expo Go
 
+> **Hecho el 2026-09-10** (rama `feat/F0-D6-app-base`). Identidad de la app en la
+> **decisión #56** (`com.mechef.app`, `mechef`, `@lucogav8/mechef`). Lo que cambió
+> respecto a lo de abajo, con el porqué de cada cosa, en la **decisión #57**: `supabase-js`
+> pasa a Fase 1, el botón lanza un error de JavaScript y no `nativeCrash()`,
+> `ThemeProvider` pasa a D6.5, y `SENTRY_AUTH_TOKEN` en EAS pasa a D7 por un problema
+> conocido de los tokens de la región EU. `zod` y `drizzle-orm` ya estaban desde D3.
+
 **Qué pasa.** Se deja `app.json` y se pasa a `app.config.ts` con lo mínimo para que la app
 sea "ME CHEF" y no "michef". Se instalan las dependencias base (no las nativas de fases
 posteriores).

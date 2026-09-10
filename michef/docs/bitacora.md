@@ -1334,3 +1334,380 @@ Para la siguiente sesión: la #55 es de las que hay que leer antes de tocar nada
 la #34. Está arriba del todo en `estado.md`, en «Las dos reglas que gobiernan todo».
 
 ---
+
+## 2026-09-10 · S-20260910-a · D6: la app pasa a ser ME CHEF, y dos bugs que nadie había pedido buscar
+
+Tarea: F0-D6 · Rama: `feat/F0-D6-app-base` · Resultado: **hecho en código y en gates.
+Falta que Luciano lo vea en el iPhone**, y el PR no se mergea sin eso (DoD punto 7).
+
+Tocado: `app.json` → **`app.config.ts`** · `eas.json` y `metro.config.js` (nuevos) ·
+`src/lib/{log,sentry}.ts` y `src/config/{env,flags}.ts` (nuevos), con sus tests ·
+`src/app/{_layout,index}.tsx` · `src/__tests__/home.test.tsx` · `knip.config.js` ·
+`.env.example` · `package.json` · `../COMANDOS.md` · `docs/{estado,decisiones,bitacora}.md`
+· `docs/fases/fase-0-fundaciones.md`.
+
+Instalado, en la versión que fija el SDK 57 y **fijado exacto**: `@sentry/react-native`
+7.11.0 · `expo-updates` 57.0.21 · `expo-dev-client` 57.0.18 · `expo-secure-store` 57.0.3.
+Las cuatro nativas entran juntas para que la huella del build cambie una sola vez.
+
+**Qué es ahora la app.** Sigue siendo una pantalla con el nombre, a propósito. Lo que
+cambia es lo que hay debajo: se llama `com.mechef.app` ante Apple, existe en expo.dev
+como **`@lucogav8/mechef`**, avisa a Sentry cuando falla quitándole antes todo lo que
+parezca personal, y no arranca si le falta configuración: dice qué variable falta, sin
+enseñar nunca su valor.
+
+**Dos bugs encontrados por los tests de propiedad, en código que acababa de escribirse.**
+Es el mejor argumento que ha tenido el proyecto a favor de fast-check:
+
+1. **El filtro de correos de Sentry dejaba media dirección a la vista.** Con
+   `o'brien@x.com` borraba `brien@x.com` y dejaba `o'`: el apóstrofo es legal antes de la
+   `@` y la expresión no lo aceptaba. Arreglado aceptando todo lo que la norma permite, con
+   ese caso fijado como regresión.
+2. **Un interruptor escrito como «constructor» o «__proto__» pasaba como apagado en
+   silencio**, cuando la regla es que un valor que no se entiende para la app al arrancar.
+   La causa, `valor in VALORES`: `in` mira también lo que todo objeto hereda.
+   Este salió **una vez de muchas**, porque fast-check prueba esas palabras a propósito
+   pero no en cada corrida. Honestamente: no se capturó el caso exacto de aquella corrida.
+   La causa se razonó, se confirmó con un test que **salió rojo antes del arreglo** (dos
+   fallos: `constructor` y `__proto__`), y después del arreglo 15 corridas seguidas en
+   verde. Las palabras quedan fijas en el test para que se prueben siempre.
+
+**Lección, que generaliza la #47 hacia otro lado:** un test que falla una vez de cada
+muchas no es un test inestable, es un test que ha visto algo que los demás no. Lo fácil
+era volver a correrlo hasta que saliera verde. Eso habría dejado el bug dentro.
+
+**Cosas encontradas por el camino, que habrían mordido después:**
+- **La sesión de `eas` tiene dos cuentas**, `lucogav8` y `tes0` (TESO). Sin
+  `owner: 'lucogav8'` en la configuración, `eas init` podía registrar ME CHEF bajo TESO.
+- **`eas` quedó instalado bajo Node 22.12.0**, y desde D2 se usa 22.23.2: en la terminal
+  de Luciano ya no se encuentra. Anotado en `COMANDOS.md` § 7 con el comando para
+  reinstalarlo, que corre él.
+- **Expo deducía `ios, android, web`** de las librerías instaladas, contra lo decidido en
+  D1. Ahora `platforms: ['ios']`, explícito.
+- **Los tokens de organización de Sentry creados en la región EU** apuntan a EE. UU. y
+  la subida de mapas de código falla con 401 (getsentry/sentry-cli#3385). No afecta a D6;
+  queda como aviso para D7, donde probablemente haya que cambiar el token por uno personal.
+- **`COMANDOS.md` § 5 seguía diciendo** que `reglas:rama` no podía proteger `main`. Es
+  falso desde D5. Corregido.
+
+**Qué cambió del plan, y por qué** (detalle en la #57): `supabase-js` pasa a Fase 1,
+aprobado por Luciano · el botón lanza un error de JavaScript y no `nativeCrash()`, porque
+Expo Go no trae el código nativo de Sentry (comprobado en el SDK) · `ThemeProvider` pasa
+a D6.5 · `SENTRY_AUTH_TOKEN` en EAS pasa a D7 · `zod` y `drizzle-orm` ya estaban.
+
+Corrido, tal cual: `npm run gates` en verde · **272 tests** (86 nuevos) · cobertura
+**100 % en líneas y en ramas**, también en los cuatro archivos nuevos · **13 de 13
+mutaciones cazadas**: se rompió a propósito cada protección nueva (el filtro de correos,
+los campos por nombre, la pila de llamadas, `sendDefaultPii`, las capturas de pantalla, el
+nombre del dispositivo, el botón en producción, el valor en el mensaje de error, la llave
+cortada, la variable vacía, el interruptor mal escrito, los errores en producción) y cada
+vez un test se puso rojo · `codigo-muerto` limpio · `expo-doctor` 21/21 · `eas init` creó
+`@lucogav8/mechef`.
+
+**No corrido, y hay que decirlo:** nada de esto se ha visto todavía en un iPhone. Todo lo
+que se sabe viene de los tests y de la configuración resuelta. Y que un error llegue a
+Sentry desde Expo Go, en la región EU, no lo ha comprobado nadie.
+
+Decisiones nuevas: **#56** (identidad de la app) y **#57** (lo que cambió del plan).
+
+Avances de Luciano: eligió `com.mechef.app` y alinear el nombre corto a `mechef`, y aprobó
+dejar `supabase-js` para Fase 1.
+
+Pendiente: **Luciano:** abrir la app en Expo Go, ver el cambio de texto en un segundo, y
+tocar «Provocar error» para confirmar el aviso en sentry.io · cuando quiera,
+`npm install -g eas-cli`. **Claude:** PR con los tres checks en verde, merge **solo** tras
+la verificación en el iPhone y en verde (#55), y después presentar D6.5.
+
+Para la siguiente sesión: si el aviso de Sentry no llega desde Expo Go, lo primero que
+hay que mirar es la región EU, no el código. Y `eas` se corre por ruta completa en las
+sesiones de Claude (ver Avisos entre sesiones en `estado.md`).
+
+---
+
+## 2026-09-10 · S-20260910-a · D6, segunda vuelta: el revisor encontró lo que yo no vi
+
+Tarea: F0-D6 · Rama: `feat/F0-D6-app-base` · Resultado: el revisor devolvió **CAMBIOS**
+con nueve puntos. **Se comprobó cada uno antes de tocar nada, y tenía razón en todos.**
+
+**Lo grave: el filtro de privacidad de Sentry dejaba pasar datos personales con
+entradas normales.** No con trucos: con lo que un programador escribe sin pensar y con
+lo que un usuario de Colombia o Suiza escribe todos los días.
+- Solo reconocía nombres de campo exactos: `first_name`, `phoneNumber`, `userName`,
+  `nombreCompleto` y otros cinco pasaban enteros. Ahora el nombre se parte en palabras.
+- Correos con tilde o diéresis: `josé@gmail.com` y `ana@müller.ch` pasaban enteros;
+  `maría.lópez@gmail.com` dejaba `maría.ló` a la vista.
+- Teléfonos: `079/123 45 67` y `(300) 123 4567` — la forma habitual en Suiza y en
+  Colombia — pasaban enteros.
+- Y al revés, borraba `os.name` («iOS»), que no es de nadie.
+
+**La lección, y es de las importantes.** Este código tenía un test de propiedad con
+miles de correos al azar y 13 mutaciones cazadas, y aun así estaba roto. Por dos motivos
+distintos:
+1. **Un test de propiedad vale lo que vale su generador.** `fc.emailAddress()` genera
+   correos ASCII: no sabe que en Colombia y en Suiza la gente se llama José y Müller.
+   La propiedad era verdad para todo lo que el generador sabía producir.
+2. **Las mutaciones prueban que los tests protegen lo que protegen, no qué falta
+   proteger.** Rompen lo que ya está escrito; un caso en el que nadie pensó no tiene
+   código que mutar. Eso lo encuentra otra cabeza leyendo con intención de romper. Por
+   eso el revisor existe, y hoy se ganó el sitio.
+
+**Los demás puntos, todos comprobados y resueltos:**
+- `env.ts` aceptaba `javascript:alert(1)` como URL de Supabase, y un DSN sin llave que
+  Sentry descarta en silencio — se habría confundido con «el problema de la región EU»
+  al probar en el iPhone. Y el arreglo obvio, `z.httpUrl()`, rechazaba justo la Supabase
+  local por IP: se probaron tres variantes contra dos listas antes de elegir.
+- `npx expo install` había añadido solo el plugin de `expo-secure-store`, que mete en la
+  app un permiso de Face ID, en inglés, para una función que no existe. Quitado:
+  comprobado que el permiso ya no está en la configuración resuelta.
+- **La carga de variables en EAS se había caído de D6 sin registrarse**, y habría roto
+  el primer build de D7. Ahora es la #57 punto 8, con aviso en `estado.md`.
+- **Los crashes nativos no pasan por el filtro**: el SDK le quita `beforeSend` a su parte
+  nativa (comprobado en `wrapper.js:158`). No aplica en Expo Go; aviso escrito para D7.
+- Declarados: el `postinstall` de `@sentry/cli`, `npm audit` en 19 moderadas (era 18), y
+  las elecciones de `eas.json`.
+- `flags.ts` usa `hasOwnProperty.call` en vez de `Object.hasOwn`: los tests corren en
+  Node, pero la app corre en el motor del iPhone, y nadie había comprobado que ese lo
+  tuviera.
+
+Corrido, tal cual: 32 tests nuevos **en rojo antes de arreglar** · después,
+**306 tests** en verde · cobertura **100 % en líneas y en ramas** · **23 de 23
+mutaciones cazadas** (las 13 de antes más 10 de los arreglos) · pruebas de propiedad
+0 de 10 corridas en rojo · `codigo-muerto` limpio · `expo-doctor` 21/21 · el permiso de
+Face ID, 0 apariciones.
+
+Queda sin resolver, a sabiendas: un nombre propio suelto en un texto («Ana Pérez») no lo
+atrapa ningún filtro. La defensa es no pasárselo a `log`, y está escrito en `sentry.ts`.
+
+Pendiente: segunda revisión. Después, PR con los tres checks y la verificación de
+Luciano en el iPhone antes del merge.
+
+---
+
+## 2026-09-10 · S-20260910-a · D6, tercera vuelta: un filtro que congelaba la app
+
+Tarea: F0-D6 · Rama: `feat/F0-D6-app-base` · Resultado: la segunda revisión dio por
+buenos los nueve puntos anteriores y **no encontró nada roto de lo que ya funcionaba**.
+Devolvió CAMBIOS por cuatro cosas nuevas. Otra vez, **comprobadas antes de tocar nada, y
+tenía razón en las cuatro**.
+
+**Lo grave: el filtro de privacidad podía congelar la app.** La expresión de correos
+recorría el texto hasta el final desde cada posición. Medido con el `sentry.ts` real:
+**122 ms con 10.000 caracteres, 3,4 s con 50.000**. Al multiplicar el texto por 5, el
+tiempo se multiplicó por 28. Y este filtro corre con cada error y con cada miga, y cada
+`console.*` de cualquier librería es una miga. En Fase 2, con la foto en base64 en algún
+log, la app habría quedado inutilizable.
+
+**El arreglo tiene dos capas, y la primera no es de rendimiento sino de privacidad.** Un
+texto de más de 2.000 caracteres se quita **entero, sin revisarlo**: casi siempre es un
+JSON o una imagen en base64, y **una foto no puede salir del teléfono**. La segunda: todas
+las repeticiones de las expresiones llevan tope, con un test de tiempo que lo vigila por
+separado, para que quitar el tope de 2.000 algún día no devuelva el problema en silencio.
+
+**Los otros tres, resueltos:**
+- Lo que CLAUDE.md prohíbe sacar —**el objetivo físico y los comensales**— pasaba si
+  venía con su nombre: `peso`, `edad`, `objetivo`, `comensal`, `fechaNacimiento`, `calle`.
+  Ahora se quitan, solo como palabra entera: los `pesos` de un precio no son el `peso` de
+  nadie, y hay un test que lo comprueba.
+- Nombres pegados (`firstname`, `nombrecompleto`) y siglas (`IPAddr`) no se partían.
+- La regla relajada para `name` se aplicaba a todos los contextos, así que un
+  `setContext('hogar', { nombre: 'Ana' })` dejaba pasar a Ana. Ahora es solo para los
+  contextos que rellena el propio SDK, comprobados en su código. Cualquier otro, en
+  estricto.
+
+**Una cosa que hice mal por el camino, y que se corrigió sola por método.** El test de
+tiempo salió rojo antes del arreglo, sí, pero **por el motivo equivocado**: la función
+que prueba todavía no existía. Un rojo por la razón equivocada no demuestra nada. Lo
+que sí lo demuestra son las dos mutaciones que devuelven una expresión sin tope: con
+ellas, el test de tiempo se pone rojo. Es la #47 otra vez: **un test en rojo solo vale si
+está en rojo por lo que dice que protege**.
+
+**Y la lección de fondo de estas tres vueltas.** La primera versión de este filtro tenía
+tests de propiedad, 13 mutaciones cazadas y cobertura al 100 %, y estaba rota de tres
+formas: datos personales que pasaban, datos útiles que se borraban, y un tiempo
+cuadrático. Ninguna de las tres la habría encontrado un gate. Las encontró alguien
+leyendo el código con intención de romperlo. **Para el código que protege la privacidad,
+la revisión humana —o de un agente que no lo escribió— no es opcional.**
+
+Corrido, tal cual: 44 tests nuevos en rojo antes del arreglo (6 de ellos por la función
+que faltaba, ver arriba) · después, **355 tests** en verde · cobertura **100 % en líneas
+y en ramas** · **30 de 30 mutaciones cazadas**, incluidas las dos de tiempo cuadrático ·
+pruebas de propiedad 0 de 10 corridas en rojo · `codigo-muerto` limpio · `expo-doctor`
+21/21.
+
+Decisiones: la **#57** gana el punto 13, con las reglas del filtro.
+
+Pendiente: tercera revisión. Después, PR, los tres checks y la verificación de Luciano
+en el iPhone antes del merge.
+
+---
+
+## 2026-09-10 · S-20260910-a · D6, cuarta vuelta: lo que el filtro prometía y lo que protegía
+
+Tarea: F0-D6 · Rama: `feat/F0-D6-app-base` · Resultado: la tercera revisión dio por buenos
+los cuatro puntos anteriores, midió los peores casos de las expresiones nuevas (todos por
+debajo de 25 ms con 50.000 caracteres) y devolvió CAMBIOS por **tres cosas pequeñas**.
+Comprobadas las tres, y tenía razón.
+
+1. **Un contexto propio llamado `exportacion` se saltaba el modo estricto**, porque la
+   regla aceptaba todo lo que empezara por `expo`. Comprobado en el código del SDK que
+   ningún contexto suyo empieza así: la regla sobraba. Ahora es una lista cerrada.
+2. **La protección del cuerpo y los comensales prometía más de lo que daba.** El revisor
+   pasó por el filtro todas las columnas de `src/db/schema.ts`: se llaman `tipo`, `valor`,
+   `factorPorcion`, `noCome`, y ninguna delata nada. Y faltaba `restriccion`, que es la
+   tabla de las alergias. Se añadió, y **se reescribió la #57 punto 13 para decir el
+   límite tal cual**: una fila solo se protege si va dentro de un campo con ese nombre, y
+   la regla que protege de verdad es no pasar nunca una fila de la base local a `log` ni
+   a Sentry.
+3. **Un comentario falso en `_layout.tsx`**, desde la primera versión: decía que
+   `Sentry.wrap` capturaba los errores de dibujado. Comprobado en `sdk.js`: monta los
+   toques, el perfilador y el widget de opiniones, y no hay ningún `ErrorBoundary`.
+
+Más uno de su lista de «para después», porque era un error de verdad y costaba una
+línea: `caller` y `callee` —palabras técnicas en inglés— caían por empezar por
+«calle». Ahora `calle` solo cuenta como palabra entera.
+
+**La lección de esta vuelta es la del punto 2, y vale para cualquier documento:** la
+#57.13 decía que el objetivo físico «se quita también por el nombre del campo». Era
+verdad para un campo llamado `peso`, que no existe, y falso para las columnas que sí
+existen. Una decisión escrita que promete más de lo que el código cumple es peor que no
+tenerla: la próxima persona confía en ella. Se encontró contrastando la promesa con los
+datos reales, no con los ejemplos que uno imagina.
+
+Corrido, tal cual: 6 tests nuevos **en rojo antes del arreglo**, y 3 que ya pasaban como
+guarda de que la lista es cerrada (`osito`, `devices`, `expoComensal`) · después,
+**364 tests** en verde · cobertura **100 % en líneas y en ramas** · **33 de 33
+mutaciones cazadas** · `codigo-muerto` limpio · `expo-doctor` 21/21. Las pruebas de
+propiedad no se repitieron: esta vuelta no tocó ninguna expresión regular, solo listas de
+palabras y la regla de contextos.
+
+Queda para después, anotado por el revisor y sin bloquear: el tope de 2.000 caracteres
+se come los `ZodError` con varios fallos (decidirlo en Fase 1: recortar en vez de quitar)
+· `tokens` y `tokenCount` caerán por «token» cuando el proxy los produzca (Fase 2) · un
+tope de elementos por evento, como el de Sentry · palabras de salud y ubicación cuando
+existan esos campos.
+
+Pendiente: cuarta revisión. Después, PR, los tres checks y la verificación de Luciano
+en el iPhone antes del merge.
+
+---
+
+## 2026-09-10 · S-20260910-a · D6: el CI paró un JWT de ejemplo, y por qué no lo vi antes
+
+Tarea: F0-D6 · Rama: `feat/F0-D6-app-base` · PR #16 · Resultado: el check **`secretos`
+salió en rojo**; `gates` y `supabase`, en verde. **No se mergeó** (#55).
+
+**Qué encontró.** Un hallazgo, regla `jwt`, en `src/lib/__tests__/sentry.test.ts`: el JWT
+de ejemplo con el que el test comprueba que el filtro de Sentry quita los JWT. **No era
+un secreto**: lo inventé yo (`{"alg":"HS256"}`, `{"sub":"12345"}`, y de firma el texto
+«signatura-falsa» en base64). Pero gitleaks no puede saberlo, y hace bien en pararlo.
+
+**Cómo se arregló, y cómo no.** No se tocó la regla, no se añadió ninguna excepción a
+gitleaks y no se mergeó en rojo: eso es exactamente lo que prohíbe la #55. Se cambió el
+valor de prueba por un JWT de pinta obviamente falsa (`eyJaaaa…`), que el filtro sigue
+atrapando y gitleaks ya no confunde con uno real. Mismo criterio que en D4: **una
+excepción escrita hoy es una regla apagada mañana.** Como el CI revisa todos los commits
+del PR, el commit con el valor viejo se reescribió en la rama (solo en la rama de trabajo,
+nunca en `main`), para que el valor no siga en el historial del PR.
+
+**Por qué no lo vi antes de subirlo, que es lo que de verdad importa.** En las sesiones de
+Claude, el enganche de pre-commit no encuentra gitleaks —es el problema del PATH de D2— e
+imprime el aviso y deja pasar. Lo había impreso en cada commit de hoy y lo leí como ruido.
+**Un aviso que se repite en cada commit deja de leerse, y un aviso que no se lee es un gate
+apagado.** Desde ahora, antes de cada push, las sesiones de Claude corren gitleaks por su
+ruta completa (aviso escrito en `estado.md`). Y el CI hizo su trabajo: es la capa que no
+depende del PATH de nadie, y para eso existe.
+
+---
+
+## 2026-09-10 · S-20260910-a · D6 en el iPhone: el aviso no llegó a Sentry, y por qué
+
+Tarea: F0-D6 · Rama: `feat/F0-D6-app-base` · PR #16 · Resultado: **la prueba en el iPhone
+encontró un fallo real**, que es para lo que existe.
+
+**Lo que funcionó.** Luciano abrió la app en Expo Go y tocó «Provocar error». El teléfono
+y la terminal mostraron el error con el archivo y la línea exactos
+(`src/app/index.tsx:28:24`). La parte local está bien.
+
+**Lo que no.** En sentry.io, «Waiting for this project's first error»: **el aviso no
+llegó.** La causa: la línea 35 del `.env`, `EXPO_PUBLIC_SENTRY_DSN=`, estaba **vacía**.
+La plantilla de D0 decía «Todavía no se usa: entra en el paso D6. Déjala vacía por
+ahora», y nada en D6 pidió rellenarla. Sin DSN, la app no inicia Sentry y no manda
+nada. No era la región EU, que era la primera sospecha escrita.
+
+**Dos errores míos, dichos tal cual:**
+1. **Le dije a Luciano «tu `.env` pasa la validación (URL, llave y DSN)».** Era verdad y
+   era engañoso: el DSN es opcional, así que uno vacío también pasa. Mi comprobación no
+   podía distinguir «DSN correcto» de «no hay DSN», que era justo lo que importaba. Es
+   la #47 otra vez: **una comprobación que no puede fallar en el caso que te importa no es
+   una comprobación.**
+2. **El diseño: sin DSN, `iniciarSentry` apagaba Sentry en silencio.** Eso es lo que escondió
+   el problema. Se decidió así para poder trabajar sin cuenta de Sentry, y la decisión
+   sigue siendo buena, pero **un servicio que se apaga solo tiene que decirlo**. Arreglado:
+   en desarrollo avisa en la terminal nombrando la variable. Test en rojo antes del arreglo,
+   y una mutación que devuelve el silencio y el test la caza.
+
+**Y la lección de fondo:** este fallo lo encontró una persona con un teléfono en la mano,
+después de 366 tests, 34 mutaciones y cuatro revisiones. Ninguna de esas capas miraba si
+el `.env` de verdad tenía el DSN. Por eso el DoD exige la prueba en el dispositivo
+(punto 7), y por eso no se mergeó antes.
+
+**Cómo se diagnosticó.** No se corrió el asistente que Sentry propone en su página de
+bienvenida: habría reescrito la configuración hecha a mano. Se miró el `.env` sin
+imprimir ningún valor, y se dejó `debug: true` en Sentry **solo en el PC y sin
+commitear**, para la repetición de la prueba.
+
+**Una mutación que no se aplicaba no es una mutación cazada.** En la última corrida, dos
+dieron «sin cazar»: prettier había partido esas líneas al hacer el commit y el script ya
+no encontraba el texto. Se actualizaron las anclas y se volvieron a correr: rojas las dos.
+
+Corrido, tal cual: **366 tests** · cobertura 100 % · **34 de 34 mutaciones cazadas** ·
+`codigo-muerto` limpio.
+
+Pendiente: **Luciano:** pegar el DSN en la línea 35 del `.env`, repetir la prueba, la del
+segundo, y decir qué se hace con el párrafo de `COMANDOS.md` § 5. **Claude:** quitar
+`debug: true`, revisión de este cambio, commit y CI.
+
+---
+
+## 2026-09-10 · S-20260910-a · D6 en el iPhone: segunda prueba, el aviso llegó
+
+Tarea: F0-D6 · Rama: `feat/F0-D6-app-base` · PR #16 · Resultado: **verificación en el
+dispositivo superada** (DoD punto 7).
+
+**Lo que hizo Luciano.** Buscó el DSN en sentry.io (Settings → Projects → mechef →
+Client Keys) y lo pegó en la línea 35 del `.env`. Se comprobó **sin imprimirlo**: una sola
+línea, no vacía, con la forma de un DSN con llave, de la región EU y sin comillas. Reinició
+Expo con `npx expo start -c` y tocó «Provocar error».
+
+**Lo que se vio.**
+- En la terminal, Sentry encendido, sin el aviso de «Sentry está apagado», y
+  `Captured error event 'Prueba de Sentry: botón de desarrollo'`, sin errores de envío.
+- En sentry.io, **el aviso llegó**. Luciano: «sí, sí, llegó».
+- El cambio de texto en el iPhone ya se había visto al instante en la primera prueba: el
+  hito de la fase.
+
+**Lo que cerró Claude antes del commit.**
+- **`debug: true` fuera.** Antes, un test nuevo, «no inicia en modo diagnóstico», en rojo con
+  el modo puesto y en verde sin él. Y una mutación nueva que lo vuelve a meter: el test la
+  caza. El modo diagnóstico imprime cada evento en la consola, también en la app publicada;
+  lo que se enciende para una prueba no puede depender de que alguien se acuerde de
+  apagarlo.
+- Se revisó el diff buscando «TEMPORAL» y `debug: true`: solo aparecen en textos que
+  explican por qué no pueden volver.
+- **La línea nueva del script de mutaciones salió rota** (el mismo fallo de antes: saltos
+  de línea reales dentro de un texto de Python). `py_compile` lo vio antes de correrlo. Se
+  arregló escribiendo la barra con `chr(92)`.
+
+**El párrafo de `COMANDOS.md` § 5.** Luciano no entendía la pregunta, y era justo: estaba
+mal planteada. Explicada de nuevo, en términos de orden y no de contenido, eligió **A: se
+queda en este PR, con su anotación** en la descripción, donde se dice que corrige un texto
+de D5.
+
+Corrido, tal cual: `npm run gates` en verde · **367 tests** · cobertura 100 % · **35 de 35
+mutaciones cazadas**.
+
+Pendiente: commit, gitleaks por su ruta completa, push, descripción del PR, **CI en verde**
+y merge. Si el CI sale rojo, se arregla o se para y se le dice a Luciano (#55). La nota de
+«D6 mergeado» va en el primer commit de D6.5, porque a `main` no se escribe directo.
+
+---

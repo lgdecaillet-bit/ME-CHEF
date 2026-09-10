@@ -10,10 +10,10 @@ Actualizado: 2026-09-10 · por sesión S-20260910-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D5 cerrado del todo**, `main` protegida y comprobada. Siguiente: **D6**, la app base |
-| **Decisiones vigentes** | hasta **#55** |
+| **Paso actual** | **D6 hecho y verificado en el iPhone** (2026-09-10): Expo Go, cambio al instante y el error llegó a Sentry. Falta el CI en verde y el merge del PR #16. Siguiente: **D6.5**, el sistema de diseño |
+| **Decisiones vigentes** | hasta **#57** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | ninguna. D6 sale de `main` |
+| **Rama de trabajo** | `feat/F0-D6-app-base` — iPhone verificado; espera el CI en verde y el merge |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -43,7 +43,7 @@ Se vacía al cambiar de día.
 
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
-| S-20260910-a | D5 · CI, reglas de rama y la regla #55 | abierta |
+| S-20260910-a | D5, la regla #55 y D6 · app base | abierta |
 
 **2026-09-09** (día anterior, se conserva por trazabilidad)
 
@@ -66,6 +66,7 @@ Se vacía al cambiar de día.
 | Arreglo de BUG-9 | `fix/F1-bug9-redondeo-mercado` | S-20260909-g | 2026-09-09 | **mergeada** (PR #7) |
 | D4 · Supabase como código | `chore/F0-D4-supabase` | S-20260909-g | 2026-09-09 | **mergeada** (PR #8) |
 | D5 · CI y reglas de rama | `chore/F0-D5-ci` | S-20260910-a | 2026-09-10 | **mergeada** (PR #9, #11) |
+| D6 · app base | `feat/F0-D6-app-base` | S-20260910-a | 2026-09-10 | iPhone verificado; espera CI y merge (PR #16) |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -85,7 +86,7 @@ desde el primer PR de código.
 | D3 | Tests del motor, 7 bugs como `test.failing` | Claude | ✅ mergeado (PR #4, `72a0d1a`) |
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ✅ mergeado (PR #8) |
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho, entero |
-| D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init`, secretos EAS | Claude + Luciano | ⏳ |
+| D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ hecho y **verificado en el iPhone** (2026-09-10); falta el merge del PR #16 |
 | D6.5 | Sistema de diseño + galería | Claude | ⏳ |
 | D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
 | D8 | README | Claude | ⏳ |
@@ -105,11 +106,11 @@ Se marca cada punto cuando Luciano lo reporta. Detalle de cada uno en
 - [x] 0.5 Supabase CLI 2.117.0 — **vía `npx supabase`, no global** (no hay scoop). Los scripts de D4 deben invocarlo como `npx supabase ...`
 - [x] 0.6 Sentry: org `mechef` (display «ME CHEF»), **región EU verificada** — el DSN contiene `.de.`; proyecto React Native slug `mechef`; DSN y **Organization Token** guardados (decisión #42)
       - Comando del wizard para D6: `npx @sentry/wizard@latest -i reactNative --saas --org mechef --project mechef`
-      - Verificar en D6 si hace falta añadirle la URL de la región EU (`https://de.sentry.io`); la pantalla de onboarding no la incluye
+      - ~~Verificar en D6 la URL de la región EU~~ **Resuelto en D6:** no se usa el wizard; `app.config.ts` fija `url: 'https://de.sentry.io/'`. Queda un problema con los tokens de organización EU, para D7 (Avisos entre sesiones, #57)
 - [x] 0.7 Expo Go en el iPhone
 - [x] 0.8 `gh auth status` OK como `lgdecaillet-bit` (permiso ADMIN sobre el repo)
 - [x] 0.9 Cuatro secretos en GitHub (verificado con `gh secret list` el 2026-09-09): `EXPO_TOKEN`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SENTRY_AUTH_TOKEN`
-- — 0.10 → **movido a D6** (necesita `eas init`, decisión #39). No cuenta para cerrar D0.
+- — 0.10 → **movido a D7** (decisión #57, punto 8). `eas init` se hizo en D6; las variables se cargan en EAS con el primer build, que es quien las necesita. No cuenta para cerrar D0.
 - — 0.11 PostHog EU (opcional, Fase 1). No cuenta para cerrar D0.
 
 ### ⏰ Vencimientos de credenciales
@@ -184,6 +185,41 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 
 ## Avisos entre sesiones
 
+- **⚠️ En las sesiones de Claude, el enganche de pre-commit NO revisa secretos**: la
+  sesión no ve gitleaks en su PATH e imprime «gitleaks no está instalado». En D6 eso
+  dejó subir un JWT de ejemplo que el CI paró (check `secretos` en rojo). **Antes de cada
+  push, las sesiones de Claude corren gitleaks por su ruta completa**:
+  `%LOCALAPPDATA%\Microsoft\WinGet\Packages\Gitleaks.Gitleaks_*\gitleaks.exe git --log-opts="main..HEAD" --redact`.
+  En la terminal de Luciano el enganche sí funciona.
+- **⚠️ Para D7: el build no tendrá las variables de entorno si no se cargan antes en
+  EAS.** `.env` está ignorado por git y un build de EAS no lo ve. Sin
+  `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `env.ts` para la app al
+  arrancar y el smoke de Maestro falla. Cargarlas con `eas env:create` **antes** del primer
+  build (decisión #57, punto 8). No se sabe si ya hay alguna cargada: el revisor no pudo
+  mirarlo.
+- **⚠️ Para D7: los crashes nativos no pasan por el filtro de privacidad.** El SDK de Sentry
+  le quita `beforeSend` a la parte nativa, así que un crash nativo sale sin pasar por
+  `limpiarEvento` (decisión #57, punto 12). En Expo Go no aplica. En el primer build de
+  desarrollo hay que decidir cómo se cubre, y mirar si la parte nativa de iOS manda el
+  nombre del dispositivo.
+- **⚠️ Para D7: el token de Sentry de GitHub probablemente no sirve para subir mapas de
+  código.** La organización `mechef` está en la región EU, y los tokens de organización
+  creados ahí llevan dentro la dirección de EE. UU.: `sentry-cli` la usa por encima de
+  `SENTRY_URL` y la subida falla con `401 Invalid org token`
+  (getsentry/sentry-cli#3385). La salida reconocida es un **token personal** con
+  `SENTRY_URL=https://de.sentry.io`. No afecta a D6: Expo Go no sube nada. Se comprueba
+  con el primer build de D7 y, si falla así, Luciano crea el token personal y reemplaza
+  el secreto (decisión #57, punto 4).
+- **`eas` no está en la terminal de Luciano con Node 22.23.2.** Se instaló cuando usaba
+  22.12.0, y cada versión de Node tiene sus propios programas globales. Las sesiones de
+  Claude lo corren por ruta completa
+  (`%APPDATA%\fnm\node-versions\v22.12.0\installation\eas.cmd`). Para Luciano:
+  `npm install -g eas-cli`, una vez (está en `COMANDOS.md` § 7). Las instalaciones
+  globales las corre él.
+- **`eas` tiene dos cuentas en esta máquina: `lucogav8` y `tes0` (TESO).**
+  `app.config.ts` fija `owner: 'lucogav8'` para que nada de ME CHEF acabe en la de TESO.
+  No quitarlo.
+
 - **Supabase local se queda encendido** después de D4 y consume memoria. Se apaga con
   `npm run supabase:stop`. No hace falta para nada que no sea `supabase:test`.
 - **`deno` no está instalado** y no hace falta: `scripts/probar-supabase.js` lo corre en
@@ -246,20 +282,41 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    en las dos reglas de arriba de este tablero, en `protocolos-calidad.md` §§ 2, 4 y 6, y
    en `CLAUDE.md`. Cierra por escrito el único hueco que la protección de rama no puede
    tapar: que el dueño del repositorio se salta sus propias reglas.
-11. Claude presenta **D6** (`feat/app-base`): `app.config.ts` con el bundleId de iOS,
-   las dependencias base, `log.ts`, `sentry.ts`, `env.ts` con zod, `flags.ts`, la pantalla
-   inicial de verdad, `metro.config.js`, `eas.json` y `eas init`. Es el paso en el que la
-   app deja de ser una pantalla en blanco. No se ejecuta nada sin «adelante» (#34).
-
-   **Avisos para D6, ya escritos:** el `bundleIdentifier` se elige una vez y cambiarlo
-   después cuesta · comprobar si `@sentry/wizard` necesita `SENTRY_URL=https://de.sentry.io`
-   por ser organización de región EU (#42) · `expo-sqlite` con SQLCipher y `expo-camera`
-   **no** entran todavía: cada plugin nativo entra en su fase para que el fingerprint
-   cambie una vez por motivo.
-
-Propuesto aparte, dos minutos, cuando Luciano quiera: **regla de rama básica en `main`**
-(solo PRs, sin push directo, sin force-push). No depende de que exista CI; los checks
-requeridos se añaden en D5.
+11. ~~D6~~ **hecho** (`feat/F0-D6-app-base`, decisiones #56 y #57). La app ya es ME CHEF
+   de verdad: `com.mechef.app`, proyecto `@lucogav8/mechef` en expo.dev, Sentry con filtro
+   de datos personales, y entorno e interruptores validados al arrancar. Dos bugs
+   que encontró fast-check (el filtro de Sentry dejaba `o'` de un correo a la vista;
+   «constructor» y «__proto__» pasaban como apagado en `flags.ts`) y una vuelta del
+   revisor que devolvió **CAMBIOS con razón**: el filtro dejaba pasar `first_name`, correos
+   con tilde y teléfonos escritos a la suiza y a la colombiana. Todo arreglado con su test
+   en rojo antes. Y una **segunda vuelta, también con razón**: el filtro era cuadrático
+   con textos largos (3,4 s con 50.000 caracteres, capaz de congelar la app) y dejaba pasar
+   `peso`, `edad` o `comensal` por su nombre. Una **tercera**, con tres cosas pequeñas: un
+   contexto propio llamado `exportacion` se saltaba el modo estricto, faltaba `restriccion`
+   (las alergias), y un comentario de `_layout.tsx` decía algo falso de `Sentry.wrap`.
+   **367 tests, 35 de 35 mutaciones cazadas.**
+   **Lo que solo podía hacer Luciano, y sin lo cual el PR no se mergeaba** (DoD punto 7),
+   **hecho el 2026-09-10:**
+   - abrir la app en Expo Go (`npx expo start`, `COMANDOS.md` § 1) y ver «ME CHEF»;
+   - que Claude cambie un texto y ver que el iPhone cambia en un segundo: **el hito de la
+     fase**;
+   - tocar «Provocar error» y confirmar en sentry.io que llegó el aviso, con archivo y
+     línea. Si no llega, **no es que falle la app**: es la primera prueba de la región EU,
+     y se investiga antes del merge.
+   - **Primera prueba, 2026-09-10: el aviso no llegó.** No era la región EU: el DSN estaba
+     **vacío** en el `.env` (la plantilla decía dejarlo vacío hasta D6). Y la app apagaba
+     Sentry sin decirlo; ahora lo avisa en la terminal.
+   - **Segunda prueba, con el DSN puesto: el aviso llegó a sentry.io** (región EU), con
+     archivo y línea. El cambio de texto se vio al instante. **La verificación está
+     superada.** El modo diagnóstico de Sentry (`debug: true`) se quitó antes del commit,
+     y un test impide que vuelva.
+   - El párrafo de `COMANDOS.md` § 5 (corrige un texto de D5) **se queda en este PR, con
+     su anotación en la descripción**: decisión de Luciano (opción A).
+   - Queda: CI en verde y merge. **Nunca en rojo** (#55).
+12. Claude presenta **D6.5** (`feat/sistema-diseno`): tokens, tema claro/oscuro,
+   componentes base y la galería para verlos en el iPhone. No se ejecuta nada sin
+   «adelante» (#34). Mobbin (de pago) queda aparcado por decisión de Luciano; si lo
+   configura, este es el paso donde sirve.
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
 
@@ -346,7 +403,8 @@ no escribe comandos de memoria. **Cada vez que un paso introduzca un comando nue
 Luciano vaya a correr, se añade allí**, con qué hace y cuándo se usa, antes de dar el
 paso por cerrado. Si un comando no está en ese archivo, para Luciano no existe.
 
-Pendiente de añadir cuando existan: `eas build` y `eas update` (D6–D7).
+Pendiente de añadir cuando existan: `eas build` y `eas update` (D7). `eas init` no se añade:
+lo corrió Claude en D6 y se corre una sola vez por proyecto.
 Ya añadidos: `npm run gates` (D2) y `supabase:start` / `supabase:stop` / `supabase:reset`
 / `supabase:test` (D4).
 
