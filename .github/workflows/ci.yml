@@ -70,7 +70,7 @@ jobs:
         run: npm run lint
 
       - name: reglas de arquitectura
-        run: npm run depcruise
+        run: npm run arquitectura
 
       # El control positivo: comprueba que las nueve reglas DISPARAN de verdad
       # sobre fixtures que las violan a propósito. Sin esto, una regla muerta se
@@ -92,7 +92,7 @@ jobs:
       # **Se pone en bloqueante al empezar la Fase 2**, cuando ya hay pantallas
       # que consumen el motor y lo que sobre, sobra de verdad.
       - name: codigo muerto (avisa, no bloquea)
-        run: npm run knip
+        run: npm run codigo-muerto
         continue-on-error: true
 
   supabase:

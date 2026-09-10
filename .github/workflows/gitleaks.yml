@@ -16,8 +16,13 @@ on:
   push:
     branches: [main]
 
+# `pull-requests: read` no estaba y el job fallaba con «Resource not accessible
+# by integration»: la accion pide la lista de commits del PR para saber que
+# rango escanear, y con solo `contents: read` GitHub se lo niega. Lo destapo el
+# primer CI, no la maquina de nadie.
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   gitleaks:

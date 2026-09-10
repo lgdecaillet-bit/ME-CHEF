@@ -173,8 +173,8 @@ Todos en `package.json`. Los que empiezan por `supabase:` necesitan Docker levan
 | `npm run lint` | ESLint. `-- --fix` para arreglar formato |
 | `npm run test` / `test:watch` | Jest. El watch se deja abierto todo el día |
 | `npm run test:coverage` | Jest con cobertura; falla si el engine baja de 100/95 |
-| `npm run depcruise` | Reglas de arquitectura |
-| `npm run knip` | Código y dependencias muertas |
+| `npm run arquitectura` | Reglas de arquitectura (era `depcruise`, ver #53) |
+| `npm run codigo-muerto` | Código y dependencias muertas (era `knip`, ver #53) |
 | `npm run secrets:bundle` | `expo export` + grep de secretos en el bundle |
 | `npm run db:generate` | Drizzle genera la migración SQL desde `src/db/schema.ts` |
 | `npm run db:test` | Aplica migraciones en `better-sqlite3` y corre los tests de datos |

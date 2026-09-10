@@ -146,7 +146,7 @@ Lo que hace por dentro, por si quieres correr solo uno:
 |---|---|---|
 | `npm run typecheck` | Que no hay errores de tipos | Un nombre mal escrito o algo que falta importar |
 | `npm run lint` | Errores y malas prácticas | Un `console.log` olvidado |
-| `npm run depcruise` | Las reglas de arquitectura | El motor importando algo que no debe |
+| `npm run arquitectura` | Las reglas de arquitectura | El motor importando algo que no debe |
 | `npm test` | Que todos los tests pasan | Un test roto de verdad |
 | `npm run reglas` | Que las reglas de arquitectura siguen vivas | Alguien tocó una regla y la dejó muerta |
 
@@ -154,7 +154,7 @@ Y estos tres, que no entran en `gates` porque tardan más:
 
 | Comando | Qué comprueba |
 |---|---|
-| `npm run knip` | Código y librerías que ya nadie usa |
+| `npm run codigo-muerto` | Código y librerías que ya nadie usa |
 | `npm run secrets:bundle` | Que ninguna contraseña acabó dentro de la app |
 | `npx expo-doctor` | Que el proyecto Expo está sano (`21/21`) |
 
