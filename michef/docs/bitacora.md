@@ -1927,3 +1927,20 @@ Pendiente: **Luciano:** el iPhone y la confirmación de la #59. **Claude:** push
 verde, con su permiso para el push. Nunca en rojo (#55).
 
 ---
+
+## 2026-09-11 · S-20260910-a · D6.5b en el iPhone, y el PR #18
+
+**Expo Go no encontraba el servidor.** Metro escuchaba en el 8081, pero el PC tenía
+NordVPN encendido (NordLynx, que puede acabar siendo la dirección del QR) y el Wi-Fi
+marcado como red **pública**, donde el firewall de Windows bloquea lo que llega desde el
+teléfono. Se le pasaron a Luciano los pasos: apagar la VPN, poner la red como privada,
+reiniciar con `npx expo start -c` y comprobar que el QR lleva la IP del Wi-Fi. Los cambios
+de red y de firewall los hace él.
+
+**Luciano revisó la galería en el iPhone y le gustó.** Con su «adelante», push de la rama
+y **PR #18**.
+
+Pendiente: **Luciano:** confirmar o cambiar la #59, y el «adelante» del merge.
+**Claude:** el CI en verde. Nunca en rojo (#55).
+
+---

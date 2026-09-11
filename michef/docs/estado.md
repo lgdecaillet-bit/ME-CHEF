@@ -10,10 +10,10 @@ Actualizado: 2026-09-10 · por sesión S-20260910-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D6.5b construido y revisado** (APROBADO en la tercera vuelta). Falta que Luciano lo vea en el iPhone, que confirme la #59, y el CI en verde |
+| **Paso actual** | **D6.5b en el PR #18** (revisor APROBADO en la tercera vuelta; Luciano lo revisó en el iPhone y le gustó). Falta el CI en verde y que Luciano confirme la #59 |
 | **Decisiones vigentes** | hasta **#59** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `feat/F0-D6.5b-componentes` — espera el iPhone, la confirmación de la #59 y el CI |
+| **Rama de trabajo** | `feat/F0-D6.5b-componentes` (PR #18) — espera el CI y la confirmación de la #59 |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -68,7 +68,7 @@ Se vacía al cambiar de día.
 | D5 · CI y reglas de rama | `chore/F0-D5-ci` | S-20260910-a | 2026-09-10 | **mergeada** (PR #9, #11) |
 | D6 · app base | `feat/F0-D6-app-base` | S-20260910-a | 2026-09-10 | **mergeada** (PR #16, `0d4468f`) |
 | D6.5a · base del sistema de diseño | `feat/F0-D6.5a-sistema-diseno` | S-20260910-a | 2026-09-10 | **mergeada** (PR #17, `e66df6d`) |
-| D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | construida y revisada; espera el iPhone |
+| D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | PR #18; vista en el iPhone; espera el CI y la #59 |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -90,7 +90,7 @@ desde el primer PR de código.
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho, entero |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ mergeado (PR #16, `0d4468f`), verificado en el iPhone |
 | D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | ✅ mergeado (PR #17, `e66df6d`), visto en el iPhone |
-| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58 y #59) | Claude + Luciano | 🔨 hecho y revisado; falta el iPhone |
+| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58 y #59) | Claude + Luciano | 🔨 PR #18, visto en el iPhone; falta el CI y la #59 |
 | D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
 | D8 | README | Claude | ⏳ |
 
@@ -343,15 +343,9 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    mutaciones cazadas**. El revisor devolvió **CAMBIOS** dos veces, con razón las dos, y
    **APROBADO** en la tercera (la bitácora cuenta qué encontró). Lo que se decidió al
    construir está en la **#59**, quince puntos, para que Luciano los confirme.
-   **Lo que solo puede hacer Luciano, y sin lo cual no hay merge:**
-   - abrir la galería (`npx expo start -c`, `COMANDOS.md` § 1) y mirar cada componente en
-     claro, en oscuro y con la letra «Grande» y «Máxima»;
-   - tocar un botón y notar la vibración;
-   - escribir en los campos y ver subir la etiqueta, también con la letra «Máxima»;
-     borrar el del error y verlo volver;
-   - «Ver los avisos» y verlos irse solos a los 3 s;
-   - si se anima: VoiceOver sobre un botón y sobre el stepper;
-   - confirmar o cambiar los puntos de la #59.
+   **2026-09-11:** Luciano la revisó en el iPhone y le gustó. Push y **PR #18**.
+   **Falta, y sin eso no hay merge:** el CI en verde (#55) y que Luciano confirme o cambie
+   los puntos de la #59. El merge espera su «adelante» (#34).
 15. Después, **D7**: EAS Workflows y Maestro (el smoke y las capturas de la galería). Será
    también el primer build de simulador con `expo-symbols` y `expo-haptics` (#59.14). Se
    presenta y espera «adelante».
