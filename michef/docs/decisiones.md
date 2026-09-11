@@ -831,7 +831,8 @@ nuevas:
 ### #58 · D6.5 se parte en dos, y lo que cambia del plan del sistema de diseño
 
 Fecha: 2026-09-10 · **vigente** · los puntos 1 a 3 los decidió Luciano; el 4 lo propuso
-Claude y Luciano lo aprobó
+Claude y Luciano lo aprobó; los 5 a 11 los decidió Claude al construir y **Luciano los
+confirmó todos** el 2026-09-10, antes del merge
 
 1. **Dos PRs.** **D6.5a**, la base: tokens, tema, `Texto`, `es.ts`, la galería, las reglas
    de ESLint de interfaz, el contraste y la pantalla inicial. **D6.5b**, los once
@@ -879,8 +880,8 @@ Claude y Luciano lo aprobó
    Eso lo cubre la revisión del PR. Y las reglas de interfaz se aplican solo a `src/app/`
    y `src/ui/`: fuera de ahí, un `gap` del motor o una cadena `'#abc'` no son estilo.
 
-Añadido al construir D6.5a. Estos los decidió Claude sobre la marcha, y quedan escritos
-para que Luciano los confirme o los cambie al revisar el PR:
+Añadido al construir D6.5a. Estos los decidió Claude sobre la marcha, y Luciano los
+confirmó al revisar el PR (2026-09-10):
 
 5. **`BotonDeDesarrollo`, provisional.** Desde D6.5a, `Pressable` no se puede importar
    fuera de `src/ui/`, y la pantalla inicial tiene dos botones de desarrollo: el de Sentry
@@ -902,7 +903,8 @@ para que Luciano los confirme o los cambie al revisar el PR:
    da 2,2:1 sobre blanco), y en oscuro el texto sobre el acento es negro. Hay un color que
    el plan no tenía, `sobreAcento`, porque el texto de un botón principal necesita el suyo.
    **Se deciden viendo la galería en el iPhone**: cambiar uno es cambiar una línea, y el
-   test de contraste dice si sigue llegando a AA.
+   test de contraste dice si sigue llegando a AA. **Decidido el 2026-09-10:** Luciano los
+   vio en el iPhone y se quedan tal cual («así la tenía pensada»).
 9. **Jest.** `src/app/` entra en la cobertura, como anunciaba `jest.config.js`, con tests de
    pantalla y de navegación. `src/ui/` y `src/i18n/` tienen umbral propio del 100 %. Y Jest
    transforma ahora `@sentry/*` y `standard-navigation` (la usa expo-router desde el SDK
@@ -914,6 +916,79 @@ para que Luciano los confirme o los cambie al revisar el PR:
 11. **`expo-system-ui` se queda, por ahora.** El tema claro/oscuro no la necesita en iOS,
     pero es la que pinta el fondo de la vista raíz. Se decide al ver el modo oscuro en el
     iPhone; si sobra, quitarla es un cambio de dependencias con su propio «adelante».
+
+### #59 · Lo que D6.5b decidió al construir los componentes
+
+Fecha: 2026-09-10 · **vigente** · el plan lo aprobó Luciano («hagale manito»); estos puntos
+los decidió Claude al construir, y quedan escritos para que Luciano los confirme o los
+cambie al revisar el PR
+
+1. **`Aviso` sin cola global.** Se construye con sus tres tipos, sus 3 s y el anuncio de
+   VoiceOver; dónde se pone lo decide quien lo muestra. La pieza que los pone en cola y los
+   dibuja encima de cualquier pantalla llega con su primer uso (Fase 1), cuando se sepa qué
+   avisos hay. Y un error que pide hacer algo **no** va en un `Aviso`, que se va solo: va
+   en la pantalla, junto a lo que hay que arreglar (WCAG 2.2.1, tiempo suficiente).
+2. **Las animaciones, con `Animated` de React Native, no con Reanimated.** Son dos: el
+   latido de `Cargando` y la etiqueta de `Campo`, las dos en el hilo nativo
+   (`useNativeDriver`). Reanimated está instalada (la trae el scaffold), pero en Jest pide
+   montar su propio entorno, y para dos animaciones no compensa. Se revisa cuando llegue
+   una que la necesite: los gestos de la Fase 4.
+3. **«Reducir movimiento» cuenta como activado mientras iOS no contesta**
+   (`useMovimientoReducido`): es mejor no animar durante un instante que animar a quien
+   pidió que no.
+4. **Los iconos crecen con la letra del iPhone, hasta el doble** (`icono.escalaMaxima`).
+   Como los de las apps de Apple; sin tope, uno de 48 pt con la letra más grande pasaría
+   de 170 pt.
+5. **`Boton` destructivo: rojo sobre gris, no relleno de rojo**, como el «Eliminar» de iOS.
+   Lo que borra algo no debe ser lo que más llama la atención, y así no hace falta el par
+   `sobreAcento` sobre `rojo`, que el test de contraste no mide.
+6. **`Chip` mide 44 pt de alto**, como todo lo tocable, aunque un chip suela verse más bajo.
+   Seleccionado manda sobre el tipo (una pregunta respondida ya no es duda), y
+   deshabilitado manda sobre todo.
+7. **`Tarjeta` pulsable no pide etiqueta de VoiceOver**: lee lo que tiene dentro, que es lo
+   que se ve (WCAG 2.5.3).
+8. **`Stepper` es un solo control ajustable para VoiceOver**, que sube y baja deslizando el
+   dedo; los botones − y + son para el dedo. Redondea a los decimales del paso, porque en
+   coma flotante 0,1 + 0,2 no da 0,3.
+9. **`t()` escribe los números con coma decimal** («1,5 porciones»). Sin separador de
+   miles todavía: llega con los precios, en Fase 3, con su test.
+10. **Dos reglas de ESLint nuevas: `expo-symbols` y `ActivityIndicator`, solo en
+    `src/ui/`.** La primera estaba en el plan («único lugar con iconos»). La segunda no: es
+    «nunca una rueda sola» de `diseno.md` § 2.2 convertida en error de lint. Cada una con su
+    línea en un fixture y su mutación.
+11. **Los tokens crecen**: `icono` (tamaños y tope), `opacidad` (pulsado 0,6, latido 0,4,
+    sombra 0,15), `duracion.aviso` (3 s) y `cargando` (el bloque de 192 pt y el largo de
+    las tres líneas). Siguen siendo el único archivo con valores, salvo el grosor de borde
+    de 1 pt, que ya se escribía así en D6.5a. La primera versión de este punto dejaba las
+    medidas de `Cargando` fuera y decía lo mismo: lo vio el revisor.
+12. **En la galería, el modo y el tamaño de letra se eligen con `Chip`**, y
+    `BotonDeDesarrollo` se borró (#58.5). La pantalla inicial usa `Boton`: VoiceOver lee
+    «Galería» y «Provocar error», y lo que hacen va como pista.
+13. **Archivos que no estaban en la lista presentada**, cada uno por algo concreto:
+    - `src/ui/letra.ts` saca de `Texto` el cálculo de Dynamic Type, para que `Campo`
+      escriba con la misma letra. Es un refactor pequeño dentro de un PR de feature, que
+      CLAUDE.md desaconseja; se hizo aquí porque sin él `Campo` copiaba la cuenta. Los
+      tests de `Texto` no cambiaron y siguen pasando.
+    - `Texto` gana `centrado` (lo pide `EstadoVacio`) y exporta `ColorDeTexto` (lo usan
+      las piezas que colorean un icono).
+    - `src/ui/useMovimientoReducido.ts` (punto 3).
+    - `src/ui/__tests__/dibujar.tsx`: ayudas de los tests (el tema como `wrapper`, el
+      estilo aplanado y un dedo que toca sin soltar).
+    - `knip.config.js`: `expo-font` sale de las excepciones, porque ahora la importa
+      `expo-symbols`. Lo avisó knip.
+14. **Las dos dependencias nativas se prueban en Expo Go, no en un build.**
+    `protocolos-calidad.md` pide build de simulador y Maestro cuando entra una dependencia
+    nativa, y esa tubería llega con D7. `expo-symbols` y `expo-haptics` vienen dentro de
+    Expo Go, así que la prueba del iPhone las usa de verdad; el build de simulador las verá
+    por primera vez en D7.
+15. **La etiqueta de `Campo` se coloca con la letra de ahora.** El sitio de arriba crece
+    con Dynamic Type (la escala de la galería o la del iPhone, con el tope del cuerpo), y
+    la etiqueta va en **una sola línea**, cortada con «…» si no cabe; VoiceOver la oye
+    entera, porque es el nombre del campo. Así la etiqueta encogida no tapa lo escrito.
+    El revisor lo vio dos veces: la primera versión la subía siempre 16 pt y con la letra
+    más grande tapaba 36 pt del texto; la segunda dejaba que una etiqueta larga se
+    partiera en dos líneas, y la segunda línea volvía a tapar. Una etiqueta de campo
+    tiene que caber en una línea: si no cabe, el texto de `es.ts` es demasiado largo.
 
 ## Pendientes de decidir
 
@@ -928,7 +1003,6 @@ para que Luciano los confirme o los cambie al revisar el PR:
 - Granularidad del catálogo: «pollo» vs «pechuga sin piel»
 - Fórmula y pesos del ranking
 - Marketplace: ¿catálogo con reseñas, o recetas publicadas por usuarios?
-- Tokens del sistema de diseño: hay una primera propuesta (#58, punto 8). Se confirman viendo la galería en el iPhone
 
 ## Por verificar antes de depender de ello
 

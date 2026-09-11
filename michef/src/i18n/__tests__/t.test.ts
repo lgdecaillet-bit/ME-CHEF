@@ -2,7 +2,7 @@ import fc from 'fast-check';
 
 import { log } from '@/lib/log';
 
-import { t, type Clave } from '../index';
+import { numero, t, type Clave } from '../index';
 
 jest.mock('@/lib/log', () => ({
   log: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
@@ -45,5 +45,31 @@ describe('t()', () => {
 
   it('con cualquier clave, t() nunca rompe y siempre devuelve un texto', () => {
     fc.assert(fc.property(fc.string(), (clave) => typeof t(clave as Clave) === 'string'));
+  });
+});
+
+describe('números', () => {
+  it('se escriben con coma decimal, como en castellano', () => {
+    expect(numero(1.5)).toBe('1,5');
+    expect(numero(-0.25)).toBe('-0,25');
+    expect(numero(2)).toBe('2');
+  });
+
+  it('todavía sin separador de miles: llega con los precios, en Fase 3', () => {
+    expect(numero(1000)).toBe('1000');
+  });
+
+  it('t() mete los números con coma, y un texto que parece un número lo deja tal cual', () => {
+    expect(t('galeria.texto.muestra', { n: 1.5 })).toBe('Veo 1,5 cosas en tu nevera.');
+    expect(t('galeria.texto.muestra', { n: '1.5' })).toBe('Veo 1.5 cosas en tu nevera.');
+  });
+
+  it('con cualquier número, lo escrito se vuelve a leer como el mismo número', () => {
+    fc.assert(
+      fc.property(fc.double({ noNaN: true, noDefaultInfinity: true }), (n) => {
+        const escrito = numero(n);
+        return !escrito.includes('.') && Number(escrito.replace(',', '.')) === n;
+      })
+    );
   });
 });

@@ -1,4 +1,13 @@
-import { colores, espacio, tactil, tipografia } from '../tokens';
+import {
+  cargando,
+  colores,
+  duracion,
+  espacio,
+  icono,
+  opacidad,
+  tactil,
+  tipografia,
+} from '../tokens';
 
 describe('tokens', () => {
   it('claro y oscuro tienen los mismos colores, todos escritos #RRGGBB', () => {
@@ -33,5 +42,30 @@ describe('tokens', () => {
     expect(maximo(tipografia.titulo3)).toBe(56);
     expect(maximo(tipografia.cuerpo)).toBe(53);
     expect(maximo(tipografia.nota)).toBe(44);
+  });
+});
+
+describe('tokens de los componentes', () => {
+  it('los iconos van de menor a mayor, y crecen con la letra hasta un tope', () => {
+    const tamanos = Object.values(icono.tamano);
+    expect([...tamanos].sort((a, b) => a - b)).toEqual(tamanos);
+    expect(icono.escalaMaxima).toBeGreaterThan(1);
+  });
+
+  it('las opacidades están entre 0 y 1: ni invisibles ni enteras', () => {
+    for (const valor of Object.values(opacidad)) {
+      expect(valor).toBeGreaterThan(0);
+      expect(valor).toBeLessThan(1);
+    }
+  });
+
+  it('el bloque de Cargando sigue la rejilla de 4 pt, y sus líneas van de más larga a más corta', () => {
+    expect(cargando.bloque % 4).toBe(0);
+    const largos = cargando.lineas.map((l) => Number.parseFloat(l));
+    expect([...largos].sort((a, b) => b - a)).toEqual(largos);
+  });
+
+  it('un aviso se queda 3 s en pantalla (diseno.md § 2.2)', () => {
+    expect(duracion.aviso).toBe(3000);
   });
 });

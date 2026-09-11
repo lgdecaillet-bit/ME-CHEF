@@ -65,8 +65,9 @@ module.exports = {
     // viendo el modo oscuro en el iPhone. Si no hace falta, quitarla es un
     // cambio de dependencias con su propio «adelante».
     'expo-system-ui',
-    // Vienen del scaffold y las usa el runtime de Expo, no un import nuestro.
-    'expo-font',
+    // Viene del scaffold y la usa el runtime de Expo, no un import nuestro.
+    // expo-font estuvo aquí hasta D6.5b: desde entonces la importa expo-symbols,
+    // y knip avisó de que la excepción sobraba.
     'expo-status-bar',
   ],
 };

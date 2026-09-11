@@ -9,13 +9,17 @@
  * La galería monta un segundo proveedor dentro del primero, para forzar un modo
  * o simular un tamaño de letra sin tocar los ajustes del teléfono.
  */
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 
 import {
+  cargando,
   colores,
+  duracion,
   espacio,
+  icono,
   movimiento,
+  opacidad,
   radio,
   tactil,
   tipografia,
@@ -31,6 +35,10 @@ export type Tema = {
   radio: typeof radio;
   movimiento: typeof movimiento;
   tactil: typeof tactil;
+  icono: typeof icono;
+  opacidad: typeof opacidad;
+  duracion: typeof duracion;
+  cargando: typeof cargando;
   /**
    * Solo la galería lo fija, para simular Dynamic Type. Sin él, el tamaño de
    * la letra lo decide el iPhone.
@@ -52,16 +60,25 @@ export function ProveedorTema({ children, esquema, escalaDeLetra }: Props) {
   // es el del sistema por defecto.
   const delTelefono = useColorScheme();
   const elegido: Esquema = esquema ?? (delTelefono === 'dark' ? 'oscuro' : 'claro');
-  const tema: Tema = {
-    esquema: elegido,
-    color: colores[elegido],
-    tipografia,
-    espacio,
-    radio,
-    movimiento,
-    tactil,
-    escalaDeLetra,
-  };
+  // El mismo objeto mientras no cambie el modo ni la escala: si no, cada pieza
+  // que lo pide se volvería a dibujar cada vez que se dibuja el proveedor.
+  const tema = useMemo<Tema>(
+    () => ({
+      esquema: elegido,
+      color: colores[elegido],
+      tipografia,
+      espacio,
+      radio,
+      movimiento,
+      tactil,
+      icono,
+      opacidad,
+      duracion,
+      cargando,
+      escalaDeLetra,
+    }),
+    [elegido, escalaDeLetra]
+  );
   return <ContextoDelTema.Provider value={tema}>{children}</ContextoDelTema.Provider>;
 }
 

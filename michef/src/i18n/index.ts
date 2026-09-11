@@ -18,6 +18,15 @@ export type Clave = Hojas<typeof es>;
 
 type Valores = Record<string, string | number>;
 
+/**
+ * Un número como se escribe en castellano: con coma decimal («1,5 porciones»).
+ * Todavía sin separador de miles: «1000» sale tal cual. Llegará cuando haga
+ * falta (los precios, en Fase 3), y con él un test.
+ */
+export function numero(n: number): string {
+  return String(n).replace('.', ',');
+}
+
 export function t(clave: Clave, valores?: Valores): string {
   let nodo: unknown = es;
   for (const parte of clave.split('.')) {
@@ -35,7 +44,10 @@ export function t(clave: Clave, valores?: Valores): string {
     return clave;
   }
   return nodo.replace(/\{(\w+)\}/g, (hueco: string, nombre: string) => {
-    if (valores != null && Object.hasOwn(valores, nombre)) return String(valores[nombre]);
+    if (valores != null && Object.hasOwn(valores, nombre)) {
+      const valor = valores[nombre];
+      return typeof valor === 'number' ? numero(valor) : String(valor);
+    }
     log.warn(`t(): falta el valor de {${nombre}} en «${clave}».`);
     return hueco;
   });
