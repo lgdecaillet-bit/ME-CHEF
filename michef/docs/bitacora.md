@@ -2014,3 +2014,58 @@ Pendiente: **Luciano:** el «adelante» para aplicar la #60 en la rama. **Claude
 cambios, la vuelta del revisor, el CI en verde. Nunca en rojo (#55).
 
 ---
+
+## 2026-09-14 · S-20260914-a · La #60 aplicada en D6.5b
+
+Tarea: F0-D6.5b (cambios de la #60) · Rama: `feat/F0-D6.5b-componentes` · Resultado:
+**construido**, falta `expo-localization` (espera «adelante»), el revisor, el CI y el
+iPhone.
+
+Con el «adelante» de Luciano («dale con lo de las 15 decisiones»). El PR #18 ya estaba en
+verde con `main` dentro antes de empezar.
+
+**Lo que hay.**
+- **Reanimated (#60.2).** `Cargando` late con Reanimated. `jest.setup.js` registra el
+  sustituto de `react-native-worklets` y `setUpTests`. ESLint prohíbe el `Animated` de
+  React Native en todo `src/`, con su línea en `pantalla.tsx`, `componente.tsx`, el
+  fixture de `src/lib/` y uno nuevo de tests.
+- **`Campo` (#60.15)** con la etiqueta encima de la caja. Deja de usar animación, el cálculo
+  del hueco de arriba y `useWindowDimensions`.
+- **Iconos (#60.4)**: `icono.escalaMaxima` pasa a ser un tope por tamaño.
+- **Chip (#60.6)**: token `chip.alto` (36) y `hitSlop` hasta los 44.
+- **Números (#60.9)**: `escribirNumero` con separadores de región. La app sigue igual hasta
+  leer la región del iPhone.
+- `decisiones.md` (#60, y la #59 marcada con los puntos que cambian) y `diseno.md` (tokens,
+  filas de `Chip`, `Campo`, `Cargando` e `Icono`, las dos reglas nuevas de redacción y el
+  gate de animaciones).
+
+**Lo que salió mal por el camino:**
+1. **Reanimated no cargaba en Jest**: `Cannot read properties of undefined (reading
+   'loadUnpackers')`. Es la parte nativa de `react-native-worklets`, que en Jest no
+   existe. La librería trae un sustituto (`react-native-worklets/src/mock`), y se
+   registra en `jest.setup.js` antes de cargar Reanimated.
+2. **`import Animated` salía `undefined` en el test de `Cargando`.** El mock parcial que
+   espía `cancelAnimation` copiaba Reanimated con `...real`, y esparcir no copia
+   `__esModule`. Se añade a mano.
+3. **La cobertura de ramas de `src/i18n/` cayó al 89 %.** Los valores por defecto de una
+   desestructuración (`[, signo = '']`) son ramas que nunca ocurren. Se reescribió con
+   `split`, sin ellas.
+4. **ESLint no conocía `jest` en `jest.setup.js`**, que no es un test. Se le declara la
+   global solo a ese archivo.
+5. **Un comentario prometía algo no comprobado**: que la función de Reanimated para
+   «Reducir movimiento» no espera a que iOS conteste. Se vio antes del commit y se cambió
+   por lo que sí es cierto: se usa la nuestra para tener una sola fuente y un solo test.
+   Es la cuarta vez que un texto promete más de lo que hay; esta vez no llegó al revisor.
+
+**Corrido, tal cual:** `npm run gates` en verde · **637 tests** · cobertura 100 % · todas
+las reglas disparan · `knip` limpio · **18 de 18 mutaciones cazadas**: cuatro del latido
+(sin «Reducir movimiento», sin volver a opacidad entera, una sola vuelta, sin cancelar al
+irse), tres de la regla de ESLint (una por bloque), dos de iconos, dos del chip, cuatro de
+números y tres de `Campo`.
+
+Pendiente: **Luciano:** «adelante» a instalar `expo-localization` (#60.9); después, la
+galería en el iPhone. **Claude:** leer la región con ella, el revisor, push y CI en verde.
+Nunca en rojo (#55).
+
+---
+

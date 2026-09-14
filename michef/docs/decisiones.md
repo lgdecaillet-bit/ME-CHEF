@@ -919,9 +919,9 @@ confirmó al revisar el PR (2026-09-10):
 
 ### #59 · Lo que D6.5b decidió al construir los componentes
 
-Fecha: 2026-09-10 · **vigente** · el plan lo aprobó Luciano («hagale manito»); estos puntos
-los decidió Claude al construir, y quedan escritos para que Luciano los confirme o los
-cambie al revisar el PR
+Fecha: 2026-09-10 · **vigente, con los puntos 2, 4, 6, 9 y 15 cambiados por la #60** · el
+plan lo aprobó Luciano («hagale manito»); estos puntos los decidió Claude al construir, y
+Luciano los revisó uno a uno el 2026-09-14 (#60)
 
 1. **`Aviso` sin cola global.** Se construye con sus tres tipos, sus 3 s y el anuncio de
    VoiceOver; dónde se pone lo decide quien lo muestra. La pieza que los pone en cola y los
@@ -989,6 +989,65 @@ cambie al revisar el PR
     más grande tapaba 36 pt del texto; la segunda dejaba que una etiqueta larga se
     partiera en dos líneas, y la segunda línea volvía a tapar. Una etiqueta de campo
     tiene que caber en una línea: si no cabe, el texto de `es.ts` es demasiado largo.
+
+### #60 · Lo que Luciano decidió al revisar la #59
+
+Fecha: 2026-09-14 · **vigente** · decidió Luciano, punto por punto, después de pedir que
+se le explicara cada uno a fondo. Donde dijo «sigo tus recomendaciones», manda la
+recomendación que se le dio y que queda escrita aquí.
+
+**Se quedan como estaban:** 1 (`Aviso` sin cola global), 3 («Reducir movimiento» cuenta
+como activado mientras iOS no contesta: «primero se tiene que obtener la respuesta del
+sistema»), 5 (destructivo rojo sobre gris), 8 (`Stepper` como un solo control ajustable),
+10 (las dos reglas de ESLint), 11 (ningún valor de diseño fuera de `tokens.ts`), 12
+(`BotonDeDesarrollo` borrado) y 14 (las dependencias nativas, probadas en Expo Go).
+
+**Cambian:**
+
+2. **Reanimated ya, no cuando haga falta.** Luciano: «mejor dejar las bases bien hechas
+   para que cuando se necesiten no añadan complejidad». El latido de `Cargando` pasa a
+   Reanimated (4.5.1, ya instalada por el scaffold y dentro de Expo Go), y **el `Animated`
+   de React Native queda prohibido en todo `src/`**, también en `src/ui/` y en los tests,
+   con su línea en cuatro fixtures: dos sistemas de animación conviviendo es justo la
+   deuda que se quiso evitar. En Jest, `jest.setup.js` registra el sustituto de
+   `react-native-worklets` y `setUpTests`, y los tests miden la opacidad de verdad con el
+   reloj falso, en vez de comprobar que se llamó a una función.
+   `useMovimientoReducido` sigue siendo la única fuente de «Reducir movimiento» (punto 3).
+   Reanimated trae su propia forma de preguntarlo; se usa la nuestra para que haya una
+   sola fuente y un solo test.
+4. **Los iconos crecen según dónde van, no todos hasta el doble.** `s` y `m` van junto a un
+   texto y crecen con él hasta 1,5 veces; `l` y `xl` van solos y no crecen. Es lo que hace
+   Apple: con la letra grande la pantalla ya está llena de texto, y un icono enorme estorba.
+   Luciano: «un poco grandes… sigue tu propio criterio».
+6. **El chip se ve de 36 pt y responde al dedo en 44**, con un margen invisible
+   (`hitSlop`) arriba y abajo. 44 visibles se ve pesado en una fila de diez ingredientes;
+   36 es lo normal en iOS y en Material. Entre dos filas de chips, al menos `espacio.s`,
+   para que los márgenes no se pisen. Nuevo token: `chip.alto`.
+7. **Se queda, y además es regla de diseño y de redacción:** todo se escribe para
+   entenderse sin verlo. VoiceOver lee lo que se ve, así que lo que se ve tiene que
+   bastar: nada de iconos solos sin texto, ni «Ver más» sin decir de qué. En `diseno.md`
+   § 2.4.
+9. **Los números siguen la región del iPhone, no el idioma de la app, y con separador de
+   miles.** Lo señaló Luciano: en Estados Unidos «1,5» se lee como mil quinientos, y en la
+   propia Suiza quien tiene el teléfono en alemán escribe «1.5» y quien lo tiene en
+   francés, «1,5». La coma fija estaba mal para dos de los tres mercados. `escribirNumero`
+   escribe con los separadores de una región, con tests para Colombia, Suiza en alemán,
+   Suiza en francés y Estados Unidos. **Pendiente:** leer esos separadores del iPhone con
+   `expo-localization` (~57.0.2, dentro de Expo Go), que espera su «adelante» para
+   instalarse (#34). Hasta entonces la app escribe como antes: coma y sin miles.
+13. **`letra.ts` se queda en este PR, como excepción anotada** a «una feature = una rama =
+    un PR» (`CLAUDE.md`). Motivo: es un refactor pequeño que la feature necesitaba (`Campo`
+    habría copiado el cálculo de Dynamic Type), los tests de `Texto` no cambiaron, y
+    sacarlo a otro PR costaba un ciclo entero sin ganar nada que se pueda comprobar. La
+    excepción vale para este caso y no abre la puerta a otros.
+15. **La etiqueta de `Campo` va encima de la caja**, siempre a la vista, como en los
+    formularios de iOS, y no se anima. La etiqueta flotante es un patrón de Android, fue
+    lo que el revisor devolvió dos veces, y el espacio que ahorra no le hace falta a una
+    app con tan pocos formularios. Ahora la etiqueta puede ocupar dos líneas con la letra
+    grande sin tapar nada, y `Campo` deja de necesitar animación.
+
+Corrido, tal cual: `npm run gates` en verde · **637 tests** · cobertura 100 % · todas las
+reglas disparan · **18 de 18 mutaciones cazadas** · `codigo-muerto` limpio.
 
 ## Pendientes de decidir
 

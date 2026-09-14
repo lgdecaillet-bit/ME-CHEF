@@ -10,10 +10,10 @@ Actualizado: 2026-09-14 · por sesión S-20260914-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D6.5b en el PR #18, con `main` dentro y las 15 decisiones de la #59 tomadas por Luciano** (2026-09-14). Falta aplicarlas en la rama (decisión #60, pendiente de escribir), otra vuelta del revisor, el CI en verde, el iPhone y su «adelante» |
-| **Decisiones vigentes** | hasta **#59**; la **#60** (lo que Luciano decidió sobre la #59) se escribe al aplicarla |
+| **Paso actual** | **D6.5b en el PR #18, con la #60 aplicada** (2026-09-14): 637 tests, 18 de 18 mutaciones. Falta el «adelante» a `expo-localization` (#60.9), el revisor, el CI, el iPhone y el «adelante» del merge |
+| **Decisiones vigentes** | hasta **#60** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `feat/F0-D6.5b-componentes` (PR #18) — con `main` dentro; espera los cambios de la #60 |
+| **Rama de trabajo** | `feat/F0-D6.5b-componentes` (PR #18) — con la #60 aplicada; espera `expo-localization` y el revisor |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -75,7 +75,7 @@ Se vacía al cambiar de día.
 | D6 · app base | `feat/F0-D6-app-base` | S-20260910-a | 2026-09-10 | **mergeada** (PR #16, `0d4468f`) |
 | D6.5a · base del sistema de diseño | `feat/F0-D6.5a-sistema-diseno` | S-20260910-a | 2026-09-10 | **mergeada** (PR #17, `e66df6d`) |
 | Parches de Expo del SDK 57 | `chore/deps-expo-57-parches` | S-20260910-a | 2026-09-11 | **mergeada** (PR #19, `61b80f7`) |
-| D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | PR #18; vista en el iPhone; `main` dentro; faltan los cambios de la #60 |
+| D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | PR #18; `main` dentro; #60 aplicada; faltan `expo-localization`, revisor, CI e iPhone |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -97,7 +97,7 @@ desde el primer PR de código.
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho, entero |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ mergeado (PR #16, `0d4468f`), verificado en el iPhone |
 | D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | ✅ mergeado (PR #17, `e66df6d`), visto en el iPhone |
-| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | 🔨 PR #18, visto en el iPhone; `main` dentro; faltan los cambios de la #60 |
+| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | 🔨 PR #18, #60 aplicada; faltan `expo-localization`, revisor, CI e iPhone |
 | D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
 | D8 | README | Claude | ⏳ |
 
@@ -361,9 +361,13 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    escribe para entenderse sin verlo · **9** los números siguen la región del iPhone, con
    miles · **13** `letra.ts` se queda, anotado como excepción · **15** la etiqueta de
    `Campo` va encima de la caja, sin animación.
-   **Falta, y sin eso no hay merge:** aplicar la #60 en la rama (espera el «adelante»,
-   #34), otra vuelta del revisor, el CI en verde (#55), el iPhone y el «adelante» del
-   merge.
+   **2026-09-14, la #60 aplicada** (bitácora): Reanimated con el `Animated` de React Native
+   prohibido, `Campo` con la etiqueta encima, iconos con tope por tamaño, chip de 36/44 y
+   `escribirNumero`. 637 tests, 18 de 18 mutaciones.
+   **Falta, y sin eso no hay merge:** el «adelante» a instalar `expo-localization`
+   (~57.0.2, dentro de Expo Go) para leer la región del iPhone (#60.9, #34); otra vuelta
+   del revisor; el CI en verde (#55); la galería en el iPhone, con «Reducir movimiento»
+   apagado y encendido; y el «adelante» del merge.
 15. Después, **D7**: EAS Workflows y Maestro (el smoke y las capturas de la galería). Será
    también el primer build de simulador con `expo-symbols` y `expo-haptics` (#59.14). Se
    presenta y espera «adelante».
