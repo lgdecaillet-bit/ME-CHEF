@@ -1,12 +1,23 @@
+import { getLocales, type Locale } from 'expo-localization';
 import fc from 'fast-check';
 
 import { log } from '@/lib/log';
 
 import { escribirNumero, numero, t, type Clave, type FormatoDeNumeros } from '../index';
 
+// La región del iPhone. Cada test dice cuál; sin decirlo, Jest da Estados Unidos.
+jest.mock('expo-localization', () => ({ getLocales: jest.fn() }));
+const regionDelIphone = (formato: {
+  decimalSeparator: string | null;
+  digitGroupingSeparator: string | null;
+}) => (getLocales as jest.Mock).mockReturnValue([formato as Locale]);
+
 jest.mock('@/lib/log', () => ({
   log: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
+
+// Colombia, salvo que un test diga otra región.
+beforeEach(() => regionDelIphone({ decimalSeparator: ',', digitGroupingSeparator: '.' }));
 
 describe('t()', () => {
   it('saca un texto por su clave', () => {
@@ -108,24 +119,40 @@ describe('números por región (decisión #60.9)', () => {
   });
 });
 
-describe('números de la app', () => {
-  it('hoy, con coma decimal y sin miles, hasta leer la región del iPhone', () => {
-    expect(numero(1.5)).toBe('1,5');
-    expect(numero(-0.25)).toBe('-0,25');
-    expect(numero(1000)).toBe('1000');
+describe('números de la app, con la región del iPhone', () => {
+  it('escribe con los separadores del iPhone', () => {
+    expect(numero(1234.5)).toBe('1.234,5');
+    regionDelIphone({ decimalSeparator: '.', digitGroupingSeparator: '\u2019' });
+    expect(numero(1234.5)).toBe('1\u2019234.5');
   });
 
-  it('t() mete los números con coma, y un texto que parece un número lo deja tal cual', () => {
+  it('lee la región en cada número: si cambia, el siguiente ya sale con la nueva', () => {
+    expect(numero(1.5)).toBe('1,5');
+    regionDelIphone({ decimalSeparator: '.', digitGroupingSeparator: ',' });
+    expect(numero(1.5)).toBe('1.5');
+  });
+
+  it('si iOS no diera los separadores, coma decimal y sin miles', () => {
+    regionDelIphone({ decimalSeparator: null, digitGroupingSeparator: null });
+    expect(numero(1234.5)).toBe('1234,5');
+  });
+
+  it('t() mete los números con la región, y un texto que parece un número lo deja tal cual', () => {
     expect(t('galeria.texto.muestra', { n: 1.5 })).toBe('Veo 1,5 cosas en tu nevera.');
     expect(t('galeria.texto.muestra', { n: '1.5' })).toBe('Veo 1.5 cosas en tu nevera.');
   });
 
   it('con cualquier número, lo escrito se vuelve a leer como el mismo número', () => {
     fc.assert(
-      fc.property(fc.double({ noNaN: true, noDefaultInfinity: true }), (n) => {
-        const escrito = numero(n);
-        return !escrito.includes('.') && Number(escrito.replace(',', '.')) === n;
-      })
+      fc.property(
+        fc
+          .double({ noNaN: true, noDefaultInfinity: true })
+          .filter((n) => Math.abs(n) < 1e21),
+        (n) => {
+          const escrito = numero(n);
+          return Number(escrito.split('.').join('').replace(',', '.')) === n;
+        }
+      )
     );
   });
 });

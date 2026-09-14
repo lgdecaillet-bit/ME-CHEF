@@ -15,6 +15,10 @@ jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(() => Promise.resolve()),
   ImpactFeedbackStyle: { Light: 'light' },
 }));
+// Un iPhone con la región en Colombia: coma decimal (decisión #60.9).
+jest.mock('expo-localization', () => ({
+  getLocales: () => [{ decimalSeparator: ',', digitGroupingSeparator: '.' }],
+}));
 const modoDelIphone = useColorScheme as jest.Mock;
 
 const global_ = globalThis as unknown as { __DEV__: boolean };

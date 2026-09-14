@@ -1,9 +1,18 @@
 import { fireEvent, screen, userEvent } from '@testing-library/react-native';
+import { getLocales, type Locale } from 'expo-localization';
 import fc from 'fast-check';
 
 import { siguienteValor, Stepper } from '../Stepper';
 import { colores, opacidad, tactil } from '../tokens';
 import { apoyarDedo, conOcultos, dibujar, estiloDe, levantarDedo } from './dibujar';
+
+// Un iPhone con la región en Suiza, en francés: coma decimal (decisión #60.9).
+jest.mock('expo-localization', () => ({ getLocales: jest.fn() }));
+beforeEach(() =>
+  (getLocales as jest.Mock).mockReturnValue([
+    { decimalSeparator: ',', digitGroupingSeparator: '\u202F' } as Locale,
+  ])
+);
 
 describe('siguienteValor', () => {
   const enteros = { minimo: 0, maximo: 8, paso: 1 };
@@ -106,7 +115,7 @@ describe('Stepper', () => {
     expect(screen.getByText('Porciones')).toBeTruthy();
   });
 
-  it('las medias se escriben con coma, en pantalla y en VoiceOver', async () => {
+  it('las medias se escriben con el decimal del iPhone, en pantalla y en VoiceOver', async () => {
     await stepper({ valor: 1.5, paso: 0.5 });
     expect(screen.getByTestId('s.valor').props.children).toBe('1,5');
     expect(ajustable().props.accessibilityValue).toEqual({ text: '1,5' });

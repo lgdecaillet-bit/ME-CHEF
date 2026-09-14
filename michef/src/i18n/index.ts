@@ -4,6 +4,8 @@
  * La clave está tipada: `t('galeria.titulo')` compila, y una clave que no
  * existe es un error de `npm run typecheck`, no un texto roto en el iPhone.
  */
+import { getLocales } from 'expo-localization';
+
 import { log } from '@/lib/log';
 
 import { es } from './es';
@@ -46,15 +48,24 @@ export function escribirNumero(n: number, { decimal, miles }: FormatoDeNumeros):
 }
 
 /**
- * Los separadores con los que escribe la app. Hoy, coma decimal y sin miles, lo
- * de antes. PENDIENTE (#60.9): leerlos de la región del iPhone con
- * `expo-localization`, que espera el «adelante» de Luciano para instalarse.
+ * Los separadores de la región del iPhone, la primera de sus preferencias.
+ * Se leen en cada número: si alguien cambia la región, iOS reinicia la app, y
+ * aunque no lo hiciera, el siguiente número ya sale bien.
+ *
+ * iOS siempre los da. Si alguna vez no llegaran, coma decimal y sin miles: se
+ * lee igual en los tres mercados, y no se confunde con un número más grande.
  */
-const formatoDeLaApp: FormatoDeNumeros = { decimal: ',', miles: '' };
+function formatoDelIphone(): FormatoDeNumeros {
+  const [region] = getLocales();
+  return {
+    decimal: region.decimalSeparator ?? ',',
+    miles: region.digitGroupingSeparator ?? '',
+  };
+}
 
-/** Un número como lo escribe la app. */
+/** Un número como lo escribe quien tiene el iPhone (decisión #60.9). */
 export function numero(n: number): string {
-  return escribirNumero(n, formatoDeLaApp);
+  return escribirNumero(n, formatoDelIphone());
 }
 
 export function t(clave: Clave, valores?: Valores): string {
