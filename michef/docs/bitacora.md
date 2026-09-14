@@ -1979,3 +1979,38 @@ Pendiente: **Luciano:** el «adelante» del merge. **Claude:** CI en verde, y de
 `main` a la rama de D6.5b. Nunca en rojo (#55).
 
 ---
+
+## 2026-09-14 · S-20260914-a · Retomar: el #19 dentro, `main` en D6.5b, y las 15 decisiones
+
+**Dónde estábamos.** Nadie había tocado el proyecto desde el 11 a las 16:30: el PR #19
+(parches de Expo) en verde esperando el «adelante», y el #18 (D6.5b) en rojo por esos
+mismos parches. Se reconstruyó desde `estado.md`, el historial, los PRs y las
+transcripciones de las sesiones anteriores.
+
+**El merge del #19 lo frenó el clasificador del modo automático, dos veces**, con la razón
+«merge sin revisión»: ve un merge a la rama protegida y un PR sin aprobaciones en GitHub,
+y no sabe nada del revisor interno ni del «adelante». No se insistió. **Lo mergeó Luciano
+a mano** (`61b80f7`), que es además lo que la #34 pide: el merge lo aprueba una persona.
+Queda para decidir si se añade una regla de permiso para `gh pr merge`; hoy no.
+
+**`main` dentro de D6.5b.** Conflictos en `package.json`, el lockfile y la bitácora. Se
+tomaron los archivos de paquetes de `main` y se volvieron a añadir `expo-symbols` y
+`expo-haptics` con `expo install`, que los dejó en ~57.0.3, lo que pide el SDK. La
+bitácora se resolvió conservando las dos partes. Corrido, tal cual: `expo-doctor` 21/21 ·
+`npm run gates` en verde, **628 tests**, cobertura 100 % · `npm audit` igual que en `main`
+(19 moderadas) · ningún script de instalación nuevo en el lockfile.
+
+**Las 15 decisiones de la #59, una a una con Luciano.** Pidió que se le explicara cada
+una a fondo antes de decidir, y que no se tocara nada hasta tener las 15. Lo decidido
+está resumido en `estado.md` § Siguiente paso, punto 14, y se escribe como **#60** al
+aplicarlo. Tres cosas que cambiaron de verdad el rumbo: **Reanimated entra ya** («mejor
+dejar las bases bien hechas»), **la etiqueta de `Campo` va encima de la caja** (más
+nativa en iOS, y desaparece la parte más frágil del componente), y **los números siguen
+la región del iPhone**: Luciano señaló que en Estados Unidos «1,5» se lee como mil
+quinientos, y en la propia Suiza los alemanes escriben «1.5» y los franceses «1,5». La
+coma fija estaba mal para dos de los tres mercados.
+
+Pendiente: **Luciano:** el «adelante» para aplicar la #60 en la rama. **Claude:** los
+cambios, la vuelta del revisor, el CI en verde. Nunca en rojo (#55).
+
+---
