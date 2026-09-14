@@ -1019,10 +1019,14 @@ sistema»), 5 (destructivo rojo sobre gris), 8 (`Stepper` como un solo control a
    texto y crecen con él hasta 1,5 veces; `l` y `xl` van solos y no crecen. Es lo que hace
    Apple: con la letra grande la pantalla ya está llena de texto, y un icono enorme estorba.
    Luciano: «un poco grandes… sigue tu propio criterio».
-6. **El chip se ve de 36 pt y responde al dedo en 44**, con un margen invisible
-   (`hitSlop`) arriba y abajo. 44 visibles se ve pesado en una fila de diez ingredientes;
-   36 es lo normal en iOS y en Material. Entre dos filas de chips, al menos `espacio.s`,
-   para que los márgenes no se pisen. Nuevo token: `chip.alto`.
+6. **El chip se ve de 36 pt y responde al dedo en 44 × 44 como mínimo.** 44 visibles se ve
+   pesado en una fila de diez ingredientes; 36 es lo normal en iOS y en Material. Lo que
+   se toca es una zona transparente de 44 que lleva dentro la píldora de 36, centrada. **No
+   es un `hitSlop`**: la primera versión lo era, y el revisor vio que React Native recorta
+   el `hitSlop` al borde del contenedor (`ViewPropTypes.d.ts`: «the touch area never
+   extends past the parent view bounds»), así que en una fila justa el chip respondía en
+   40. Como la zona ya deja 4 pt invisibles arriba y abajo, entre dos filas de chips no hace
+   falta espacio. Nuevo token: `chip.alto`.
 7. **Se queda, y además es regla de diseño y de redacción:** todo se escribe para
    entenderse sin verlo. VoiceOver lee lo que se ve, así que lo que se ve tiene que
    bastar: nada de iconos solos sin texto, ni «Ver más» sin decir de qué. En `diseno.md`
@@ -1038,6 +1042,15 @@ sistema»), 5 (destructivo rojo sobre gris), 8 (`Stepper` como un solo control a
    («hagale»). Se leen en cada número, con `getLocales()`; si iOS no los diera, coma
    decimal y sin miles. **Sin el plugin de configuración** que `expo install` sugiere:
    sin opciones (`supportsRTL`, `supportedLocales`) no cambia nada del build.
+   **La #59.14 vale también para ella**: es nativa, viene dentro de Expo Go y se prueba en
+   el iPhone, cambiando la región y viendo `1,5` o `1.5` en el `Stepper` de la galería. El
+   primer build de simulador la verá en D7, con `expo-symbols` y `expo-haptics`.
+   Si alguien cambia el formato de región con la app abierta, iOS no la reinicia: los
+   números ya dibujados siguen con el formato de antes hasta que su pantalla se vuelva a
+   dibujar. Se acepta hoy; para las listas de precios de Fase 3 conviene guardar el
+   formato y renovarlo con `addLocaleListener`.
+   `expo-symbols` y `expo-haptics` se fijan exactas en 57.0.3: las instaló D6.5b, no el
+   scaffold, y se habían quedado con `~` sin verse (lo vio el revisor).
 13. **`letra.ts` se queda en este PR, como excepción anotada** a «una feature = una rama =
     un PR» (`CLAUDE.md`). Motivo: es un refactor pequeño que la feature necesitaba (`Campo`
     habría copiado el cálculo de Dynamic Type), los tests de `Texto` no cambiaron, y

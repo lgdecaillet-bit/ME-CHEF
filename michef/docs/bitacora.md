@@ -2032,7 +2032,7 @@ verde con `main` dentro antes de empezar.
 - **`Campo` (#60.15)** con la etiqueta encima de la caja. Deja de usar animación, el cálculo
   del hueco de arriba y `useWindowDimensions`.
 - **Iconos (#60.4)**: `icono.escalaMaxima` pasa a ser un tope por tamaño.
-- **Chip (#60.6)**: token `chip.alto` (36) y `hitSlop` hasta los 44.
+- **Chip (#60.6)**: token `chip.alto` (36) y `hitSlop` hasta los 44 (cambiado tras el revisor: ver abajo).
 - **Números (#60.9)**: `escribirNumero` con separadores de región. La app sigue igual hasta
   leer la región del iPhone.
 - `decisiones.md` (#60, y la #59 marcada con los puntos que cambian) y `diseno.md` (tokens,
@@ -2082,8 +2082,28 @@ mutaciones** de la región cazadas (la app ignora la región, ignora los miles, 
 decimal sin separadores, el `Stepper` escribe sin `numero()`) · `knip` limpio ·
 `expo-doctor` 21/21.
 
-Pendiente: **Claude:** el revisor, push y CI en verde. **Luciano:** la galería en el iPhone
-y el «adelante» del merge. Nunca en rojo (#55).
+**El revisor, sobre la #60: CAMBIOS, con cuatro puntos, y con razón en los cuatro.**
+1. **El chip no garantizaba los 44 pt.** Se hizo con `hitSlop`, y React Native no deja que
+   el `hitSlop` salga del contenedor: lo dice su propia definición de tipos, y en iOS lo
+   aplica `RCTViewComponentView`. En la fila de la galería, que mide justo lo que sus
+   chips, el chip respondía en 40. El test solo sumaba las props y nunca lo habría visto.
+   Ahora lo que se toca es el propio botón, una zona transparente de 44 × 44 como mínimo,
+   con la píldora de 36 dentro. También cubre el ancho: un chip de una letra medía unos 41.
+2. **`expo-symbols` y `expo-haptics` seguían con `~`**, cuando lo que instalamos nosotros
+   va exacto. Venía de D6.5b y pasó tres revisiones sin verse. Fijadas en 57.0.3.
+3. **`expo-localization` es nativa y entraba sin la excepción escrita** de la #59.14. Queda
+   en la #60.9, en D7 y en lo que falta probar en el iPhone: cambiar la región.
+4. **Un comentario prometía algo no comprobado:** que iOS reinicia la app al cambiar la
+   región. Cambiar solo el formato de región no la reinicia, y los números ya dibujados no
+   se actualizan hasta que su pantalla se vuelva a dibujar. Quedó escrito lo cierto, y la
+   mejora, para Fase 3.
+
+El cuarto es la quinta vez que un texto promete de más, y la segunda hoy: una se cazó antes
+del commit y esta no. El primero es otra comprobación que medía el caso fácil: la suma de
+las props, y no si el toque llega.
+
+Pendiente: **Claude:** la segunda vuelta del revisor, push y CI en verde. **Luciano:** la
+galería en el iPhone y el «adelante» del merge. Nunca en rojo (#55).
 
 ---
 

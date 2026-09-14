@@ -366,11 +366,17 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    `escribirNumero`. 637 tests, 18 de 18 mutaciones.
    Después, con su «adelante», `expo-localization` 57.0.2: los números ya salen con la
    región del iPhone. 639 tests, 22 de 22 mutaciones.
+   **El revisor devolvió CAMBIOS con cuatro puntos, con razón** (bitácora): el chip usaba
+   `hitSlop`, que React Native recorta al contenedor; `expo-symbols` y `expo-haptics` con
+   `~`; `expo-localization` sin su excepción escrita; y un comentario que prometía de más.
+   Arreglados.
    **Falta, y sin eso no hay merge:** otra vuelta del revisor; el CI en verde (#55); la
-   galería en el iPhone, con «Reducir movimiento» apagado y encendido; y el «adelante» del
-   merge.
+   galería en el iPhone, con «Reducir movimiento» apagado y encendido, tocando los chips
+   por su borde de arriba, y cambiando la región para ver `1,5` o `1.5` en el `Stepper`;
+   y el «adelante» del merge.
 15. Después, **D7**: EAS Workflows y Maestro (el smoke y las capturas de la galería). Será
-   también el primer build de simulador con `expo-symbols` y `expo-haptics` (#59.14). Se
+   también el primer build de simulador con `expo-symbols`, `expo-haptics` y
+   `expo-localization` (#59.14, #60.9). Se
    presenta y espera «adelante».
 
 **Lo que tiene que hacer Luciano para cerrar D2:**

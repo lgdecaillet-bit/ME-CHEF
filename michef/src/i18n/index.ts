@@ -49,8 +49,9 @@ export function escribirNumero(n: number, { decimal, miles }: FormatoDeNumeros):
 
 /**
  * Los separadores de la región del iPhone, la primera de sus preferencias.
- * Se leen en cada número: si alguien cambia la región, iOS reinicia la app, y
- * aunque no lo hiciera, el siguiente número ya sale bien.
+ * Se leen en cada número. Si alguien cambia el formato de región con la app
+ * abierta, iOS no la reinicia: los números que ya están en pantalla siguen con
+ * el formato de antes hasta que esa pantalla se vuelva a dibujar.
  *
  * iOS siempre los da. Si alguna vez no llegaran, coma decimal y sin miles: se
  * lee igual en los tres mercados, y no se confunde con un número más grande.

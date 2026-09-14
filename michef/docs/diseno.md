@@ -47,7 +47,7 @@ espacio     xs 4 · s 8 · m 12 · l 16 · xl 24 · xxl 32 · xxxl 48      (reji
 radio       s 8 · m 12 · l 16 · xl 24 · circulo 999
 movimiento  rapido 150 ms · normal 250 ms · lento 400 ms · curva estándar de iOS
 tactil      minimo 44 (pt)
-chip        alto 36 (pt) · responde en 44 con un margen invisible (#60)
+chip        alto 36 (pt) · se toca en 44 × 44: la píldora va dentro de una zona transparente (#60)
 icono       s 16 · m 22 · l 28 · xl 48 · s y m crecen con la letra hasta 1,5×, l y xl no (#60)
 ```
 
@@ -63,7 +63,7 @@ aquí** (con sus estados y su test), luego se usa.
 |---|---|---|
 | `Texto` | variantes de tipografía | Único lugar donde vive `<Text>`. Aplica Dynamic Type |
 | `Boton` | primario · secundario · terciario · destructivo · deshabilitado · cargando | Háptico `light` al pulsar. Altura ≥ 44. VoiceOver lee el texto visible (WCAG 2.5.3); lo que hace va como pista. Destructivo: rojo sobre gris, como en iOS (#59) |
-| `Chip` | normal · seleccionado · pregunta (ámbar, punteado) · supuesto (gris) · deshabilitado | Es el componente más usado de la app. Se ve de 36 pt y responde al dedo en 44; entre filas de chips, al menos `espacio.s` (#60). La selección manda sobre el tipo (#59) |
+| `Chip` | normal · seleccionado · pregunta (ámbar, punteado) · supuesto (gris) · deshabilitado | Es el componente más usado de la app. Se ve de 36 pt y se toca en 44 × 44, esté donde esté; entre filas de chips no hace falta espacio (#60). La selección manda sobre el tipo (#59) |
 | `Tarjeta` | normal · pulsable · con etiqueta | Base de `TarjetaReceta` |
 | `Etiqueta` | seguro · posible · supuesto · estimado · real · aviso | **La distinción visual del principio 4 vive aquí** |
 | `Campo` | vacío · con valor · error · deshabilitado | Entrada de texto. La etiqueta va encima de la caja, siempre a la vista y sin animación, como en iOS (#60) |
