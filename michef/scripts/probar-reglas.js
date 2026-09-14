@@ -163,6 +163,9 @@ comprobarPorLinea('src/ui/__fixtures__/componente.tsx');
 console.log('\nESLint · fuera de la interfaz, las reglas de interfaz no aplican');
 comprobarPorLinea('src/lib/__fixtures__/fuera-de-la-interfaz.ts');
 
+console.log('\nESLint · en los tests, las animaciones también van con Reanimated');
+comprobarPorLinea('src/__fixtures__/__tests__/animacion.test.tsx');
+
 if (fallos.length > 0) {
   console.error(`\n${fallos.length} regla(s) NO disparan. Están muertas:\n`);
   for (const f of fallos) console.error(`  · ${f}`);

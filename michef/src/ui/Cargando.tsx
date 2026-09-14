@@ -11,8 +11,16 @@
  * «Reducir movimiento», los bloques no laten. Solo es la forma: qué hacer si
  * tarda o si falla lo dice la pantalla, que es quien lo sabe.
  */
-import { useEffect, useState } from 'react';
-import { Animated, View } from 'react-native';
+import { useEffect } from 'react';
+import { View } from 'react-native';
+import Animated, {
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { useTema } from './tema';
 import { useMovimientoReducido } from './useMovimientoReducido';
@@ -27,24 +35,24 @@ type Props = {
 export function Cargando({ modo = 'linea', descripcion, testID }: Props) {
   const tema = useTema();
   const reducido = useMovimientoReducido();
-  // El mismo valor animado durante toda la vida del componente.
-  const [latido] = useState(() => new Animated.Value(1));
+  // La opacidad de los bloques. Vive en el hilo de la interfaz (Reanimated,
+  // decisión #60.2): el latido no se para aunque la app esté ocupada.
+  const latido = useSharedValue(1);
 
   useEffect(() => {
     if (reducido) {
-      latido.setValue(1);
+      cancelAnimation(latido);
+      latido.set(1);
       return undefined;
     }
     const paso = (hasta: number) =>
-      Animated.timing(latido, {
-        toValue: hasta,
-        duration: tema.movimiento.lento,
-        useNativeDriver: true,
-      });
-    const bucle = Animated.loop(Animated.sequence([paso(tema.opacidad.latido), paso(1)]));
-    bucle.start();
-    return () => bucle.stop();
+      withTiming(hasta, { duration: tema.movimiento.lento });
+    // -1: sin fin. Baja hasta el latido y vuelve, una y otra vez.
+    latido.set(withRepeat(withSequence(paso(tema.opacidad.latido), paso(1)), -1));
+    return () => cancelAnimation(latido);
   }, [reducido, latido, tema.movimiento.lento, tema.opacidad.latido]);
+
+  const estiloDelLatido = useAnimatedStyle(() => ({ opacity: latido.get() }));
 
   const bloque = { backgroundColor: tema.color.superficie2 };
   return (
@@ -54,11 +62,13 @@ export function Cargando({ modo = 'linea', descripcion, testID }: Props) {
       accessibilityLabel={descripcion}
       accessibilityState={{ busy: true }}
       testID={testID}
-      style={{
-        opacity: latido,
-        gap: tema.espacio.s,
-        ...(modo === 'pantalla' ? { flex: 1, padding: tema.espacio.l } : null),
-      }}
+      style={[
+        {
+          gap: tema.espacio.s,
+          ...(modo === 'pantalla' ? { flex: 1, padding: tema.espacio.l } : null),
+        },
+        estiloDelLatido,
+      ]}
     >
       {modo === 'pantalla' ? (
         <View

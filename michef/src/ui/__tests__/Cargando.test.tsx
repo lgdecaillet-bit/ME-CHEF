@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react-native';
-import { Animated } from 'react-native';
+import { act, screen } from '@testing-library/react-native';
+import { cancelAnimation, getAnimatedStyle } from 'react-native-reanimated';
 
 import { Cargando } from '../Cargando';
 import { cargando, colores, espacio, movimiento, opacidad } from '../tokens';
@@ -9,12 +9,26 @@ import { dibujar, estiloDe } from './dibujar';
 jest.mock('../useMovimientoReducido', () => ({ useMovimientoReducido: jest.fn() }));
 const reducido = useMovimientoReducido as jest.Mock;
 
-const bucle = { start: jest.fn(), stop: jest.fn(), reset: jest.fn() };
-
-beforeEach(() => {
-  reducido.mockReturnValue(true);
-  jest.spyOn(Animated, 'loop').mockReturnValue(bucle);
+// La de verdad, espiada: se comprueba que el latido se cancela al irse.
+jest.mock('react-native-reanimated', () => {
+  const real = jest.requireActual('react-native-reanimated');
+  // `__esModule` no se copia al esparcir, y sin él `import Animated` se rompe.
+  return { __esModule: true, ...real, cancelAnimation: jest.fn(real.cancelAnimation) };
 });
+
+// Las animaciones de Reanimated avanzan con el reloj falso de Jest (jest.setup.js).
+beforeEach(() => {
+  jest.useFakeTimers();
+  reducido.mockReturnValue(true);
+});
+afterEach(() => {
+  jest.runOnlyPendingTimers();
+  jest.useRealTimers();
+});
+
+const pasan = (ms: number) => act(() => jest.advanceTimersByTime(ms));
+const opacidadDe = (testID: string) =>
+  Number(getAnimatedStyle(screen.getByTestId(testID)).opacity);
 
 describe('Cargando', () => {
   it('VoiceOver dice qué se está cargando, y que está ocupado', async () => {
@@ -44,32 +58,45 @@ describe('Cargando', () => {
     });
   });
 
-  it('late: baja hasta la opacidad de latido y vuelve, despacio y sin parar', async () => {
+  it('late: baja hasta la opacidad de latido, vuelve, y sigue sin parar', async () => {
     reducido.mockReturnValue(false);
-    const timing = jest.spyOn(Animated, 'timing');
-    const { unmount } = await dibujar(<Cargando descripcion="Cargando" />);
-    expect(timing.mock.calls.map(([, config]) => config)).toEqual([
-      { toValue: opacidad.latido, duration: movimiento.lento, useNativeDriver: true },
-      { toValue: 1, duration: movimiento.lento, useNativeDriver: true },
-    ]);
-    expect(bucle.start).toHaveBeenCalledTimes(1);
-    await unmount();
-    expect(bucle.stop).toHaveBeenCalledTimes(1);
+    await dibujar(<Cargando descripcion="Cargando" testID="c" />);
+    expect(opacidadDe('c')).toBe(1);
+    await pasan(movimiento.lento / 2);
+    expect(opacidadDe('c')).toBeGreaterThan(opacidad.latido);
+    expect(opacidadDe('c')).toBeLessThan(1);
+    await pasan(movimiento.lento / 2);
+    expect(opacidadDe('c')).toBeCloseTo(opacidad.latido, 1);
+    await pasan(movimiento.lento);
+    expect(opacidadDe('c')).toBeCloseTo(1, 1);
+    // Una segunda vuelta: el bucle no se acaba en la primera.
+    await pasan(movimiento.lento);
+    expect(opacidadDe('c')).toBeCloseTo(opacidad.latido, 1);
   });
 
   it('con «Reducir movimiento», no late: se queda a opacidad entera', async () => {
     await dibujar(<Cargando descripcion="Cargando" testID="c" />);
-    expect(Animated.loop).not.toHaveBeenCalled();
-    expect(estiloDe(screen.getByTestId('c')).opacity).toBe(1);
+    await pasan(movimiento.lento);
+    expect(opacidadDe('c')).toBe(1);
   });
 
   it('si «Reducir movimiento» se activa mientras late, se para y se queda entero', async () => {
     reducido.mockReturnValue(false);
     await dibujar(<Cargando descripcion="Cargando" testID="c" />);
+    await pasan(movimiento.lento / 2);
+    expect(opacidadDe('c')).toBeLessThan(1);
     reducido.mockReturnValue(true);
     await screen.rerender(<Cargando descripcion="Cargando" testID="c" />);
-    expect(bucle.stop).toHaveBeenCalledTimes(1);
-    expect(estiloDe(screen.getByTestId('c')).opacity).toBe(1);
+    await pasan(movimiento.lento);
+    expect(opacidadDe('c')).toBe(1);
+  });
+
+  it('al irse de la pantalla, el latido se cancela', async () => {
+    reducido.mockReturnValue(false);
+    const { unmount } = await dibujar(<Cargando descripcion="Cargando" />);
+    (cancelAnimation as jest.Mock).mockClear();
+    await unmount();
+    expect(cancelAnimation).toHaveBeenCalledTimes(1);
   });
 
   it('en oscuro, los bloques con el gris del modo oscuro', async () => {

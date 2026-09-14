@@ -12,7 +12,9 @@
 //
 // El `eslint-disable` de arriba NO apaga nada: probar-reglas.js corre con
 // --no-inline-config. Está para que el editor no la pinte de rojo.
-import { Animated, View } from 'react-native'; // @permitido
+import { View } from 'react-native'; // @permitido
+import { Animated as AnimadoDeRN } from 'react-native'; // @espera react-native-reanimated
+import Animated from 'react-native-reanimated'; // @permitido
 import { Text } from 'react-native'; // @espera solo se usan en src/ui/
 import { Pressable } from 'react-native'; // @espera solo se usan en src/ui/
 import { Switch } from 'react-native'; // @espera solo se usan en src/ui/
@@ -62,7 +64,7 @@ export function PantallaMal({ x, n }: { x: boolean; n: number }) {
       <Animated.Text />{/* @espera solo se usan en src/ui/ */}
       <Switch /><PressableDeGestos /><Link href="/" /><TextoInterno />{/* @permitido */}
       <SymbolView name="star" /><ActivityIndicator />{/* @permitido */}
-      {[marca, sombra, linea, tinta, estados].length}
+      {[marca, sombra, linea, tinta, estados, AnimadoDeRN].length}
     </View>
   );
 }
