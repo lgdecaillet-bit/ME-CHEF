@@ -1,19 +1,13 @@
 import { fireEvent, screen } from '@testing-library/react-native';
-import { AccessibilityInfo, Animated } from 'react-native';
+import { AccessibilityInfo } from 'react-native';
 
 import { Campo } from '../Campo';
-import { colores, espacio, movimiento, tipografia } from '../tokens';
-import { useMovimientoReducido } from '../useMovimientoReducido';
+import { colores, espacio, tactil, tipografia } from '../tokens';
 import { conOcultos, dibujar, estiloDe } from './dibujar';
-
-jest.mock('../useMovimientoReducido', () => ({ useMovimientoReducido: jest.fn() }));
-const reducido = useMovimientoReducido as jest.Mock;
 
 let anunciar: jest.SpyInstance;
 
 beforeEach(() => {
-  // Casi todos, sin animación: la etiqueta cambia de sitio en el acto.
-  reducido.mockReturnValue(true);
   anunciar = jest
     .spyOn(AccessibilityInfo, 'announceForAccessibility')
     .mockImplementation(() => undefined);
@@ -29,19 +23,27 @@ function elCampo(props: Partial<Props> = {}) {
 
 const entrada = () => screen.getByTestId('c');
 const caja = () => estiloDe(screen.getByTestId('c.caja'));
+const textoDeLaEtiqueta = (texto = 'Ingrediente') => screen.getByText(texto, conOcultos);
 
-function etiqueta() {
-  const { transform, top } = estiloDe(screen.getByTestId('c.etiqueta', conOcultos)) as {
-    transform: [{ translateY: number }, { scale: number }];
-    top: number;
+/** Los testID del árbol dibujado, en el orden en que se ven de arriba abajo. */
+function ordenDeArribaAbajo(): string[] {
+  const vistos: string[] = [];
+  const recorrer = (nodo: unknown) => {
+    if (nodo == null || typeof nodo !== 'object') return;
+    if (Array.isArray(nodo)) {
+      nodo.forEach(recorrer);
+      return;
+    }
+    const { props, children } = nodo as {
+      props?: { testID?: string };
+      children?: unknown;
+    };
+    if (props?.testID != null) vistos.push(props.testID);
+    recorrer(children);
   };
-  return { y: transform[0].translateY, escala: transform[1].scale, top };
+  recorrer(screen.toJSON());
+  return vistos;
 }
-
-const ABAJO = { y: 0, escala: 1 };
-const PEQUENA = tipografia.nota.fontSize / tipografia.cuerpo.fontSize;
-// Arriba, la etiqueta queda pegada al borde de arriba de la caja.
-const arriba = () => espacio.xs - Number(caja().paddingTop);
 
 describe('Campo', () => {
   it('VoiceOver lo nombra con su etiqueta, y la etiqueta visible no se lee dos veces', async () => {
@@ -51,37 +53,56 @@ describe('Campo', () => {
     expect(screen.getByText('Ingrediente', conOcultos)).toBeTruthy();
   });
 
-  it('vacío y sin tocar: la etiqueta está dentro, a tamaño normal, y el borde es gris', async () => {
+  it('la etiqueta va encima de la caja, fuera de ella, y la caja solo lleva lo escrito', async () => {
+    await dibujar(elCampo({ error: 'Falta algo.' }));
+    expect(ordenDeArribaAbajo()).toEqual([
+      'c.etiqueta',
+      'c.caja',
+      'c',
+      'c.error.icono',
+      'c.error',
+    ]);
+    // En su sitio, sin moverse: ni posición absoluta ni transformaciones.
+    expect(estiloDe(screen.getByTestId('c.etiqueta', conOcultos))).toEqual({});
+    expect(caja().paddingTop).toBeUndefined();
+    expect(caja().paddingVertical).toBe(espacio.s);
+  });
+
+  it('vacío y sin tocar: etiqueta en gris secundario, superficie blanca y borde gris', async () => {
     await dibujar(elCampo());
-    expect(etiqueta()).toMatchObject(ABAJO);
-    // Abajo, en la misma línea donde se escribe.
-    expect(etiqueta().top).toBe(caja().paddingTop);
+    expect(estiloDe(textoDeLaEtiqueta())).toMatchObject({
+      fontSize: tipografia.secundario.fontSize,
+      color: colores.claro.texto2,
+    });
     expect(caja()).toMatchObject({
       borderColor: colores.claro.borde,
       backgroundColor: colores.claro.superficie,
     });
   });
 
-  it('al tocarlo, la etiqueta sube y se encoge, y el borde se pone del acento', async () => {
+  it('al tocarlo, solo cambia el borde, al acento; la etiqueta no se mueve', async () => {
     await dibujar(elCampo());
+    const antes = estiloDe(textoDeLaEtiqueta());
     await fireEvent(entrada(), 'focus');
-    expect(etiqueta().y).toBeCloseTo(arriba());
-    expect(etiqueta().escala).toBeCloseTo(PEQUENA);
     expect(caja().borderColor).toBe(colores.claro.acento);
+    expect(estiloDe(textoDeLaEtiqueta())).toEqual(antes);
   });
 
-  it('al salir sin escribir nada, la etiqueta vuelve a su sitio', async () => {
+  it('al salir, el borde vuelve a gris', async () => {
     await dibujar(elCampo());
     await fireEvent(entrada(), 'focus');
     await fireEvent(entrada(), 'blur');
-    expect(etiqueta()).toMatchObject(ABAJO);
     expect(caja().borderColor).toBe(colores.claro.borde);
   });
 
-  it('con valor, la etiqueta se queda arriba aunque no esté tocado', async () => {
+  it('con valor, se ve lo escrito', async () => {
     await dibujar(elCampo({ valor: 'Tomate' }));
-    expect(etiqueta().y).toBeCloseTo(arriba());
     expect(entrada().props.value).toBe('Tomate');
+  });
+
+  it('la caja mide al menos lo mínimo tocable', async () => {
+    await dibujar(elCampo());
+    expect(caja().minHeight).toBe(tactil.minimo);
   });
 
   it('escribir avisa con el texto nuevo', async () => {
@@ -94,9 +115,7 @@ describe('Campo', () => {
   it('error: todo en rojo, el mensaje debajo con su icono, y VoiceOver lo oye y lo anuncia', async () => {
     await dibujar(elCampo({ error: 'Escribe un ingrediente para seguir.' }));
     expect(caja().borderColor).toBe(colores.claro.rojo);
-    expect(estiloDe(screen.getByText('Ingrediente', conOcultos)).color).toBe(
-      colores.claro.rojo
-    );
+    expect(estiloDe(textoDeLaEtiqueta()).color).toBe(colores.claro.rojo);
     expect(screen.getByTestId('c.error').props.children).toBe(
       'Escribe un ingrediente para seguir.'
     );
@@ -162,52 +181,17 @@ describe('Campo', () => {
     );
   });
 
-  it.each([undefined, 1, 1.353, 1.786, 3.571])(
-    'con la letra a %s, la etiqueta de arriba no tapa lo que se escribe (lo vio el revisor)',
-    async (escalaDeLetra) => {
-      await dibujar(elCampo({ valor: 'Tomate' }), { escalaDeLetra });
-      const { top, y, escala } = etiqueta();
-      const alto = Number(
-        estiloDe(screen.getByText('Ingrediente', conOcultos)).lineHeight
-      );
-      const bordeDeAbajo = top + y + alto * escala;
-      expect(bordeDeAbajo).toBeLessThanOrEqual(Number(caja().paddingTop));
-      expect(top + y).toBeCloseTo(espacio.xs);
-    }
-  );
-
-  it('la etiqueta va en una sola línea y dentro de la caja: una larga se corta, no se parte (lo vio el revisor)', async () => {
-    await dibujar(elCampo({ etiqueta: 'Nombre del hogar donde vives' }));
-    const texto = screen.getByText('Nombre del hogar donde vives', conOcultos);
-    expect(texto.props.numberOfLines).toBe(1);
-    expect(estiloDe(screen.getByTestId('c.etiqueta', conOcultos))).toMatchObject({
-      left: espacio.l,
-      right: espacio.l,
+  it('una etiqueta larga no se corta: con la letra grande ocupa las líneas que haga falta', async () => {
+    await dibujar(elCampo({ etiqueta: 'Nombre del hogar donde vives' }), {
+      escalaDeLetra: 3.571,
     });
+    const texto = textoDeLaEtiqueta('Nombre del hogar donde vives');
+    expect(texto.props.numberOfLines).toBeUndefined();
+    expect(estiloDe(texto).fontSize).toBeCloseTo(
+      tipografia.secundario.fontSize * tipografia.secundario.escalaMaxima
+    );
     // VoiceOver la oye entera: es el nombre del campo.
     expect(screen.getByLabelText('Nombre del hogar donde vives')).toBe(entrada());
-  });
-
-  it('con animación, la etiqueta viaja en el tiempo rápido del tema, y se para si cambia a mitad', async () => {
-    reducido.mockReturnValue(false);
-    const parar = jest.fn();
-    const timing = jest
-      .spyOn(Animated, 'timing')
-      .mockReturnValue({ start: jest.fn(), stop: parar, reset: jest.fn() });
-    const { unmount } = await dibujar(elCampo());
-    expect(timing).toHaveBeenLastCalledWith(expect.anything(), {
-      toValue: 0,
-      duration: movimiento.rapido,
-      useNativeDriver: true,
-    });
-    await fireEvent(entrada(), 'focus');
-    expect(parar).toHaveBeenCalledTimes(1);
-    expect(timing).toHaveBeenLastCalledWith(
-      expect.anything(),
-      expect.objectContaining({ toValue: 1 })
-    );
-    await unmount();
-    expect(parar).toHaveBeenCalledTimes(2);
   });
 
   it('en oscuro, con la superficie del modo oscuro', async () => {
