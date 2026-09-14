@@ -2114,3 +2114,21 @@ Pendiente: **Claude:** push y CI en verde. **Luciano:** la galería en el iPhone
 
 ---
 
+## 2026-09-14 · S-20260914-a · D6.5b mergeado
+
+Tarea: F0-D6.5b (cierre) · Resultado: **mergeado** (PR #18, `966de64`), con `gates`,
+`supabase` y `secretos` en verde. El CI de `main` sobre el merge, también en verde.
+
+**Luciano lo vio en el iPhone.** Tocó los chips de «Modo» por el borde de arriba y
+respondieron: «eso funciona». De lo demás (la etiqueta de `Campo`, el latido con «Reducir
+movimiento», los números al cambiar la región y el aire entre filas de chips) dijo «listo
+quedó», y mergeó él mismo. No se anotó nada más concreto de esas cuatro pruebas.
+
+Quedan en GitHub las ramas `chore/deps-expo-57-parches` y `feat/F0-D6.5b-componentes`, ya
+mergeadas. Se pueden borrar; no se tocan sin que Luciano lo diga.
+
+Pendiente: **Claude:** presentar D7. **Luciano:** el «adelante» a D7, y el merge de este PR
+de documentos.
+
+---
+
