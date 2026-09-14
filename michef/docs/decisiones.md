@@ -1024,8 +1024,8 @@ sistema»), 5 (destructivo rojo sobre gris), 8 (`Stepper` como un solo control a
    se toca es una zona transparente de 44 que lleva dentro la píldora de 36, centrada. **No
    es un `hitSlop`**: la primera versión lo era, y el revisor vio que React Native recorta
    el `hitSlop` al borde del contenedor (`ViewPropTypes.d.ts`: «the touch area never
-   extends past the parent view bounds»), así que en una fila justa el chip respondía en
-   40. Como la zona ya deja 4 pt invisibles arriba y abajo, entre dos filas de chips no hace
+   extends past the parent view bounds»), así que los 44 no estaban garantizados: dependían
+   de que el contenedor no tuviera vista propia. Como la zona ya deja 4 pt invisibles arriba y abajo, entre dos filas de chips no hace
    falta espacio. Nuevo token: `chip.alto`.
 7. **Se queda, y además es regla de diseño y de redacción:** todo se escribe para
    entenderse sin verlo. VoiceOver lee lo que se ve, así que lo que se ve tiene que

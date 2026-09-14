@@ -10,10 +10,10 @@ Actualizado: 2026-09-14 · por sesión S-20260914-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D6.5b en el PR #18, con la #60 aplicada entera** (2026-09-14), `expo-localization` incluida: 639 tests, 22 de 22 mutaciones. Falta el revisor, el CI, el iPhone y el «adelante» del merge |
+| **Paso actual** | **D6.5b en el PR #18, con la #60 aplicada entera** (2026-09-14), `expo-localization` incluida: 639 tests, 22 de 22 mutaciones. Revisor APROBADO en la segunda vuelta. Falta el CI, el iPhone y el «adelante» del merge |
 | **Decisiones vigentes** | hasta **#60** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `feat/F0-D6.5b-componentes` (PR #18) — con la #60 aplicada; espera el revisor |
+| **Rama de trabajo** | `feat/F0-D6.5b-componentes` (PR #18) — con la #60 aplicada y el revisor en APROBADO; espera el CI y el iPhone |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -75,7 +75,7 @@ Se vacía al cambiar de día.
 | D6 · app base | `feat/F0-D6-app-base` | S-20260910-a | 2026-09-10 | **mergeada** (PR #16, `0d4468f`) |
 | D6.5a · base del sistema de diseño | `feat/F0-D6.5a-sistema-diseno` | S-20260910-a | 2026-09-10 | **mergeada** (PR #17, `e66df6d`) |
 | Parches de Expo del SDK 57 | `chore/deps-expo-57-parches` | S-20260910-a | 2026-09-11 | **mergeada** (PR #19, `61b80f7`) |
-| D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | PR #18; `main` dentro; #60 aplicada; faltan revisor, CI e iPhone |
+| D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | PR #18; `main` dentro; #60 aplicada; revisor APROBADO; faltan CI e iPhone |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -97,7 +97,7 @@ desde el primer PR de código.
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho, entero |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ mergeado (PR #16, `0d4468f`), verificado en el iPhone |
 | D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | ✅ mergeado (PR #17, `e66df6d`), visto en el iPhone |
-| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | 🔨 PR #18, #60 aplicada; faltan revisor, CI e iPhone |
+| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | 🔨 PR #18, #60 aplicada; revisor APROBADO; faltan CI e iPhone |
 | D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
 | D8 | README | Claude | ⏳ |
 
@@ -369,8 +369,8 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    **El revisor devolvió CAMBIOS con cuatro puntos, con razón** (bitácora): el chip usaba
    `hitSlop`, que React Native recorta al contenedor; `expo-symbols` y `expo-haptics` con
    `~`; `expo-localization` sin su excepción escrita; y un comentario que prometía de más.
-   Arreglados.
-   **Falta, y sin eso no hay merge:** otra vuelta del revisor; el CI en verde (#55); la
+   Arreglados, y **segunda vuelta: APROBADO**.
+   **Falta, y sin eso no hay merge:** el CI en verde (#55); la
    galería en el iPhone, con «Reducir movimiento» apagado y encendido, tocando los chips
    por su borde de arriba, y cambiando la región para ver `1,5` o `1.5` en el `Stepper`;
    y el «adelante» del merge.

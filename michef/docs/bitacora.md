@@ -2085,8 +2085,9 @@ decimal sin separadores, el `Stepper` escribe sin `numero()`) · `knip` limpio �
 **El revisor, sobre la #60: CAMBIOS, con cuatro puntos, y con razón en los cuatro.**
 1. **El chip no garantizaba los 44 pt.** Se hizo con `hitSlop`, y React Native no deja que
    el `hitSlop` salga del contenedor: lo dice su propia definición de tipos, y en iOS lo
-   aplica `RCTViewComponentView`. En la fila de la galería, que mide justo lo que sus
-   chips, el chip respondía en 40. El test solo sumaba las props y nunca lo habría visto.
+   aplica `RCTViewComponentView`. En una fila que mida justo lo que sus chips, el chip
+   **podía** responder en 40: dependía de que iOS aplanara la fila, y nadie lo midió. El
+   test solo sumaba las props y nunca lo habría visto.
    Ahora lo que se toca es el propio botón, una zona transparente de 44 × 44 como mínimo,
    con la píldora de 36 dentro. También cubre el ancho: un chip de una letra medía unos 41.
 2. **`expo-symbols` y `expo-haptics` seguían con `~`**, cuando lo que instalamos nosotros
@@ -2102,8 +2103,14 @@ El cuarto es la quinta vez que un texto promete de más, y la segunda hoy: una s
 del commit y esta no. El primero es otra comprobación que medía el caso fácil: la suma de
 las props, y no si el toque llega.
 
-Pendiente: **Claude:** la segunda vuelta del revisor, push y CI en verde. **Luciano:** la
-galería en el iPhone y el «adelante» del merge. Nunca en rojo (#55).
+**Segunda vuelta: APROBADO.** Con una frase que corregir antes del push: esta misma
+entrada y la #60.6 daban por hecho que el chip respondía en 40, cuando la primera vuelta
+decía que *podía*. Corregida. Para cuando Luciano lo vea: con el chip de 44 de zona, dos
+filas con `gap: espacio.s` se ven separadas por 16 pt; si sobra aire, la fila puede ir sin
+espacio vertical.
+
+Pendiente: **Claude:** push y CI en verde. **Luciano:** la galería en el iPhone y el
+«adelante» del merge. Nunca en rojo (#55).
 
 ---
 
