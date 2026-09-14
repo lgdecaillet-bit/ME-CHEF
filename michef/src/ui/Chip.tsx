@@ -8,12 +8,15 @@
  * - `supuesto`: lo que la app da por hecho sin haberlo visto. Gris.
  * - Seleccionado, se rellena con el acento y lleva una marca, y VoiceOver dice
  *   «seleccionado». Manda sobre el tipo: una pregunta respondida ya no es duda.
- * - Se ve de 36 pt de alto, pero responde al dedo en 44, con un margen invisible
- *   arriba y abajo (decisión #60.6). Entre dos filas de chips tiene que haber al
- *   menos `espacio.s`, para que esos márgenes no se pisen. VoiceOver lee su
- *   texto.
+ * - Se ve de 36 pt de alto, pero responde al dedo en 44 × 44 como mínimo
+ *   (decisión #60.6). Lo que se toca es una zona transparente de 44 que lleva
+ *   dentro la píldora visible, centrada: 4 pt invisibles arriba y abajo. No es un
+ *   `hitSlop`, que React Native recorta al borde del contenedor, así que cumple
+ *   esté donde esté. Por eso, entre dos filas de chips no hace falta espacio: esos
+ *   4 + 4 pt ya los separan.
+ * - VoiceOver lee su texto.
  */
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icono, type NombreDeIcono } from './Icono';
 import { useTema } from './tema';
@@ -73,9 +76,6 @@ export function Chip({
   const tema = useTema();
   const aspecto =
     ASPECTO[deshabilitado ? 'deshabilitado' : seleccionado ? 'seleccionado' : tipo];
-  // Lo que le falta al chip visible para llegar a lo mínimo tocable, repartido
-  // arriba y abajo. Invisible: solo cuenta para el dedo.
-  const margen = (tema.tactil.minimo - tema.chip.alto) / 2;
   return (
     <Pressable
       accessibilityRole="button"
@@ -84,40 +84,46 @@ export function Chip({
       accessibilityState={{ selected: seleccionado, disabled: deshabilitado }}
       disabled={deshabilitado}
       onPress={onPress}
-      hitSlop={{ top: margen, bottom: margen }}
       testID={testID}
-      style={({ pressed }) => [
-        estilos.base,
-        {
-          minHeight: tema.chip.alto,
-          paddingHorizontal: tema.espacio.l,
-          gap: tema.espacio.xs,
-          borderRadius: tema.radio.circulo,
-          borderColor: tema.color[aspecto.borde],
-          borderStyle: aspecto.punteado ? 'dashed' : 'solid',
-          backgroundColor: tema.color[aspecto.fondo],
-        },
-        pressed && { opacity: tema.opacidad.pulsado },
+      style={[
+        estilos.zona,
+        { minHeight: tema.tactil.minimo, minWidth: tema.tactil.minimo },
       ]}
     >
-      {aspecto.icono != null ? (
-        <Icono
-          nombre={aspecto.icono}
-          tamano="s"
-          color={aspecto.letra}
-          testID={testID && `${testID}.icono`}
-        />
-      ) : null}
-      <Texto color={aspecto.letra}>{etiqueta}</Texto>
+      {({ pressed }) => (
+        <View
+          testID={testID && `${testID}.pildora`}
+          style={[
+            estilos.pildora,
+            {
+              minHeight: tema.chip.alto,
+              paddingHorizontal: tema.espacio.l,
+              gap: tema.espacio.xs,
+              borderRadius: tema.radio.circulo,
+              borderColor: tema.color[aspecto.borde],
+              borderStyle: aspecto.punteado ? 'dashed' : 'solid',
+              backgroundColor: tema.color[aspecto.fondo],
+            },
+            pressed && { opacity: tema.opacidad.pulsado },
+          ]}
+        >
+          {aspecto.icono != null ? (
+            <Icono
+              nombre={aspecto.icono}
+              tamano="s"
+              color={aspecto.letra}
+              testID={testID && `${testID}.icono`}
+            />
+          ) : null}
+          <Texto color={aspecto.letra}>{etiqueta}</Texto>
+        </View>
+      )}
     </Pressable>
   );
 }
 
 const estilos = StyleSheet.create({
-  base: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-  },
+  // Transparente: solo cuenta para el dedo. La píldora va en medio.
+  zona: { alignSelf: 'flex-start', alignItems: 'center', justifyContent: 'center' },
+  pildora: { flexDirection: 'row', alignItems: 'center', borderWidth: 1 },
 });

@@ -1,7 +1,7 @@
 import { screen, userEvent } from '@testing-library/react-native';
 
 import { Chip } from '../Chip';
-import { chip as tokenDelChip, colores, espacio, opacidad, tactil } from '../tokens';
+import { chip as tokenDelChip, colores, opacidad, tactil } from '../tokens';
 import { apoyarDedo, conOcultos, dibujar, estiloDe, levantarDedo } from './dibujar';
 
 type Props = Parameters<typeof Chip>[0];
@@ -12,7 +12,8 @@ async function chip(props: Partial<Props> = {}) {
   return alTocar;
 }
 
-const caja = () => estiloDe(screen.getByTestId('c'));
+// Lo que se ve: la píldora. Lo que se toca es el botón que la envuelve, `c`.
+const caja = () => estiloDe(screen.getByTestId('c.pildora'));
 const letra = () => estiloDe(screen.getByText('Tomate')).color;
 const icono = () => screen.queryByTestId('c.icono', conOcultos);
 
@@ -92,17 +93,26 @@ describe('Chip', () => {
     );
   });
 
-  it('se ve de 36 pt, pero responde al dedo en 44: el margen invisible completa el resto', async () => {
-    await chip();
-    const { hitSlop } = screen.getByTestId('c').props as {
-      hitSlop: { top: number; bottom: number };
-    };
+  it('se ve de 36 pt, pero lo que se toca mide al menos 44 × 44, esté donde esté (lo vio el revisor)', async () => {
+    await chip({ etiqueta: '1' });
+    const zona = estiloDe(screen.getByTestId('c'));
+    // La zona tocable es el propio botón, no un hitSlop: React Native recorta el
+    // hitSlop al borde del contenedor, y en una fila justa se perdían 4 pt.
+    expect(screen.getByTestId('c').props.hitSlop).toBeUndefined();
+    expect(zona).toMatchObject({
+      minHeight: tactil.minimo,
+      minWidth: tactil.minimo,
+      alignItems: 'center',
+      justifyContent: 'center',
+    });
+    // Transparente: el color y el borde van en la píldora.
+    expect(zona.backgroundColor).toBeUndefined();
+    expect(zona.borderWidth).toBeUndefined();
     expect(caja().minHeight).toBe(tokenDelChip.alto);
-    expect(tokenDelChip.alto).toBeLessThan(tactil.minimo);
-    expect(hitSlop.top).toBe(hitSlop.bottom);
-    expect(Number(caja().minHeight) + hitSlop.top + hitSlop.bottom).toBe(tactil.minimo);
-    // Con dos filas separadas por espacio.s, los márgenes de una no pisan la otra.
-    expect(hitSlop.bottom + hitSlop.top).toBeLessThanOrEqual(espacio.s);
+    // La píldora va dentro de la zona.
+    expect(screen.getByTestId('c.pildora')).toBe(
+      screen.getByTestId('c').children[0] ?? null
+    );
   });
 
   it('se atenúa mientras el dedo lo toca', async () => {

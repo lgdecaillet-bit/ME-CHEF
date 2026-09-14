@@ -129,8 +129,9 @@ export const tactil = { minimo: 44 } as const;
 
 /**
  * El `Chip` (decisión #60.6): se ve de 36 pt, más ligero en una fila de diez,
- * pero responde al dedo en los 44 pt de `tactil.minimo`, con un margen invisible
- * arriba y abajo. Con la letra grande crece solo, porque crece su texto.
+ * pero responde al dedo en los 44 × 44 de `tactil.minimo`: la píldora va dentro
+ * de una zona tocable transparente. Con la letra grande crece solo, porque crece
+ * su texto.
  */
 export const chip = { alto: 36 } as const;
 
