@@ -1032,9 +1032,12 @@ sistema»), 5 (destructivo rojo sobre gris), 8 (`Stepper` como un solo control a
    propia Suiza quien tiene el teléfono en alemán escribe «1.5» y quien lo tiene en
    francés, «1,5». La coma fija estaba mal para dos de los tres mercados. `escribirNumero`
    escribe con los separadores de una región, con tests para Colombia, Suiza en alemán,
-   Suiza en francés y Estados Unidos. **Pendiente:** leer esos separadores del iPhone con
-   `expo-localization` (~57.0.2, dentro de Expo Go), que espera su «adelante» para
-   instalarse (#34). Hasta entonces la app escribe como antes: coma y sin miles.
+   Suiza en francés y Estados Unidos. `numero()` lee los separadores del iPhone con
+   `expo-localization` **57.0.2** (fijada exacta, dentro de Expo Go, sin scripts de
+   instalación, una dependencia: `rtl-detect`), instalada con el «adelante» de Luciano
+   («hagale»). Se leen en cada número, con `getLocales()`; si iOS no los diera, coma
+   decimal y sin miles. **Sin el plugin de configuración** que `expo install` sugiere:
+   sin opciones (`supportsRTL`, `supportedLocales`) no cambia nada del build.
 13. **`letra.ts` se queda en este PR, como excepción anotada** a «una feature = una rama =
     un PR» (`CLAUDE.md`). Motivo: es un refactor pequeño que la feature necesitaba (`Campo`
     habría copiado el cálculo de Dynamic Type), los tests de `Texto` no cambiaron, y
@@ -1046,8 +1049,9 @@ sistema»), 5 (destructivo rojo sobre gris), 8 (`Stepper` como un solo control a
     app con tan pocos formularios. Ahora la etiqueta puede ocupar dos líneas con la letra
     grande sin tapar nada, y `Campo` deja de necesitar animación.
 
-Corrido, tal cual: `npm run gates` en verde · **637 tests** · cobertura 100 % · todas las
-reglas disparan · **18 de 18 mutaciones cazadas** · `codigo-muerto` limpio.
+Corrido, tal cual: `npm run gates` en verde · **639 tests** · cobertura 100 % · todas las
+reglas disparan · **22 de 22 mutaciones cazadas** (18 de los cambios y 4 de la región del
+iPhone) · `codigo-muerto` limpio · `expo-doctor` 21/21.
 
 ## Pendientes de decidir
 

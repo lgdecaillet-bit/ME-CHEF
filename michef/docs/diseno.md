@@ -105,9 +105,9 @@ Guía de tono en la cabecera del archivo:
   un botón dice qué hace («Ver los pasos», no «Ver más»); un icono nunca va solo sin
   texto, salvo con su `descripcion`. Si una pantalla necesita una etiqueta de VoiceOver
   distinta de lo visible, es que lo visible está mal escrito.
-- **Los números, con la región del iPhone** (#60): `t()` los escribe con sus separadores
-  de decimales y de miles («1.234,5» en Colombia, «1’234.5» en Suiza en alemán). Nunca se
-  escribe un número a mano en un texto.
+- **Los números, con la región del iPhone** (#60): `t()` y `numero()` los escriben con los
+  separadores de decimales y de miles del teléfono (`expo-localization`): «1.234,5» en
+  Colombia, «1’234.5» en Suiza en alemán. Nunca se escribe un número a mano en un texto.
 
 ---
 

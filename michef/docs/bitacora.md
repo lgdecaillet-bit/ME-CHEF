@@ -2063,9 +2063,27 @@ las reglas disparan · `knip` limpio · **18 de 18 mutaciones cazadas**: cuatro 
 irse), tres de la regla de ESLint (una por bloque), dos de iconos, dos del chip, cuatro de
 números y tres de `Campo`.
 
-Pendiente: **Luciano:** «adelante» a instalar `expo-localization` (#60.9); después, la
-galería en el iPhone. **Claude:** leer la región con ella, el revisor, push y CI en verde.
-Nunca en rojo (#55).
+Push, y el CI del PR #18 en verde (`gates`, `supabase`, `secretos`).
+
+**`expo-localization`, con el «adelante» de Luciano («hagale»).** 57.0.2, la que pide el
+SDK, fijada exacta. Sin scripts de instalación, con una sola dependencia (`rtl-detect`).
+`npm audit` sigue en 19 moderadas. `expo install` pidió añadir su plugin de configuración y
+no pudo escribirlo porque la configuración es `app.config.ts`. **No se añadió**: leído su
+código, sin opciones no toca nada del build.
+
+`numero()` lee los separadores con `getLocales()` en cada número. Tres tests cayeron al
+conectarla, y los tres por lo mismo: en Jest, `expo-localization` dice que el teléfono está
+en Estados Unidos, y esperaban la coma. Ahora cada archivo de tests dice qué región usa. El
+test de propiedad de `numero()` pasó a quitar los miles antes de leer, y a dejar fuera los
+números que JavaScript ya escribe con exponente.
+
+Corrido, tal cual: `npm run gates` en verde · **639 tests** · cobertura 100 % · **4 de 4
+mutaciones** de la región cazadas (la app ignora la región, ignora los miles, cae a punto
+decimal sin separadores, el `Stepper` escribe sin `numero()`) · `knip` limpio ·
+`expo-doctor` 21/21.
+
+Pendiente: **Claude:** el revisor, push y CI en verde. **Luciano:** la galería en el iPhone
+y el «adelante» del merge. Nunca en rojo (#55).
 
 ---
 
