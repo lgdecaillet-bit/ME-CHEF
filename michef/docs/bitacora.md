@@ -1817,3 +1817,41 @@ Pendiente: **Luciano:** el iPhone y la confirmación de la #58, puntos 5 a 11.
 **Claude:** commit, push, PR y CI en verde. Nunca en rojo (#55).
 
 ---
+
+## 2026-09-11 · S-20260910-a · CI en rojo sin tocar nada: los parches de Expo
+
+**Qué pasó.** El PR #18 (D6.5b) salió en rojo en `expo-doctor`, con todos los tests en
+verde. Entre el 10 y el 11 de septiembre Expo publicó parches de 12 paquetes del SDK 57
+(`expo` 57.0.21 → 57.0.22, `expo-router` 57.0.20 → 57.0.21…), y `expo-doctor` compara lo
+instalado con lo que el SDK pide *hoy*. En local fallaba igual. No era cosa de D6.5b:
+cualquier PR habría salido en rojo.
+
+**Qué no se hizo:** ni meter los paquetes en `expo.install.exclude`, ni saltarse el
+check, ni mergear en rojo (#55).
+
+**Qué se hizo**, con el «adelante» de Luciano: un PR aparte a `main`, antes de D6.5b.
+- `npx expo install --fix`. Subió los paquetes, pero terminó con un error a mitad; se
+  comprobó después que no quedó nada a medias: `npx expo install --check` al día,
+  `npm ls` sin quejas.
+- `expo install` cambió a `~` tres paquetes que estaban **fijados exactos** desde D6
+  (`expo-dev-client`, `expo-secure-store`, `expo-updates`). Se volvieron a fijar, en la
+  versión nueva: lo que instalamos nosotros va exacto, lo del scaffold con `~`.
+- El lockfile trae cuatro paquetes que no estaban: copias de `@radix-ui` dentro de `vaul`
+  (viene de `expo-router`, y es solo de web). Ninguno con script de instalación.
+
+**Cómo se probó:** `npm run gates` en verde (474 tests, cobertura 100 %) · `expo-doctor`
+21 de 21 · `npm audit` igual que en `main` (19 moderadas, las mismas) · `codigo-muerto`
+limpio · `secrets:bundle` 0 secretos en 25 archivos · gitleaks sobre el commit.
+Son parches del mismo SDK: Expo Go del iPhone sigue sirviendo.
+
+**Para después, sin tocarlo ahora:** este check se pone en rojo solo cada vez que Expo
+publica un parche, aunque no cambie nada en el repo. Claude lo presentará como propuesta
+(por ejemplo, un aviso programado que lo detecte antes que un PR), sin quitar el check.
+
+`estado.md` no se toca en este PR: en `main` todavía va por D6.5a, y el tablero al día está
+en la rama de D6.5b. Se anota allí al traer este cambio.
+
+Pendiente: **Luciano:** el «adelante» del merge. **Claude:** CI en verde, y después traer
+`main` a la rama de D6.5b. Nunca en rojo (#55).
+
+---
