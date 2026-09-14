@@ -128,13 +128,24 @@ export const movimiento = { rapido: 150, normal: 250, lento: 400 } as const;
 export const tactil = { minimo: 44 } as const;
 
 /**
- * Los iconos (SF Symbols), en puntos. Crecen con el tamaño de letra del iPhone,
- * como los de las apps de Apple, pero solo hasta el doble: un icono de 48 pt
- * multiplicado por 3,5 ya no cabría en la pantalla.
+ * El `Chip` (decisión #60.6): se ve de 36 pt, más ligero en una fila de diez,
+ * pero responde al dedo en los 44 pt de `tactil.minimo`, con un margen invisible
+ * arriba y abajo. Con la letra grande crece solo, porque crece su texto.
+ */
+export const chip = { alto: 36 } as const;
+
+/**
+ * Los iconos (SF Symbols), en puntos. Cuánto crecen con la letra del iPhone
+ * depende de dónde van, como en las apps de Apple (decisión #60.4):
+ * - `s` y `m` van junto a un texto y crecen con él, hasta 1,5 veces (16 → 24,
+ *   22 → 33): así siguen proporcionados.
+ * - `l` y `xl` van solos, de adorno, y no crecen: con la letra grande la
+ *   pantalla ya está llena de texto, y un icono enorme solo estorba.
+ * Con la letra más pequeña que la normal, encogen todos con ella.
  */
 export const icono = {
   tamano: { s: 16, m: 22, l: 28, xl: 48 },
-  escalaMaxima: 2,
+  escalaMaxima: { s: 1.5, m: 1.5, l: 1, xl: 1 },
 } as const;
 
 /**

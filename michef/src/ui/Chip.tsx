@@ -8,7 +8,10 @@
  * - `supuesto`: lo que la app da por hecho sin haberlo visto. Gris.
  * - Seleccionado, se rellena con el acento y lleva una marca, y VoiceOver dice
  *   «seleccionado». Manda sobre el tipo: una pregunta respondida ya no es duda.
- * - Mide al menos 44 pt de alto, y VoiceOver lee su texto.
+ * - Se ve de 36 pt de alto, pero responde al dedo en 44, con un margen invisible
+ *   arriba y abajo (decisión #60.6). Entre dos filas de chips tiene que haber al
+ *   menos `espacio.s`, para que esos márgenes no se pisen. VoiceOver lee su
+ *   texto.
  */
 import { Pressable, StyleSheet } from 'react-native';
 
@@ -70,6 +73,9 @@ export function Chip({
   const tema = useTema();
   const aspecto =
     ASPECTO[deshabilitado ? 'deshabilitado' : seleccionado ? 'seleccionado' : tipo];
+  // Lo que le falta al chip visible para llegar a lo mínimo tocable, repartido
+  // arriba y abajo. Invisible: solo cuenta para el dedo.
+  const margen = (tema.tactil.minimo - tema.chip.alto) / 2;
   return (
     <Pressable
       accessibilityRole="button"
@@ -78,11 +84,12 @@ export function Chip({
       accessibilityState={{ selected: seleccionado, disabled: deshabilitado }}
       disabled={deshabilitado}
       onPress={onPress}
+      hitSlop={{ top: margen, bottom: margen }}
       testID={testID}
       style={({ pressed }) => [
         estilos.base,
         {
-          minHeight: tema.tactil.minimo,
+          minHeight: tema.chip.alto,
           paddingHorizontal: tema.espacio.l,
           gap: tema.espacio.xs,
           borderRadius: tema.radio.circulo,

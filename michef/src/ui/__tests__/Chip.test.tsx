@@ -1,7 +1,7 @@
 import { screen, userEvent } from '@testing-library/react-native';
 
 import { Chip } from '../Chip';
-import { colores, opacidad } from '../tokens';
+import { chip as tokenDelChip, colores, espacio, opacidad, tactil } from '../tokens';
 import { apoyarDedo, conOcultos, dibujar, estiloDe, levantarDedo } from './dibujar';
 
 type Props = Parameters<typeof Chip>[0];
@@ -92,9 +92,17 @@ describe('Chip', () => {
     );
   });
 
-  it('mide al menos 44 pt de alto', async () => {
+  it('se ve de 36 pt, pero responde al dedo en 44: el margen invisible completa el resto', async () => {
     await chip();
-    expect(caja().minHeight).toBe(44);
+    const { hitSlop } = screen.getByTestId('c').props as {
+      hitSlop: { top: number; bottom: number };
+    };
+    expect(caja().minHeight).toBe(tokenDelChip.alto);
+    expect(tokenDelChip.alto).toBeLessThan(tactil.minimo);
+    expect(hitSlop.top).toBe(hitSlop.bottom);
+    expect(Number(caja().minHeight) + hitSlop.top + hitSlop.bottom).toBe(tactil.minimo);
+    // Con dos filas separadas por espacio.s, los márgenes de una no pisan la otra.
+    expect(hitSlop.bottom + hitSlop.top).toBeLessThanOrEqual(espacio.s);
   });
 
   it('se atenúa mientras el dedo lo toca', async () => {

@@ -52,18 +52,32 @@ describe('Icono', () => {
   );
 
   it('crece con la letra del iPhone, y encoge si es pequeña', async () => {
-    letraDelIphone(1.5);
+    letraDelIphone(1.2);
     await dibujar(<Icono nombre="fork.knife" testID="i" />);
-    expect(propsDelIcono().size).toBeCloseTo(icono.tamano.m * 1.5);
+    expect(propsDelIcono().size).toBeCloseTo(icono.tamano.m * 1.2);
     letraDelIphone(0.82);
     await dibujar(<Icono nombre="fork.knife" testID="i" />);
     expect(propsDelIcono().size).toBeCloseTo(icono.tamano.m * 0.82);
   });
 
-  it('pero no pasa del doble: con la letra más grande no cabría', async () => {
-    letraDelIphone(3.571);
+  it.each([
+    ['s', 1.5],
+    ['m', 1.5],
+    ['l', 1],
+    ['xl', 1],
+  ] as const)(
+    'con la letra más grande, el tamaño %s crece hasta %s veces y no más',
+    async (tamano, tope) => {
+      letraDelIphone(3.571);
+      await dibujar(<Icono nombre="fork.knife" tamano={tamano} testID="i" />);
+      expect(propsDelIcono().size).toBeCloseTo(icono.tamano[tamano] * tope);
+    }
+  );
+
+  it('los que van solos (l y xl) no crecen, ni con la letra grande de antes de Accesibilidad', async () => {
+    letraDelIphone(1.353);
     await dibujar(<Icono nombre="fork.knife" tamano="xl" testID="i" />);
-    expect(propsDelIcono().size).toBe(icono.tamano.xl * icono.escalaMaxima);
+    expect(propsDelIcono().size).toBe(icono.tamano.xl);
   });
 
   it('con la escala simulada de la galería, manda esa y no la del iPhone', async () => {

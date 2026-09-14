@@ -4,7 +4,8 @@
  *
  * - El color es un color de texto del tema, nunca un hex.
  * - Crece con el tamaño de letra del iPhone, como los iconos de las apps de
- *   Apple, hasta el doble (`icono.escalaMaxima` en tokens.ts).
+ *   Apple: los pequeños, que van junto a un texto, hasta 1,5 veces; los grandes,
+ *   que van solos, nada (`icono.escalaMaxima` en tokens.ts, decisión #60.4).
  * - Sin `descripcion`, VoiceOver lo salta: casi siempre va junto a un texto que
  *   ya dice lo mismo, y leerlo dos veces estorba. Con `descripcion`, es una
  *   imagen con nombre.
@@ -37,8 +38,12 @@ export function Icono({
 }: Props) {
   const tema = useTema();
   const { fontScale } = useWindowDimensions();
-  // La escala de la galería si la hay; si no, la del iPhone. Con tope.
-  const escala = Math.min(tema.escalaDeLetra ?? fontScale, tema.icono.escalaMaxima);
+  // La escala de la galería si la hay; si no, la del iPhone. Con el tope de su
+  // tamaño.
+  const escala = Math.min(
+    tema.escalaDeLetra ?? fontScale,
+    tema.icono.escalaMaxima[tamano]
+  );
   return (
     <SymbolView
       name={nombre}

@@ -3,6 +3,7 @@ import {
   colores,
   duracion,
   espacio,
+  chip,
   icono,
   opacidad,
   tactil,
@@ -46,10 +47,20 @@ describe('tokens', () => {
 });
 
 describe('tokens de los componentes', () => {
-  it('los iconos van de menor a mayor, y crecen con la letra hasta un tope', () => {
+  it('los iconos van de menor a mayor; los que van con texto crecen, y los que van solos no', () => {
     const tamanos = Object.values(icono.tamano);
     expect([...tamanos].sort((a, b) => a - b)).toEqual(tamanos);
-    expect(icono.escalaMaxima).toBeGreaterThan(1);
+    expect(icono.escalaMaxima.s).toBeGreaterThan(1);
+    expect(icono.escalaMaxima.m).toBeGreaterThan(1);
+    expect(icono.escalaMaxima.l).toBe(1);
+    expect(icono.escalaMaxima.xl).toBe(1);
+    // Un icono pequeño, con la letra más grande, no llega al tamaño de uno grande.
+    expect(icono.tamano.m * icono.escalaMaxima.m).toBeLessThan(icono.tamano.xl);
+  });
+
+  it('el chip se ve más bajo que lo mínimo tocable, en la rejilla de 4 pt', () => {
+    expect(chip.alto).toBeLessThan(44);
+    expect(chip.alto % 4).toBe(0);
   });
 
   it('las opacidades están entre 0 y 1: ni invisibles ni enteras', () => {
