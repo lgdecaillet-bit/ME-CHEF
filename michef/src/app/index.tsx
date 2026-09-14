@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { t } from '@/i18n';
-import { BotonDeDesarrollo } from '@/ui/BotonDeDesarrollo';
+import { Boton } from '@/ui/Boton';
 import { useTema } from '@/ui/tema';
 import { Texto } from '@/ui/Texto';
 
@@ -30,16 +30,17 @@ function HerramientasDeDesarrollo() {
   const tema = useTema();
   return (
     <View style={{ gap: tema.espacio.m }}>
-      <BotonDeDesarrollo
+      <Boton
+        variante="secundario"
         etiqueta={t('desarrollo.abrirGaleria')}
-        descripcion={t('desarrollo.abrirGaleriaDescripcion')}
+        pista={t('desarrollo.abrirGaleriaPista')}
         onPress={() => router.push('/galeria')}
         testID="abrir-galeria"
       />
-      <BotonDeDesarrollo
-        tono="peligro"
+      <Boton
+        variante="destructivo"
         etiqueta={t('desarrollo.provocarError')}
-        descripcion={t('desarrollo.provocarErrorDescripcion')}
+        pista={t('desarrollo.provocarErrorPista')}
         onPress={() => {
           throw new Error('Prueba de Sentry: botón de desarrollo');
         }}

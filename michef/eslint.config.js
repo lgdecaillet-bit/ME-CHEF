@@ -110,7 +110,33 @@ const CONTROLES_SOLO_EN_UI = [
   // `Link` dibuja su propio texto tocable. Para navegar desde una pantalla:
   // `router.push`, desde una pieza de src/ui/.
   { name: 'expo-router', importNames: ['Link'], message: CONTROLES },
+  // Desde D6.5b. Los iconos, solo con <Icono>: lleva el color del tema, crece
+  // con la letra y VoiceOver sabe si leerlo.
+  {
+    name: 'expo-symbols',
+    message:
+      'Los iconos se dibujan con <Icono> de src/ui/, que lleva el color del tema, Dynamic Type y VoiceOver (diseno.md § 2.2).',
+  },
+  // Una rueda sola no dice qué viene (diseno.md § 2.2): se usa <Cargando>, o
+  // un <Boton cargando>.
+  {
+    name: 'react-native',
+    importNames: ['ActivityIndicator'],
+    message:
+      'Una rueda de carga sola no dice qué viene: se usa <Cargando> o <Boton cargando> de src/ui/ (diseno.md § 2.2).',
+  },
 ];
+
+// Las animaciones, con Reanimated y en ningún otro sitio (decisión #60.2): dos
+// sistemas de animación conviviendo es justo la deuda que se quiso evitar. Vale
+// en todo src/, también en src/ui/ y en los tests, así que va en cada bloque que
+// redefine `no-restricted-imports`.
+const ANIMACIONES = {
+  name: 'react-native',
+  importNames: ['Animated'],
+  message:
+    'Las animaciones se hacen con react-native-reanimated, no con el Animated de React Native (decisión #60.2).',
+};
 
 // `Animated.Text`, o `RN.Text` tras un `import * as RN`: el mismo `Text` con
 // otro nombre. Solo fuera de src/ui/.
@@ -397,7 +423,10 @@ module.exports = [
 
       'no-restricted-imports': [
         'error',
-        { paths: CONTROLES_SOLO_EN_UI, patterns: [SDK_DE_MODELOS, RN_POR_DENTRO] },
+        {
+          paths: [...CONTROLES_SOLO_EN_UI, ANIMACIONES],
+          patterns: [SDK_DE_MODELOS, RN_POR_DENTRO],
+        },
       ],
 
       // «TypeScript estricto. Nada de `any` sin comentario que lo justifique»
@@ -498,7 +527,10 @@ module.exports = [
   {
     files: ['src/ui/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', { patterns: [SDK_DE_MODELOS, RN_POR_DENTRO] }],
+      'no-restricted-imports': [
+        'error',
+        { paths: [ANIMACIONES], patterns: [SDK_DE_MODELOS, RN_POR_DENTRO] },
+      ],
     },
   },
   {
@@ -527,6 +559,13 @@ module.exports = [
     rules: { 'no-console': 'off' },
   },
 
+  // ── El arranque de Jest (jest.setup.js) ─────────────────────────────────
+  // Corre dentro de Jest, así que `jest` existe; fuera de un test ESLint no lo sabe.
+  {
+    files: ['jest.setup.js'],
+    languageOptions: { globals: { jest: 'readonly', require: 'readonly' } },
+  },
+
   // ── Tests ──────────────────────────────────────────────────────────────────
   // Se relaja lo del motor (un test del engine sí puede importar helpers), pero
   // NO la prohibición de SDKs de modelos: una key en un test es una key filtrada.
@@ -534,7 +573,10 @@ module.exports = [
     files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}'],
     rules: {
       'no-console': 'off',
-      'no-restricted-imports': ['error', { patterns: [SDK_DE_MODELOS] }],
+      'no-restricted-imports': [
+        'error',
+        { paths: [ANIMACIONES], patterns: [SDK_DE_MODELOS] },
+      ],
       // Un test escribe textos y colores a mano para comprobar lo que sale.
       'react/jsx-no-literals': 'off',
       'no-restricted-syntax': 'off',

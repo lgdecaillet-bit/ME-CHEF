@@ -19,7 +19,7 @@
 | 4 | **Lo estimado se ve distinto de lo medido.** Precio estimado ≠ leído de factura. Ingrediente visto ≠ supuesto. Distinción **visual**, no solo textual | research §5 (Clue: Tracked vs Predicted) |
 | 5 | **Tono de amigo, nunca de profesor.** Sin culpa, sin exclamaciones, sin «¡No olvides…!». Calm 0,4 % de quejas vs Headspace 1,4 % con el mismo recordatorio | research §7 |
 | 6 | **Nativo de iOS.** Se siente como una app de Apple, no como una web. SF Symbols, hápticos, navegación con gesto, safe areas, Dynamic Type | HIG; decisión Expo iOS-only |
-| 7 | **Accesible por defecto.** Contraste AA, objetivos táctiles ≥ 44 pt, etiquetas para VoiceOver, respeta «reducir movimiento» | HIG; WCAG 2.2 |
+| 7 | **Accesible por defecto.** Contraste AA, objetivos táctiles ≥ 44 pt, etiquetas para VoiceOver, respeta «reducir movimiento». Todo se escribe para entenderse sin verlo (#60) | HIG; WCAG 2.2 |
 | 8 | **Modo oscuro desde el día uno.** No es un tema; es la mitad de los usuarios a la hora de cenar | HIG |
 | 9 | **Nunca una imagen que no es el plato.** Sin fotos de stock. Sin espacio, o color plano, hasta que exista la imagen real (Fase 5) | research §3 Evitar (Hungryroot) |
 | 10 | **La foto es la pantalla de carga.** Mientras se procesa, el usuario ve su propia foto con etiquetas apareciendo, no un spinner | `fase-2-nevera.md` §UX |
@@ -47,6 +47,8 @@ espacio     xs 4 · s 8 · m 12 · l 16 · xl 24 · xxl 32 · xxxl 48      (reji
 radio       s 8 · m 12 · l 16 · xl 24 · circulo 999
 movimiento  rapido 150 ms · normal 250 ms · lento 400 ms · curva estándar de iOS
 tactil      minimo 44 (pt)
+chip        alto 36 (pt) · se toca en 44 × 44: la píldora va dentro de una zona transparente (#60)
+icono       s 16 · m 22 · l 28 · xl 48 · s y m crecen con la letra hasta 1,5×, l y xl no (#60)
 ```
 
 `src/ui/tema.tsx` — `ProveedorTema` lee `useColorScheme()` y expone `useTema()`. Cada
@@ -60,17 +62,17 @@ aquí** (con sus estados y su test), luego se usa.
 | Componente | Estados obligatorios | Notas |
 |---|---|---|
 | `Texto` | variantes de tipografía | Único lugar donde vive `<Text>`. Aplica Dynamic Type |
-| `Boton` | primario · secundario · terciario · destructivo · deshabilitado · cargando | Háptico `light` al pulsar. Altura ≥ 44 |
-| `Chip` | normal · seleccionado · pregunta (ámbar, punteado) · supuesto (gris) · deshabilitado | Es el componente más usado de la app |
+| `Boton` | primario · secundario · terciario · destructivo · deshabilitado · cargando | Háptico `light` al pulsar. Altura ≥ 44. VoiceOver lee el texto visible (WCAG 2.5.3); lo que hace va como pista. Destructivo: rojo sobre gris, como en iOS (#59) |
+| `Chip` | normal · seleccionado · pregunta (ámbar, punteado) · supuesto (gris) · deshabilitado | Es el componente más usado de la app. Se ve de 36 pt y se toca en 44 × 44, esté donde esté; entre filas de chips no hace falta espacio (#60). La selección manda sobre el tipo (#59) |
 | `Tarjeta` | normal · pulsable · con etiqueta | Base de `TarjetaReceta` |
 | `Etiqueta` | seguro · posible · supuesto · estimado · real · aviso | **La distinción visual del principio 4 vive aquí** |
-| `Campo` | vacío · con valor · error · deshabilitado | Entrada de texto. Etiqueta flotante |
+| `Campo` | vacío · con valor · error · deshabilitado | Entrada de texto. La etiqueta va encima de la caja, siempre a la vista y sin animación, como en iOS (#60) |
 | `Stepper` | mín · normal · máx | Porciones. Soporta medias |
 | `Hoja` | — | **Pasa a Fase 2** (decisión #58), con la hoja de cuenta, que es su primer uso. Bottom sheet nativo (`@expo/ui` si cubre, si no `@gorhom/bottom-sheet`) |
 | `EstadoVacio` | con acción · sin acción | Icono SF + título + texto + botón. **Siempre honesto** |
-| `Cargando` | inline · pantalla | Skeleton, nunca spinner a solas |
-| `Aviso` | info · exito · error | Toast no bloqueante, 3 s, accesible |
-| `Icono` | — | Envuelve `expo-symbols` (SF Symbols). Único lugar con iconos |
+| `Cargando` | inline · pantalla | Skeleton, nunca spinner a solas: `ActivityIndicator` no se importa fuera de `src/ui/` (ESLint). El latido, con Reanimated (#60). Con «Reducir movimiento», no late |
+| `Aviso` | info · exito · error | Toast no bloqueante, 3 s, VoiceOver lo lee en voz alta. La cola que los muestra encima de todo llega con su primer uso (#59). Un error que pide hacer algo no va aquí: va en la pantalla |
+| `Icono` | — | Envuelve `expo-symbols` (SF Symbols). Único lugar con iconos: `expo-symbols` no se importa fuera de `src/ui/` (ESLint). Crece con la letra: los que van con texto (`s`, `m`) hasta 1,5×; los que van solos (`l`, `xl`), nada (#60) |
 | `Progreso` | — | Barra «2 de 2» del onboarding |
 
 Cada componente: archivo, test RNTL con **todos** sus estados, y entrada en la galería.
@@ -98,6 +100,14 @@ Guía de tono en la cabecera del archivo:
 - Sin exclamaciones. Sin culpa. Sin urgencia artificial.
 - Los números nutricionales llevan «aprox.» siempre. Los precios llevan su origen.
 - Los errores dicen qué pasó y qué puede hacer el usuario. Nunca «Algo salió mal».
+- **Todo se entiende sin verlo** (#60). VoiceOver lee lo que se ve, así que lo que se ve
+  tiene que bastar: una tarjeta dice qué receta es, cuánto tarda y qué usa de la nevera;
+  un botón dice qué hace («Ver los pasos», no «Ver más»); un icono nunca va solo sin
+  texto, salvo con su `descripcion`. Si una pantalla necesita una etiqueta de VoiceOver
+  distinta de lo visible, es que lo visible está mal escrito.
+- **Los números, con la región del iPhone** (#60): `t()` y `numero()` los escriben con los
+  separadores de decimales y de miles del teléfono (`expo-localization`): «1.234,5» en
+  Colombia, «1’234.5» en Suiza en alemán. Nunca se escribe un número a mano en un texto.
 
 ---
 
@@ -176,7 +186,8 @@ Se suman a los de `protocolos-calidad.md`.
 | Sin colores ni tamaños a mano | ESLint `no-restricted-syntax` sobre literales hex y sobre `fontSize:`, `padding:` numéricos fuera de `src/ui/tokens.ts` | commit |
 | Sin texto literal en JSX | `react/jsx-no-literals` (excepciones: `·`, `%`, números), y `no-restricted-syntax` para el texto dentro de un condicional, un «y/o», una suma o una plantilla | commit |
 | Accesibilidad básica | **Sin plugin**: `eslint-plugin-react-native-a11y` no es compatible con ESLint 9 (decisión #58). La etiqueta de VoiceOver es prop obligatoria en las piezas de `src/ui/` (typecheck), y un `accessibilityLabel` escrito a mano no pasa (`no-restricted-syntax`) | commit |
-| Textos y controles solo desde `src/ui/` | `no-restricted-imports` de `Text`, `Pressable` y los demás controles de `react-native` y de `react-native-gesture-handler`, y del `Link` de expo-router, fuera de `src/ui/`; `Animated.Text` con `no-restricted-syntax` | commit |
+| Textos y controles solo desde `src/ui/` | `no-restricted-imports` de `Text`, `Pressable` y los demás controles de `react-native` y de `react-native-gesture-handler`, y del `Link` de expo-router, fuera de `src/ui/`; `Animated.Text` con `no-restricted-syntax`. Desde D6.5b, también `expo-symbols` (se usa `Icono`) y `ActivityIndicator` (se usa `Cargando`) | commit |
+| Una sola forma de animar | `no-restricted-imports` del `Animated` de `react-native` en **todo** `src/`, también en `src/ui/` y en los tests: las animaciones, con Reanimated (#60) | commit |
 | Estados cubiertos | Test RNTL por pantalla con los estados del brief. Sin test, el PR no cumple DoD | merge |
 | Regresión visual | **Desde D7** (#58): Maestro `galeria.yaml` + `takeScreenshot` en cada PR que toque `src/ui/` → capturas en el PR | revisión humana |
 | Contraste | Test `src/ui/__tests__/contraste.test.ts` (decisión #58): cada color de texto sobre cada fondo de `tokens.ts` ≥ 4,5:1 (AA), y el borde ≥ 3:1, en claro y oscuro | pre-push y CI |

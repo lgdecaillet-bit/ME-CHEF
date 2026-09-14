@@ -15,12 +15,13 @@
 import type { ReactNode } from 'react';
 import { Text } from 'react-native';
 
+import { letra, type VarianteDeTexto } from './letra';
 import { useTema } from './tema';
-import type { Colores, tipografia } from './tokens';
+import type { Colores } from './tokens';
 
-export type VarianteDeTexto = keyof typeof tipografia;
+export type { VarianteDeTexto };
 
-type ColorDeTexto = Extract<
+export type ColorDeTexto = Extract<
   keyof Colores,
   'texto' | 'texto2' | 'texto3' | 'acento' | 'sobreAcento' | 'ambar' | 'rojo'
 >;
@@ -32,6 +33,8 @@ type Props = {
   variante?: VarianteDeTexto;
   color?: ColorDeTexto;
   numberOfLines?: number;
+  /** Centrado, para un texto que va solo en medio (`EstadoVacio`). */
+  centrado?: boolean;
   testID?: string;
 };
 
@@ -40,26 +43,21 @@ export function Texto({
   variante = 'cuerpo',
   color = 'texto',
   numberOfLines,
+  centrado,
   testID,
 }: Props) {
   const tema = useTema();
-  const { escalaMaxima, ...estilo } = tema.tipografia[variante];
-  // Con una escala simulada (solo en la galería) el tamaño lo calcula el tema,
-  // y se apaga el del iPhone para que no se multipliquen los dos.
-  const simulada = tema.escalaDeLetra;
-  const escala = simulada == null ? 1 : Math.min(simulada, escalaMaxima);
+  const { style, ...escala } = letra(tema, variante);
   return (
     <Text
       accessibilityRole={TITULOS.has(variante) ? 'header' : undefined}
-      allowFontScaling={simulada == null}
-      maxFontSizeMultiplier={escalaMaxima}
+      {...escala}
       numberOfLines={numberOfLines}
       testID={testID}
       style={{
-        ...estilo,
-        fontSize: estilo.fontSize * escala,
-        lineHeight: estilo.lineHeight * escala,
+        ...style,
         color: tema.color[color],
+        ...(centrado ? { textAlign: 'center' } : null),
       }}
     >
       {children}

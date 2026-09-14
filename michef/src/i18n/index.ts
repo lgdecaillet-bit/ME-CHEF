@@ -4,6 +4,8 @@
  * La clave está tipada: `t('galeria.titulo')` compila, y una clave que no
  * existe es un error de `npm run typecheck`, no un texto roto en el iPhone.
  */
+import { getLocales } from 'expo-localization';
+
 import { log } from '@/lib/log';
 
 import { es } from './es';
@@ -17,6 +19,55 @@ type Hojas<T, Prefijo extends string = ''> = {
 export type Clave = Hojas<typeof es>;
 
 type Valores = Record<string, string | number>;
+
+/**
+ * Cómo escribe los números una región: el separador de decimales y el de miles.
+ * No depende del idioma de la app sino de la región del iPhone (decisión #60.9):
+ * en Suiza, con la app en castellano, quien tiene el teléfono en alemán escribe
+ * «1.5» y quien lo tiene en francés, «1,5». Y en Estados Unidos «1,5» se lee
+ * como mil quinientos.
+ */
+export type FormatoDeNumeros = { decimal: string; miles: string };
+
+/**
+ * Un número con los separadores de una región: «1.234,5» en Colombia,
+ * «1’234.5» en Suiza en alemán. Escribe exactamente el número que es, con los
+ * decimales que tenga, sin redondear: redondear es cosa de quien lo muestra.
+ *
+ * «NaN», «Infinity» y los exponentes («1e+21») no llevan miles; solo se cambia
+ * el punto decimal. Un número así en pantalla es un fallo de quien lo calculó,
+ * y se ve.
+ */
+export function escribirNumero(n: number, { decimal, miles }: FormatoDeNumeros): string {
+  const texto = String(n);
+  if (!/^-?\d+(\.\d+)?$/.test(texto)) return texto.replace('.', decimal);
+  // El signo va con la parte entera, y \B no parte entre él y la primera cifra.
+  const [entera, fraccion] = texto.split('.') as [string, string?];
+  const conMiles = entera.replace(/\B(?=(\d{3})+(?!\d))/g, miles);
+  return fraccion == null ? conMiles : `${conMiles}${decimal}${fraccion}`;
+}
+
+/**
+ * Los separadores de la región del iPhone, la primera de sus preferencias.
+ * Se leen en cada número. Si alguien cambia el formato de región con la app
+ * abierta, iOS no la reinicia: los números que ya están en pantalla siguen con
+ * el formato de antes hasta que esa pantalla se vuelva a dibujar.
+ *
+ * iOS siempre los da. Si alguna vez no llegaran, coma decimal y sin miles: se
+ * lee igual en los tres mercados, y no se confunde con un número más grande.
+ */
+function formatoDelIphone(): FormatoDeNumeros {
+  const [region] = getLocales();
+  return {
+    decimal: region.decimalSeparator ?? ',',
+    miles: region.digitGroupingSeparator ?? '',
+  };
+}
+
+/** Un número como lo escribe quien tiene el iPhone (decisión #60.9). */
+export function numero(n: number): string {
+  return escribirNumero(n, formatoDelIphone());
+}
 
 export function t(clave: Clave, valores?: Valores): string {
   let nodo: unknown = es;
@@ -35,7 +86,10 @@ export function t(clave: Clave, valores?: Valores): string {
     return clave;
   }
   return nodo.replace(/\{(\w+)\}/g, (hueco: string, nombre: string) => {
-    if (valores != null && Object.hasOwn(valores, nombre)) return String(valores[nombre]);
+    if (valores != null && Object.hasOwn(valores, nombre)) {
+      const valor = valores[nombre];
+      return typeof valor === 'number' ? numero(valor) : String(valor);
+    }
     log.warn(`t(): falta el valor de {${nombre}} en «${clave}».`);
     return hueco;
   });

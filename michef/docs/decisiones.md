@@ -831,7 +831,8 @@ nuevas:
 ### #58 · D6.5 se parte en dos, y lo que cambia del plan del sistema de diseño
 
 Fecha: 2026-09-10 · **vigente** · los puntos 1 a 3 los decidió Luciano; el 4 lo propuso
-Claude y Luciano lo aprobó
+Claude y Luciano lo aprobó; los 5 a 11 los decidió Claude al construir y **Luciano los
+confirmó todos** el 2026-09-10, antes del merge
 
 1. **Dos PRs.** **D6.5a**, la base: tokens, tema, `Texto`, `es.ts`, la galería, las reglas
    de ESLint de interfaz, el contraste y la pantalla inicial. **D6.5b**, los once
@@ -879,8 +880,8 @@ Claude y Luciano lo aprobó
    Eso lo cubre la revisión del PR. Y las reglas de interfaz se aplican solo a `src/app/`
    y `src/ui/`: fuera de ahí, un `gap` del motor o una cadena `'#abc'` no son estilo.
 
-Añadido al construir D6.5a. Estos los decidió Claude sobre la marcha, y quedan escritos
-para que Luciano los confirme o los cambie al revisar el PR:
+Añadido al construir D6.5a. Estos los decidió Claude sobre la marcha, y Luciano los
+confirmó al revisar el PR (2026-09-10):
 
 5. **`BotonDeDesarrollo`, provisional.** Desde D6.5a, `Pressable` no se puede importar
    fuera de `src/ui/`, y la pantalla inicial tiene dos botones de desarrollo: el de Sentry
@@ -902,7 +903,8 @@ para que Luciano los confirme o los cambie al revisar el PR:
    da 2,2:1 sobre blanco), y en oscuro el texto sobre el acento es negro. Hay un color que
    el plan no tenía, `sobreAcento`, porque el texto de un botón principal necesita el suyo.
    **Se deciden viendo la galería en el iPhone**: cambiar uno es cambiar una línea, y el
-   test de contraste dice si sigue llegando a AA.
+   test de contraste dice si sigue llegando a AA. **Decidido el 2026-09-10:** Luciano los
+   vio en el iPhone y se quedan tal cual («así la tenía pensada»).
 9. **Jest.** `src/app/` entra en la cobertura, como anunciaba `jest.config.js`, con tests de
    pantalla y de navegación. `src/ui/` y `src/i18n/` tienen umbral propio del 100 %. Y Jest
    transforma ahora `@sentry/*` y `standard-navigation` (la usa expo-router desde el SDK
@@ -914,6 +916,155 @@ para que Luciano los confirme o los cambie al revisar el PR:
 11. **`expo-system-ui` se queda, por ahora.** El tema claro/oscuro no la necesita en iOS,
     pero es la que pinta el fondo de la vista raíz. Se decide al ver el modo oscuro en el
     iPhone; si sobra, quitarla es un cambio de dependencias con su propio «adelante».
+
+### #59 · Lo que D6.5b decidió al construir los componentes
+
+Fecha: 2026-09-10 · **vigente, con los puntos 2, 4, 6, 9 y 15 cambiados por la #60** · el
+plan lo aprobó Luciano («hagale manito»); estos puntos los decidió Claude al construir, y
+Luciano los revisó uno a uno el 2026-09-14 (#60)
+
+1. **`Aviso` sin cola global.** Se construye con sus tres tipos, sus 3 s y el anuncio de
+   VoiceOver; dónde se pone lo decide quien lo muestra. La pieza que los pone en cola y los
+   dibuja encima de cualquier pantalla llega con su primer uso (Fase 1), cuando se sepa qué
+   avisos hay. Y un error que pide hacer algo **no** va en un `Aviso`, que se va solo: va
+   en la pantalla, junto a lo que hay que arreglar (WCAG 2.2.1, tiempo suficiente).
+2. **Las animaciones, con `Animated` de React Native, no con Reanimated.** Son dos: el
+   latido de `Cargando` y la etiqueta de `Campo`, las dos en el hilo nativo
+   (`useNativeDriver`). Reanimated está instalada (la trae el scaffold), pero en Jest pide
+   montar su propio entorno, y para dos animaciones no compensa. Se revisa cuando llegue
+   una que la necesite: los gestos de la Fase 4.
+3. **«Reducir movimiento» cuenta como activado mientras iOS no contesta**
+   (`useMovimientoReducido`): es mejor no animar durante un instante que animar a quien
+   pidió que no.
+4. **Los iconos crecen con la letra del iPhone, hasta el doble** (`icono.escalaMaxima`).
+   Como los de las apps de Apple; sin tope, uno de 48 pt con la letra más grande pasaría
+   de 170 pt.
+5. **`Boton` destructivo: rojo sobre gris, no relleno de rojo**, como el «Eliminar» de iOS.
+   Lo que borra algo no debe ser lo que más llama la atención, y así no hace falta el par
+   `sobreAcento` sobre `rojo`, que el test de contraste no mide.
+6. **`Chip` mide 44 pt de alto**, como todo lo tocable, aunque un chip suela verse más bajo.
+   Seleccionado manda sobre el tipo (una pregunta respondida ya no es duda), y
+   deshabilitado manda sobre todo.
+7. **`Tarjeta` pulsable no pide etiqueta de VoiceOver**: lee lo que tiene dentro, que es lo
+   que se ve (WCAG 2.5.3).
+8. **`Stepper` es un solo control ajustable para VoiceOver**, que sube y baja deslizando el
+   dedo; los botones − y + son para el dedo. Redondea a los decimales del paso, porque en
+   coma flotante 0,1 + 0,2 no da 0,3.
+9. **`t()` escribe los números con coma decimal** («1,5 porciones»). Sin separador de
+   miles todavía: llega con los precios, en Fase 3, con su test.
+10. **Dos reglas de ESLint nuevas: `expo-symbols` y `ActivityIndicator`, solo en
+    `src/ui/`.** La primera estaba en el plan («único lugar con iconos»). La segunda no: es
+    «nunca una rueda sola» de `diseno.md` § 2.2 convertida en error de lint. Cada una con su
+    línea en un fixture y su mutación.
+11. **Los tokens crecen**: `icono` (tamaños y tope), `opacidad` (pulsado 0,6, latido 0,4,
+    sombra 0,15), `duracion.aviso` (3 s) y `cargando` (el bloque de 192 pt y el largo de
+    las tres líneas). Siguen siendo el único archivo con valores, salvo el grosor de borde
+    de 1 pt, que ya se escribía así en D6.5a. La primera versión de este punto dejaba las
+    medidas de `Cargando` fuera y decía lo mismo: lo vio el revisor.
+12. **En la galería, el modo y el tamaño de letra se eligen con `Chip`**, y
+    `BotonDeDesarrollo` se borró (#58.5). La pantalla inicial usa `Boton`: VoiceOver lee
+    «Galería» y «Provocar error», y lo que hacen va como pista.
+13. **Archivos que no estaban en la lista presentada**, cada uno por algo concreto:
+    - `src/ui/letra.ts` saca de `Texto` el cálculo de Dynamic Type, para que `Campo`
+      escriba con la misma letra. Es un refactor pequeño dentro de un PR de feature, que
+      CLAUDE.md desaconseja; se hizo aquí porque sin él `Campo` copiaba la cuenta. Los
+      tests de `Texto` no cambiaron y siguen pasando.
+    - `Texto` gana `centrado` (lo pide `EstadoVacio`) y exporta `ColorDeTexto` (lo usan
+      las piezas que colorean un icono).
+    - `src/ui/useMovimientoReducido.ts` (punto 3).
+    - `src/ui/__tests__/dibujar.tsx`: ayudas de los tests (el tema como `wrapper`, el
+      estilo aplanado y un dedo que toca sin soltar).
+    - `knip.config.js`: `expo-font` sale de las excepciones, porque ahora la importa
+      `expo-symbols`. Lo avisó knip.
+14. **Las dos dependencias nativas se prueban en Expo Go, no en un build.**
+    `protocolos-calidad.md` pide build de simulador y Maestro cuando entra una dependencia
+    nativa, y esa tubería llega con D7. `expo-symbols` y `expo-haptics` vienen dentro de
+    Expo Go, así que la prueba del iPhone las usa de verdad; el build de simulador las verá
+    por primera vez en D7.
+15. **La etiqueta de `Campo` se coloca con la letra de ahora.** El sitio de arriba crece
+    con Dynamic Type (la escala de la galería o la del iPhone, con el tope del cuerpo), y
+    la etiqueta va en **una sola línea**, cortada con «…» si no cabe; VoiceOver la oye
+    entera, porque es el nombre del campo. Así la etiqueta encogida no tapa lo escrito.
+    El revisor lo vio dos veces: la primera versión la subía siempre 16 pt y con la letra
+    más grande tapaba 36 pt del texto; la segunda dejaba que una etiqueta larga se
+    partiera en dos líneas, y la segunda línea volvía a tapar. Una etiqueta de campo
+    tiene que caber en una línea: si no cabe, el texto de `es.ts` es demasiado largo.
+
+### #60 · Lo que Luciano decidió al revisar la #59
+
+Fecha: 2026-09-14 · **vigente** · decidió Luciano, punto por punto, después de pedir que
+se le explicara cada uno a fondo. Donde dijo «sigo tus recomendaciones», manda la
+recomendación que se le dio y que queda escrita aquí.
+
+**Se quedan como estaban:** 1 (`Aviso` sin cola global), 3 («Reducir movimiento» cuenta
+como activado mientras iOS no contesta: «primero se tiene que obtener la respuesta del
+sistema»), 5 (destructivo rojo sobre gris), 8 (`Stepper` como un solo control ajustable),
+10 (las dos reglas de ESLint), 11 (ningún valor de diseño fuera de `tokens.ts`), 12
+(`BotonDeDesarrollo` borrado) y 14 (las dependencias nativas, probadas en Expo Go).
+
+**Cambian:**
+
+2. **Reanimated ya, no cuando haga falta.** Luciano: «mejor dejar las bases bien hechas
+   para que cuando se necesiten no añadan complejidad». El latido de `Cargando` pasa a
+   Reanimated (4.5.1, ya instalada por el scaffold y dentro de Expo Go), y **el `Animated`
+   de React Native queda prohibido en todo `src/`**, también en `src/ui/` y en los tests,
+   con su línea en cuatro fixtures: dos sistemas de animación conviviendo es justo la
+   deuda que se quiso evitar. En Jest, `jest.setup.js` registra el sustituto de
+   `react-native-worklets` y `setUpTests`, y los tests miden la opacidad de verdad con el
+   reloj falso, en vez de comprobar que se llamó a una función.
+   `useMovimientoReducido` sigue siendo la única fuente de «Reducir movimiento» (punto 3).
+   Reanimated trae su propia forma de preguntarlo; se usa la nuestra para que haya una
+   sola fuente y un solo test.
+4. **Los iconos crecen según dónde van, no todos hasta el doble.** `s` y `m` van junto a un
+   texto y crecen con él hasta 1,5 veces; `l` y `xl` van solos y no crecen. Es lo que hace
+   Apple: con la letra grande la pantalla ya está llena de texto, y un icono enorme estorba.
+   Luciano: «un poco grandes… sigue tu propio criterio».
+6. **El chip se ve de 36 pt y responde al dedo en 44 × 44 como mínimo.** 44 visibles se ve
+   pesado en una fila de diez ingredientes; 36 es lo normal en iOS y en Material. Lo que
+   se toca es una zona transparente de 44 que lleva dentro la píldora de 36, centrada. **No
+   es un `hitSlop`**: la primera versión lo era, y el revisor vio que React Native recorta
+   el `hitSlop` al borde del contenedor (`ViewPropTypes.d.ts`: «the touch area never
+   extends past the parent view bounds»), así que los 44 no estaban garantizados: dependían
+   de que el contenedor no tuviera vista propia. Como la zona ya deja 4 pt invisibles arriba y abajo, entre dos filas de chips no hace
+   falta espacio. Nuevo token: `chip.alto`.
+7. **Se queda, y además es regla de diseño y de redacción:** todo se escribe para
+   entenderse sin verlo. VoiceOver lee lo que se ve, así que lo que se ve tiene que
+   bastar: nada de iconos solos sin texto, ni «Ver más» sin decir de qué. En `diseno.md`
+   § 2.4.
+9. **Los números siguen la región del iPhone, no el idioma de la app, y con separador de
+   miles.** Lo señaló Luciano: en Estados Unidos «1,5» se lee como mil quinientos, y en la
+   propia Suiza quien tiene el teléfono en alemán escribe «1.5» y quien lo tiene en
+   francés, «1,5». La coma fija estaba mal para dos de los tres mercados. `escribirNumero`
+   escribe con los separadores de una región, con tests para Colombia, Suiza en alemán,
+   Suiza en francés y Estados Unidos. `numero()` lee los separadores del iPhone con
+   `expo-localization` **57.0.2** (fijada exacta, dentro de Expo Go, sin scripts de
+   instalación, una dependencia: `rtl-detect`), instalada con el «adelante» de Luciano
+   («hagale»). Se leen en cada número, con `getLocales()`; si iOS no los diera, coma
+   decimal y sin miles. **Sin el plugin de configuración** que `expo install` sugiere:
+   sin opciones (`supportsRTL`, `supportedLocales`) no cambia nada del build.
+   **La #59.14 vale también para ella**: es nativa, viene dentro de Expo Go y se prueba en
+   el iPhone, cambiando la región y viendo `1,5` o `1.5` en el `Stepper` de la galería. El
+   primer build de simulador la verá en D7, con `expo-symbols` y `expo-haptics`.
+   Si alguien cambia el formato de región con la app abierta, iOS no la reinicia: los
+   números ya dibujados siguen con el formato de antes hasta que su pantalla se vuelva a
+   dibujar. Se acepta hoy; para las listas de precios de Fase 3 conviene guardar el
+   formato y renovarlo con `addLocaleListener`.
+   `expo-symbols` y `expo-haptics` se fijan exactas en 57.0.3: las instaló D6.5b, no el
+   scaffold, y se habían quedado con `~` sin verse (lo vio el revisor).
+13. **`letra.ts` se queda en este PR, como excepción anotada** a «una feature = una rama =
+    un PR» (`CLAUDE.md`). Motivo: es un refactor pequeño que la feature necesitaba (`Campo`
+    habría copiado el cálculo de Dynamic Type), los tests de `Texto` no cambiaron, y
+    sacarlo a otro PR costaba un ciclo entero sin ganar nada que se pueda comprobar. La
+    excepción vale para este caso y no abre la puerta a otros.
+15. **La etiqueta de `Campo` va encima de la caja**, siempre a la vista, como en los
+    formularios de iOS, y no se anima. La etiqueta flotante es un patrón de Android, fue
+    lo que el revisor devolvió dos veces, y el espacio que ahorra no le hace falta a una
+    app con tan pocos formularios. Ahora la etiqueta puede ocupar dos líneas con la letra
+    grande sin tapar nada, y `Campo` deja de necesitar animación.
+
+Corrido, tal cual: `npm run gates` en verde · **639 tests** · cobertura 100 % · todas las
+reglas disparan · **22 de 22 mutaciones cazadas** (18 de los cambios y 4 de la región del
+iPhone) · `codigo-muerto` limpio · `expo-doctor` 21/21.
 
 ## Pendientes de decidir
 
@@ -928,7 +1079,6 @@ para que Luciano los confirme o los cambie al revisar el PR:
 - Granularidad del catálogo: «pollo» vs «pechuga sin piel»
 - Fórmula y pesos del ranking
 - Marketplace: ¿catálogo con reseñas, o recetas publicadas por usuarios?
-- Tokens del sistema de diseño: hay una primera propuesta (#58, punto 8). Se confirman viendo la galería en el iPhone
 
 ## Por verificar antes de depender de ello
 

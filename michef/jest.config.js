@@ -39,6 +39,9 @@ module.exports = {
   // __tests__/ y falla con «tu suite debe contener al menos un test» sobre los
   // constructores de datos compartidos (ayudas.ts).
   testMatch: ['**/*.test.{ts,tsx}'],
+
+  // Reanimated en los tests (decisión #60.2). Va después de montar `expect`.
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   clearMocks: true,
   restoreMocks: true,
 

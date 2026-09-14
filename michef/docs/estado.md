@@ -5,15 +5,15 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-10 · por sesión S-20260910-a
+Actualizado: 2026-09-14 · por sesión S-20260914-a
 
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D6.5a construido y revisado** (APROBADO en la tercera vuelta). Falta que Luciano lo vea en el iPhone, que confirme los puntos 5 a 11 de la #58, y el CI en verde |
-| **Decisiones vigentes** | hasta **#58** |
+| **Paso actual** | **D6.5b en el PR #18, con la #60 aplicada entera** (2026-09-14), `expo-localization` incluida: 639 tests, 22 de 22 mutaciones. Revisor APROBADO en la segunda vuelta. Falta el CI, el iPhone y el «adelante» del merge |
+| **Decisiones vigentes** | hasta **#60** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `feat/F0-D6.5a-sistema-diseno` — espera el iPhone, la confirmación de la #58 y el CI |
+| **Rama de trabajo** | `feat/F0-D6.5b-componentes` (PR #18) — con la #60 aplicada y el revisor en APROBADO; espera el CI y el iPhone |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -39,11 +39,17 @@ aprueba el siguiente.
 Cada sesión anota su ID aquí **antes de hacer nada** (letra siguiente a la última).
 Se vacía al cambiar de día.
 
-**2026-09-10**
+**2026-09-14**
 
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
-| S-20260910-a | D5, la regla #55, D6 · app base y D6.5a · base del sistema de diseño | abierta |
+| S-20260914-a | retomar: dónde estamos, merge del #19, `main` dentro de D6.5b, y las 15 decisiones de la #59 | abierta |
+
+**2026-09-10 y 11** (días anteriores, se conservan por trazabilidad)
+
+| Sesión | Ventana / propósito | Estado |
+|---|---|---|
+| S-20260910-a | D5, la regla #55, D6 · app base, D6.5a · base del sistema de diseño, D6.5b · componentes y el PR #19 de parches | cerrada |
 
 **2026-09-09** (día anterior, se conserva por trazabilidad)
 
@@ -67,7 +73,9 @@ Se vacía al cambiar de día.
 | D4 · Supabase como código | `chore/F0-D4-supabase` | S-20260909-g | 2026-09-09 | **mergeada** (PR #8) |
 | D5 · CI y reglas de rama | `chore/F0-D5-ci` | S-20260910-a | 2026-09-10 | **mergeada** (PR #9, #11) |
 | D6 · app base | `feat/F0-D6-app-base` | S-20260910-a | 2026-09-10 | **mergeada** (PR #16, `0d4468f`) |
-| D6.5a · base del sistema de diseño | `feat/F0-D6.5a-sistema-diseno` | S-20260910-a | 2026-09-10 | construida y revisada; espera el iPhone |
+| D6.5a · base del sistema de diseño | `feat/F0-D6.5a-sistema-diseno` | S-20260910-a | 2026-09-10 | **mergeada** (PR #17, `e66df6d`) |
+| Parches de Expo del SDK 57 | `chore/deps-expo-57-parches` | S-20260910-a | 2026-09-11 | **mergeada** (PR #19, `61b80f7`) |
+| D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | PR #18; `main` dentro; #60 aplicada; revisor APROBADO; faltan CI e iPhone |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -88,8 +96,8 @@ desde el primer PR de código.
 | D4 | Supabase como código: migraciones, RLS, pgTAP, esqueleto `ai-proxy` | Claude | ✅ mergeado (PR #8) |
 | D5 | CI GitHub Actions + rulesets + prueba del gate rojo | Claude | ✅ hecho, entero |
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ mergeado (PR #16, `0d4468f`), verificado en el iPhone |
-| D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | 🔨 hecho y revisado; falta el iPhone |
-| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisión #58) | Claude | ⏳ |
+| D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | ✅ mergeado (PR #17, `e66df6d`), visto en el iPhone |
+| D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | 🔨 PR #18, #60 aplicada; revisor APROBADO; faltan CI e iPhone |
 | D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
 | D8 | README | Claude | ⏳ |
 
@@ -330,20 +338,46 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    primera vuelta (las reglas de ESLint tenían agujeros y la #58 prometía más de lo que
    protegían), **CAMBIOS** otra vez en la segunda (tres huecos más pequeños) y
    **APROBADO** en la tercera.
-   **Lo que solo puede hacer Luciano, y sin lo cual no hay merge:**
-   - abrir la app (`npx expo start`, `COMANDOS.md` § 1) y tocar «Galería»;
-   - mirar los colores en claro y en oscuro, con los botones de la galería y con el modo
-     del teléfono (Ajustes › Pantalla y brillo);
-   - subir la letra en Ajustes › Accesibilidad › Pantalla y tamaño del texto, y ver que la
-     app la sigue sin cortar nada;
-   - decir si los colores le gustan: son una primera propuesta (#58.8);
-   - confirmar o cambiar los puntos 5 a 11 de la #58.
-   Al forzar «Oscuro» con el teléfono en claro, la barra de arriba sigue en claro: la
+   **Mergeado el 2026-09-10** (PR #17, `e66df6d`), con los tres checks en verde. Luciano
+   lo vio en el iPhone: los colores se quedan tal cual (#58.8), y confirmó los puntos 5 a
+   11 de la #58. Al forzar «Oscuro» con el teléfono en claro, la barra de arriba sigue en claro: la
    pinta el tema del sistema, no el de la galería. Es lo esperado.
-14. Después, **D6.5b**: los 11 componentes que faltan, con `expo-symbols` y
-   `expo-haptics`. Se presenta y espera «adelante». **Borra `BotonDeDesarrollo`**
-   (#58.5), y el `Boton` nuevo usa el texto visible como etiqueta de VoiceOver y la
-   explicación como pista (WCAG 2.5.3): el provisional no lo hace.
+14. **D6.5b construido** (`feat/F0-D6.5b-componentes`): los 11 componentes (`Boton`,
+   `Chip`, `Tarjeta`, `Etiqueta`, `Campo`, `Stepper`, `EstadoVacio`, `Cargando`, `Aviso`,
+   `Icono`, `Progreso`), cada uno con todos sus estados, su test y su sitio en la galería;
+   `expo-symbols` y `expo-haptics` (~57.0.2, en Expo Go); `BotonDeDesarrollo` borrado.
+   **628 tests**, cobertura 100 %, **59 comprobaciones de reglas** y **76 de 76
+   mutaciones cazadas**. El revisor devolvió **CAMBIOS** dos veces, con razón las dos, y
+   **APROBADO** en la tercera (la bitácora cuenta qué encontró). Lo que se decidió al
+   construir está en la **#59**, quince puntos, para que Luciano los confirme.
+   **2026-09-11:** Luciano la revisó en el iPhone y le gustó. Push y **PR #18**. El CI
+   salió rojo por los parches de Expo, que fueron al **PR #19** (mergeado por Luciano el
+   2026-09-14, `61b80f7`); `main` ya está dentro de la rama, con `expo-symbols` y
+   `expo-haptics` en 57.0.3 y `expo-doctor` 21/21.
+   **2026-09-14:** Luciano revisó los 15 puntos de la #59, uno a uno, y decidió (queda como
+   **#60** al aplicarla): 1, 3, 5, 8, 10, 11, 12 y 14 como estaban · **2** Reanimated ya,
+   y `Animated` prohibido en `src/` · **4** los iconos s y m crecen hasta 1,5×, l y xl no
+   crecen · **6** chips de 36 visibles y 44 tocables · **7** como estaba, y regla: todo se
+   escribe para entenderse sin verlo · **9** los números siguen la región del iPhone, con
+   miles · **13** `letra.ts` se queda, anotado como excepción · **15** la etiqueta de
+   `Campo` va encima de la caja, sin animación.
+   **2026-09-14, la #60 aplicada** (bitácora): Reanimated con el `Animated` de React Native
+   prohibido, `Campo` con la etiqueta encima, iconos con tope por tamaño, chip de 36/44 y
+   `escribirNumero`. 637 tests, 18 de 18 mutaciones.
+   Después, con su «adelante», `expo-localization` 57.0.2: los números ya salen con la
+   región del iPhone. 639 tests, 22 de 22 mutaciones.
+   **El revisor devolvió CAMBIOS con cuatro puntos, con razón** (bitácora): el chip usaba
+   `hitSlop`, que React Native recorta al contenedor; `expo-symbols` y `expo-haptics` con
+   `~`; `expo-localization` sin su excepción escrita; y un comentario que prometía de más.
+   Arreglados, y **segunda vuelta: APROBADO**.
+   **Falta, y sin eso no hay merge:** el CI en verde (#55); la
+   galería en el iPhone, con «Reducir movimiento» apagado y encendido, tocando los chips
+   por su borde de arriba, y cambiando la región para ver `1,5` o `1.5` en el `Stepper`;
+   y el «adelante» del merge.
+15. Después, **D7**: EAS Workflows y Maestro (el smoke y las capturas de la galería). Será
+   también el primer build de simulador con `expo-symbols`, `expo-haptics` y
+   `expo-localization` (#59.14, #60.9). Se
+   presenta y espera «adelante».
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
 

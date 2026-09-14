@@ -126,3 +126,42 @@ export const movimiento = { rapido: 150, normal: 250, lento: 400 } as const;
 
 /** Lo mínimo que Apple pide para algo que se toca, en puntos. */
 export const tactil = { minimo: 44 } as const;
+
+/**
+ * El `Chip` (decisión #60.6): se ve de 36 pt, más ligero en una fila de diez,
+ * pero responde al dedo en los 44 × 44 de `tactil.minimo`: la píldora va dentro
+ * de una zona tocable transparente. Con la letra grande crece solo, porque crece
+ * su texto.
+ */
+export const chip = { alto: 36 } as const;
+
+/**
+ * Los iconos (SF Symbols), en puntos. Cuánto crecen con la letra del iPhone
+ * depende de dónde van, como en las apps de Apple (decisión #60.4):
+ * - `s` y `m` van junto a un texto y crecen con él, hasta 1,5 veces (16 → 24,
+ *   22 → 33): así siguen proporcionados.
+ * - `l` y `xl` van solos, de adorno, y no crecen: con la letra grande la
+ *   pantalla ya está llena de texto, y un icono enorme solo estorba.
+ * Con la letra más pequeña que la normal, encogen todos con ella.
+ */
+export const icono = {
+  tamano: { s: 16, m: 22, l: 28, xl: 48 },
+  escalaMaxima: { s: 1.5, m: 1.5, l: 1, xl: 1 },
+} as const;
+
+/**
+ * `pulsado`: lo que se apaga algo mientras el dedo lo toca. `latido`: hasta dónde
+ * se apaga un bloque de «Cargando» en cada latido. `sombra`: la de un `Aviso`,
+ * que flota encima de la pantalla.
+ */
+export const opacidad = { pulsado: 0.6, latido: 0.4, sombra: 0.15 } as const;
+
+/** Milisegundos. Lo que un `Aviso` se queda en pantalla (diseno.md § 2.2). */
+export const duracion = { aviso: 3000 } as const;
+
+/**
+ * La forma de `Cargando`: el alto del bloque grande (lo que va a llegar arriba de
+ * una pantalla, una foto o una tarjeta) y el largo de sus tres líneas, distinto
+ * cada una, como un párrafo de verdad.
+ */
+export const cargando = { bloque: 192, lineas: ['100%', '85%', '60%'] } as const;

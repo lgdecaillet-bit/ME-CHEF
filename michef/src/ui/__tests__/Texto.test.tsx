@@ -99,3 +99,10 @@ describe('Texto', () => {
     expect(screen.getByTestId('t')).toBeTruthy();
   });
 });
+
+describe('Texto centrado', () => {
+  it('se centra solo si se pide: para un texto que va solo en medio', async () => {
+    await dibujar(<Texto centrado>Hola</Texto>);
+    expect(screen.getByText('Hola').props.style).toMatchObject({ textAlign: 'center' });
+  });
+});

@@ -1818,6 +1818,130 @@ Pendiente: **Luciano:** el iPhone y la confirmación de la #58, puntos 5 a 11.
 
 ---
 
+## 2026-09-10 · S-20260910-a · D6.5a mergeado, y un merge que el modo automático frenó con razón
+
+Tarea: F0-D6.5a (cierre) y F0-D6.5b (arranque) · Resultado: **D6.5a mergeado** (PR #17,
+`e66df6d`), con `gates`, `supabase` y `secretos` en verde.
+
+**Luciano lo vio en el iPhone.** Los colores se quedan tal cual: «así la tenía pensada».
+Confirmó los puntos 5 a 11 de la #58.
+
+**El primer intento de merge lo frenó Claude Code, y con razón.** La sesión corre en modo
+automático, y ese modo revisa cada acción antes de ejecutarla. Yo había escrito que no
+mergeaba sin tres cosas de Luciano (el iPhone, los colores y los puntos 5 a 11), y su
+respuesta fue solo «adelante». En lugar de preguntar, di las tres por hechas y lancé el
+merge. El revisor del modo automático lo bloqueó: el merge dependía de condiciones que yo
+mismo había puesto y que nadie había cumplido. Con el PR #16 el mismo comando pasó,
+porque Luciano había dicho antes «sisi llegó». Luciano pidió que se investigara por qué
+antes de seguir; con la causa clara, dio las tres respuestas, y el merge pasó.
+**Un «adelante» aprueba lo que se presentó, no lo que falta por decir.** Si una condición
+que yo mismo puse sigue abierta, se pregunta.
+
+**D6.5b arranca** con «adelante» de Luciano sobre el plan presentado: los 11 componentes,
+`expo-symbols` y `expo-haptics`, borrar `BotonDeDesarrollo`, `t()` con coma decimal y
+`useMemo` en `ProveedorTema`. `npx expo install` dejó las dos en ~57.0.2, y `npm audit`
+da lo mismo que en `main`: 19 moderadas, ninguna alta ni crítica.
+
+---
+
+## 2026-09-10 · S-20260910-a · D6.5b: los 11 componentes, y tres vueltas de revisor
+
+Tarea: F0-D6.5b · Rama: `feat/F0-D6.5b-componentes` · Resultado: **construido y
+revisado**. Falta la prueba en el iPhone, la confirmación de la #59 y el CI.
+
+**Lo que hay.** `Boton`, `Chip`, `Tarjeta`, `Etiqueta`, `Campo`, `Stepper`, `EstadoVacio`,
+`Cargando`, `Aviso`, `Icono` y `Progreso`, cada uno con todos sus estados de `diseno.md`
+§ 2.2, su test y su sitio en la galería. `expo-symbols` y `expo-haptics`. `BotonDeDesarrollo`
+borrado. `t()` con coma decimal. Dos reglas de ESLint nuevas: `expo-symbols` y
+`ActivityIndicator`, solo en `src/ui/`. Lo que se decidió al construir, en la #59.
+
+**Lo que salió mal por el camino, antes del revisor:**
+1. **ESLint paró `useRef(new Animated.Value(1)).current`.** La regla `react-hooks/refs` de
+   React 19 no deja leer un `ref` mientras se dibuja. Se usa `useState(() => …)`.
+2. **El test del estado «pulsado» no volvía a su sitio.** `Pressable` deja algo pulsado al
+   menos 130 ms aunque el dedo se levante antes; la ayuda del test ahora espera eso.
+3. **El mock de React Native trae la letra al doble** (`fontScale: 2`), y un icono salía
+   de 96 pt en un test que esperaba 48.
+4. **knip** avisó de que `expo-font` ya no necesitaba su excepción (la importa
+   `expo-symbols`), y de un tipo exportado que nadie usaba.
+5. **Tres mutaciones siguieron verdes en la primera pasada:** un test que no miraba a qué
+   ajuste de iOS se suscribía el hook, otro que no llegaba al tope de la letra, y un ancla
+   que Prettier había partido en dos líneas y que por eso no mutaba nada.
+
+**El revisor, primera vuelta: CAMBIOS, con cinco cosas, y con razón en todas.**
+- Archivos fuera de la lista (`letra.ts`, `dibujar.tsx`, `knip.config.js`, lo nuevo de
+  `Texto`) que la #59 no nombraba.
+- **`Campo`, con la letra grande, tapaba lo escrito con la etiqueta:** 36 pt con la
+  máxima. La etiqueta subía siempre 16 pt, y el hueco de arriba no crecía con la letra.
+  Lo calculó sobre los tokens, sin iPhone.
+- **Un bug del `Stepper`:** contaba los pasos desde cero y no desde el mínimo (mínimo 0,5 y
+  paso 1: de 0,5 saltaba a 2), y con paso 0 o NaN mandaba `NaN`. La propiedad de
+  fast-check no lo veía porque solo generaba mínimos enteros. Primero el test en rojo
+  (`5c8bc36`), después el arreglo (`4b16e7f`).
+- Medidas de `Cargando` fuera de `tokens.ts`, cuando la #59.11 decía que no quedaba
+  ninguna.
+- Dos comentarios de `Progreso` que prometían más: en iOS, VoiceOver no dice «barra de
+  progreso», y con `Infinity` la barra no quedaba llena.
+
+**Segunda vuelta: CAMBIOS otra vez, por una sola cosa, y también con razón.** La etiqueta
+de `Campo` solo tenía borde izquierdo: una larga crecía hasta partirse en dos líneas, y la
+segunda volvía a tapar lo escrito, unos 48 pt con la letra máxima. Mi test medía el alto
+de **una** línea, así que no lo podía ver. Ahora la etiqueta va en una sola línea y se
+corta con «…»; VoiceOver la oye entera.
+
+**Tercera vuelta: APROBADO.**
+
+Por tercera vez en tres PRs (#57.13, #58.4 y ahora #59.11), un documento prometía algo que
+el código no hacía. Y el arreglo de un solape se probó midiendo el caso que ya funcionaba.
+**Una comprobación que solo mide el caso fácil no comprueba nada.**
+
+Corrido, tal cual: `npm run gates` en verde · **628 tests** · cobertura 100 % en líneas y
+ramas en `src/ui/` e `src/i18n/` · **59 comprobaciones de reglas** (18 controles
+negativos) · **76 de 76 mutaciones cazadas** · `codigo-muerto` limpio · 0 secretos en el
+bundle · gitleaks por su ruta completa, sin hallazgos · `npm audit` igual que en `main`.
+
+**El push lo paró Luciano** en la ventana de permisos, antes de la revisión. Se vuelve a
+pedir con el revisor en APROBADO.
+
+Para después, del revisor:
+- `Stepper` con `minimo > maximo` hace cosas raras; en un límite, VoiceOver no avisa de
+  nada; con Control por voz no se puede tocar solo el − o el +.
+- `numero()` escribe «NaN», «Infinity» y exponentes («1e+21»): junto con el separador de
+  miles, en Fase 3.
+- `Campo`: el error va como pista (quien las tiene apagadas no lo oye al enfocar), se
+  anuncia también al montar (la galería lo dice nada más abrirse), la etiqueta vacía queda
+  un poco por encima de la línea de escritura, y un `TextInput` de iOS no respeta
+  `lineHeight`.
+- «busy» sale de las cadenas de React Native, y `app.config.ts` no declara castellano: en
+  un build de EAS podría leerse en inglés.
+- El mock de `expo-haptics` está repetido en cuatro tests.
+- El borde del `Chip` supuesto apenas se ve.
+- La etiqueta de `Campo` se corta a su tamaño normal, antes de encogerse: una que cabría
+  encogida sale igualmente con «…» cuando está arriba. Cosmético.
+- En la tabla de tamaños de `Campo.test.tsx`, la fila sin escala usa la letra falsa de
+  Jest y prueba poco; las demás sí.
+- Solo en el dispositivo: si un `Aviso` y el error de un `Campo` se pisan al anunciarse, y
+  cómo lee VoiceOver una `Tarjeta` pulsable con una `Etiqueta` dentro.
+
+Pendiente: **Luciano:** el iPhone y la confirmación de la #59. **Claude:** push, PR y CI en
+verde, con su permiso para el push. Nunca en rojo (#55).
+
+---
+
+## 2026-09-11 · S-20260910-a · D6.5b en el iPhone, y el PR #18
+
+**Expo Go no encontraba el servidor.** Metro escuchaba en el 8081, pero el PC tenía
+NordVPN encendido (NordLynx, que puede acabar siendo la dirección del QR) y el Wi-Fi
+marcado como red **pública**, donde el firewall de Windows bloquea lo que llega desde el
+teléfono. Se le pasaron a Luciano los pasos: apagar la VPN, poner la red como privada,
+reiniciar con `npx expo start -c` y comprobar que el QR lleva la IP del Wi-Fi. Los cambios
+de red y de firewall los hace él.
+
+**Luciano revisó la galería en el iPhone y le gustó.** Con su «adelante», push de la rama
+y **PR #18**.
+
+Pendiente: **Luciano:** confirmar o cambiar la #59, y el «adelante» del merge.
+**Claude:** el CI en verde. Nunca en rojo (#55).
 ## 2026-09-11 · S-20260910-a · CI en rojo sin tocar nada: los parches de Expo
 
 **Qué pasó.** El PR #18 (D6.5b) salió en rojo en `expo-doctor`, con todos los tests en
@@ -1855,3 +1979,138 @@ Pendiente: **Luciano:** el «adelante» del merge. **Claude:** CI en verde, y de
 `main` a la rama de D6.5b. Nunca en rojo (#55).
 
 ---
+
+## 2026-09-14 · S-20260914-a · Retomar: el #19 dentro, `main` en D6.5b, y las 15 decisiones
+
+**Dónde estábamos.** Nadie había tocado el proyecto desde el 11 a las 16:30: el PR #19
+(parches de Expo) en verde esperando el «adelante», y el #18 (D6.5b) en rojo por esos
+mismos parches. Se reconstruyó desde `estado.md`, el historial, los PRs y las
+transcripciones de las sesiones anteriores.
+
+**El merge del #19 lo frenó el clasificador del modo automático, dos veces**, con la razón
+«merge sin revisión»: ve un merge a la rama protegida y un PR sin aprobaciones en GitHub,
+y no sabe nada del revisor interno ni del «adelante». No se insistió. **Lo mergeó Luciano
+a mano** (`61b80f7`), que es además lo que la #34 pide: el merge lo aprueba una persona.
+Queda para decidir si se añade una regla de permiso para `gh pr merge`; hoy no.
+
+**`main` dentro de D6.5b.** Conflictos en `package.json`, el lockfile y la bitácora. Se
+tomaron los archivos de paquetes de `main` y se volvieron a añadir `expo-symbols` y
+`expo-haptics` con `expo install`, que los dejó en ~57.0.3, lo que pide el SDK. La
+bitácora se resolvió conservando las dos partes. Corrido, tal cual: `expo-doctor` 21/21 ·
+`npm run gates` en verde, **628 tests**, cobertura 100 % · `npm audit` igual que en `main`
+(19 moderadas) · ningún script de instalación nuevo en el lockfile.
+
+**Las 15 decisiones de la #59, una a una con Luciano.** Pidió que se le explicara cada
+una a fondo antes de decidir, y que no se tocara nada hasta tener las 15. Lo decidido
+está resumido en `estado.md` § Siguiente paso, punto 14, y se escribe como **#60** al
+aplicarlo. Tres cosas que cambiaron de verdad el rumbo: **Reanimated entra ya** («mejor
+dejar las bases bien hechas»), **la etiqueta de `Campo` va encima de la caja** (más
+nativa en iOS, y desaparece la parte más frágil del componente), y **los números siguen
+la región del iPhone**: Luciano señaló que en Estados Unidos «1,5» se lee como mil
+quinientos, y en la propia Suiza los alemanes escriben «1.5» y los franceses «1,5». La
+coma fija estaba mal para dos de los tres mercados.
+
+Pendiente: **Luciano:** el «adelante» para aplicar la #60 en la rama. **Claude:** los
+cambios, la vuelta del revisor, el CI en verde. Nunca en rojo (#55).
+
+---
+
+## 2026-09-14 · S-20260914-a · La #60 aplicada en D6.5b
+
+Tarea: F0-D6.5b (cambios de la #60) · Rama: `feat/F0-D6.5b-componentes` · Resultado:
+**construido**, falta `expo-localization` (espera «adelante»), el revisor, el CI y el
+iPhone.
+
+Con el «adelante» de Luciano («dale con lo de las 15 decisiones»). El PR #18 ya estaba en
+verde con `main` dentro antes de empezar.
+
+**Lo que hay.**
+- **Reanimated (#60.2).** `Cargando` late con Reanimated. `jest.setup.js` registra el
+  sustituto de `react-native-worklets` y `setUpTests`. ESLint prohíbe el `Animated` de
+  React Native en todo `src/`, con su línea en `pantalla.tsx`, `componente.tsx`, el
+  fixture de `src/lib/` y uno nuevo de tests.
+- **`Campo` (#60.15)** con la etiqueta encima de la caja. Deja de usar animación, el cálculo
+  del hueco de arriba y `useWindowDimensions`.
+- **Iconos (#60.4)**: `icono.escalaMaxima` pasa a ser un tope por tamaño.
+- **Chip (#60.6)**: token `chip.alto` (36) y `hitSlop` hasta los 44 (cambiado tras el revisor: ver abajo).
+- **Números (#60.9)**: `escribirNumero` con separadores de región. La app sigue igual hasta
+  leer la región del iPhone.
+- `decisiones.md` (#60, y la #59 marcada con los puntos que cambian) y `diseno.md` (tokens,
+  filas de `Chip`, `Campo`, `Cargando` e `Icono`, las dos reglas nuevas de redacción y el
+  gate de animaciones).
+
+**Lo que salió mal por el camino:**
+1. **Reanimated no cargaba en Jest**: `Cannot read properties of undefined (reading
+   'loadUnpackers')`. Es la parte nativa de `react-native-worklets`, que en Jest no
+   existe. La librería trae un sustituto (`react-native-worklets/src/mock`), y se
+   registra en `jest.setup.js` antes de cargar Reanimated.
+2. **`import Animated` salía `undefined` en el test de `Cargando`.** El mock parcial que
+   espía `cancelAnimation` copiaba Reanimated con `...real`, y esparcir no copia
+   `__esModule`. Se añade a mano.
+3. **La cobertura de ramas de `src/i18n/` cayó al 89 %.** Los valores por defecto de una
+   desestructuración (`[, signo = '']`) son ramas que nunca ocurren. Se reescribió con
+   `split`, sin ellas.
+4. **ESLint no conocía `jest` en `jest.setup.js`**, que no es un test. Se le declara la
+   global solo a ese archivo.
+5. **Un comentario prometía algo no comprobado**: que la función de Reanimated para
+   «Reducir movimiento» no espera a que iOS conteste. Se vio antes del commit y se cambió
+   por lo que sí es cierto: se usa la nuestra para tener una sola fuente y un solo test.
+   Es la cuarta vez que un texto promete más de lo que hay; esta vez no llegó al revisor.
+
+**Corrido, tal cual:** `npm run gates` en verde · **637 tests** · cobertura 100 % · todas
+las reglas disparan · `knip` limpio · **18 de 18 mutaciones cazadas**: cuatro del latido
+(sin «Reducir movimiento», sin volver a opacidad entera, una sola vuelta, sin cancelar al
+irse), tres de la regla de ESLint (una por bloque), dos de iconos, dos del chip, cuatro de
+números y tres de `Campo`.
+
+Push, y el CI del PR #18 en verde (`gates`, `supabase`, `secretos`).
+
+**`expo-localization`, con el «adelante» de Luciano («hagale»).** 57.0.2, la que pide el
+SDK, fijada exacta. Sin scripts de instalación, con una sola dependencia (`rtl-detect`).
+`npm audit` sigue en 19 moderadas. `expo install` pidió añadir su plugin de configuración y
+no pudo escribirlo porque la configuración es `app.config.ts`. **No se añadió**: leído su
+código, sin opciones no toca nada del build.
+
+`numero()` lee los separadores con `getLocales()` en cada número. Tres tests cayeron al
+conectarla, y los tres por lo mismo: en Jest, `expo-localization` dice que el teléfono está
+en Estados Unidos, y esperaban la coma. Ahora cada archivo de tests dice qué región usa. El
+test de propiedad de `numero()` pasó a quitar los miles antes de leer, y a dejar fuera los
+números que JavaScript ya escribe con exponente.
+
+Corrido, tal cual: `npm run gates` en verde · **639 tests** · cobertura 100 % · **4 de 4
+mutaciones** de la región cazadas (la app ignora la región, ignora los miles, cae a punto
+decimal sin separadores, el `Stepper` escribe sin `numero()`) · `knip` limpio ·
+`expo-doctor` 21/21.
+
+**El revisor, sobre la #60: CAMBIOS, con cuatro puntos, y con razón en los cuatro.**
+1. **El chip no garantizaba los 44 pt.** Se hizo con `hitSlop`, y React Native no deja que
+   el `hitSlop` salga del contenedor: lo dice su propia definición de tipos, y en iOS lo
+   aplica `RCTViewComponentView`. En una fila que mida justo lo que sus chips, el chip
+   **podía** responder en 40: dependía de que iOS aplanara la fila, y nadie lo midió. El
+   test solo sumaba las props y nunca lo habría visto.
+   Ahora lo que se toca es el propio botón, una zona transparente de 44 × 44 como mínimo,
+   con la píldora de 36 dentro. También cubre el ancho: un chip de una letra medía unos 41.
+2. **`expo-symbols` y `expo-haptics` seguían con `~`**, cuando lo que instalamos nosotros
+   va exacto. Venía de D6.5b y pasó tres revisiones sin verse. Fijadas en 57.0.3.
+3. **`expo-localization` es nativa y entraba sin la excepción escrita** de la #59.14. Queda
+   en la #60.9, en D7 y en lo que falta probar en el iPhone: cambiar la región.
+4. **Un comentario prometía algo no comprobado:** que iOS reinicia la app al cambiar la
+   región. Cambiar solo el formato de región no la reinicia, y los números ya dibujados no
+   se actualizan hasta que su pantalla se vuelva a dibujar. Quedó escrito lo cierto, y la
+   mejora, para Fase 3.
+
+El cuarto es la quinta vez que un texto promete de más, y la segunda hoy: una se cazó antes
+del commit y esta no. El primero es otra comprobación que medía el caso fácil: la suma de
+las props, y no si el toque llega.
+
+**Segunda vuelta: APROBADO.** Con una frase que corregir antes del push: esta misma
+entrada y la #60.6 daban por hecho que el chip respondía en 40, cuando la primera vuelta
+decía que *podía*. Corregida. Para cuando Luciano lo vea: con el chip de 44 de zona, dos
+filas con `gap: espacio.s` se ven separadas por 16 pt; si sobra aire, la fila puede ir sin
+espacio vertical.
+
+Pendiente: **Claude:** push y CI en verde. **Luciano:** la galería en el iPhone y el
+«adelante» del merge. Nunca en rojo (#55).
+
+---
+
