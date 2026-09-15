@@ -139,15 +139,37 @@ jobs:
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/*.app
 
-      # El «driver» de Maestro (un runner de XCTest) arranca por primera vez en un
-      # simulador recién creado, y en la primera corrida tardó más que el tiempo
-      # por defecto: falló con «iOS driver not ready in time» sin llegar a abrir
-      # la app. Maestro mismo indica esta variable. Cinco minutos, en milisegundos.
+      # El «driver» de Maestro (un runner de XCTest) tiene que arrancar dentro del
+      # simulador antes de tocar la app, y en los Mac de GitHub tarda lo que quiere
+      # la máquina: 2 minutos en una corrida, más de 5 en otra, en la que también
+      # el simulador tardó 7 minutos en encender. Las dos veces falló con «iOS
+      # driver not ready in time» sin llegar a abrir la app.
+      # Por eso: 10 minutos de espera y hasta 3 intentos, **solo** si el fallo es
+      # ese. Si la app se cae o no aparece la pantalla de inicio, falla a la
+      # primera: un reintento no puede tapar un fallo de la app.
       - name: smoke con Maestro
         env:
-          MAESTRO_DRIVER_STARTUP_TIMEOUT: 300000
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: 600000
           MAESTRO_CLI_NO_ANALYTICS: 1
-        run: maestro --device "$UDID" test maestro/flows/smoke.yaml --format junit --output "$RUNNER_TEMP/maestro-junit.xml" --test-output-dir "$RUNNER_TEMP/maestro-salida"
+        run: |
+          for intento in 1 2 3; do
+            echo "::group::intento $intento"
+            set +e
+            maestro --device "$UDID" test maestro/flows/smoke.yaml \
+              --format junit --output "$RUNNER_TEMP/maestro-junit.xml" \
+              --test-output-dir "$RUNNER_TEMP/maestro-salida" 2>&1 | tee "$RUNNER_TEMP/maestro-$intento.log"
+            codigo=${PIPESTATUS[0]}
+            set -e
+            echo "::endgroup::"
+            if [ "$codigo" -eq 0 ]; then exit 0; fi
+            if ! grep -q "iOS driver not ready in time" "$RUNNER_TEMP/maestro-$intento.log"; then
+              echo "::error::El smoke falló, y no por el driver de Maestro: es la app."
+              exit "$codigo"
+            fi
+            echo "::warning::El driver de Maestro no arrancó (intento $intento de 3)."
+          done
+          echo "::error::El driver de Maestro no arrancó en 3 intentos. No se llegó a probar la app."
+          exit 1
 
       # Si falla, la captura y el log de Maestro dicen en qué pantalla se quedó.
       - name: guardar lo que vio Maestro
@@ -158,5 +180,6 @@ jobs:
           path: |
             ${{ runner.temp }}/maestro-junit.xml
             ${{ runner.temp }}/maestro-salida
+            ${{ runner.temp }}/maestro-*.log
           if-no-files-found: ignore
           retention-days: 14
