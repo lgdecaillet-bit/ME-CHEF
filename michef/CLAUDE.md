@@ -207,7 +207,7 @@ trabajar en paralelo.
 ## Cómo se verifica
 
 Los gates están en `docs/protocolos-calidad.md`: editor → pre-commit → pre-push → CI →
-EAS Workflows → release. Un PR sin CI verde no se mergea, y no se rodea (#55). Un PR sin veredicto
+smoke de iOS con Maestro (GitHub Actions, #61) → release. Un PR sin CI verde no se mergea, y no se rodea (#55). Un PR sin veredicto
 `APROBADO` del revisor y sin entrada en `docs/bitacora.md` no cumple el Definition of
 Done.
 

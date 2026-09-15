@@ -56,11 +56,12 @@ No hay un solo sitio donde ves tu código. Hay tres, y **dos son gratis**.
 | | Qué te muestra | Latencia | Coste |
 |---|---|---|---|
 | **① Expo Go** en tu iPhone | La app funcionando, con la cámara real | ~1 s | gratis |
-| **② Build de simulador** en EAS, en cada PR | Que tu configuración **nativa compila de verdad** | 15–25 min, automático | gratis (los builds de simulador van sin firmar) |
+| **② Build de simulador** en un Mac de GitHub, en cada PR (#61) | Que tu configuración **nativa compila de verdad** | 15–25 min, automático | gratis mientras el repositorio sea público (#61.2) |
 | **③ Development build** en tu iPhone | Todo, sin límites | ~1 s tras compilar una vez | 99 USD/año |
 
-El **②** es lo que hace seguro trabajar semanas en Expo Go: en cada PR, un Mac de Expo en
-la nube compila tu app real y Maestro comprueba que arranca. Nunca estás a ciegas.
+El **②** es lo que hace seguro trabajar semanas en Expo Go: en cada PR, un Mac de GitHub
+compila tu app real y Maestro comprueba que arranca. Iba a ser un Mac de Expo, pero el plan
+gratuito de Expo no permite Maestro (#61). Nunca estás a ciegas.
 
 No existe simulador de iOS para Windows y no se puede fabricar. Es una pérdida menor:
 vas a probar en un iPhone real, con una cámara real, contra una nevera real — que para

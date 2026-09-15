@@ -308,7 +308,7 @@ comando.
 > **decisión #56** (`com.mechef.app`, `mechef`, `@lucogav8/mechef`). Lo que cambió
 > respecto a lo de abajo, con el porqué de cada cosa, en la **decisión #57**: `supabase-js`
 > pasa a Fase 1, el botón lanza un error de JavaScript y no `nativeCrash()`,
-> `ThemeProvider` pasa a D6.5, y `SENTRY_AUTH_TOKEN` en EAS pasa a D7 por un problema
+> `ThemeProvider` pasa a D6.5, y `SENTRY_AUTH_TOKEN` en EAS pasa a D7 (y de ahí a «antes del primer build real», #61.4) por un problema
 > conocido de los tokens de la región EU. `zod` y `drizzle-orm` ya estaban desde D3.
 
 **Qué pasa.** Se deja `app.json` y se pasa a `app.config.ts` con lo mínimo para que la app
@@ -385,6 +385,11 @@ token cambia todo. Un `<Text>` suelto fuera de `Texto` no pasa el lint.
 además del inicio.
 
 ### D7 · `chore/eas-workflows` — los espejos ② y ⑤
+
+> **Hecho de otra forma: ver la decisión #61.** El plan gratuito de Expo no permite
+> Maestro, así que el smoke corre en GitHub Actions (`.github/workflows/smoke-ios.yml`),
+> y `main.yml` y `release.yml` esperan a la licencia de Apple. Lo de abajo es el plan
+> original, que se conserva.
 
 1. `.eas/workflows/pr.yml` — `on: pull_request`:
    ```
