@@ -78,6 +78,9 @@ jobs:
         run: |
           npx --yes eas-cli@${EAS_CLI_VERSION} env:pull --environment preview --non-interactive --path .env.local
           sed -i '' '/^EXPO_PUBLIC_SENTRY_DSN=/d' .env.local
+          # PRUEBA DEL SMOKE ROJO: sin la dirección de Supabase, env.ts para la app al
+          # arrancar. El smoke TIENE que fallar, y por la app. No se mergea nunca.
+          sed -i '' '/^EXPO_PUBLIC_SUPABASE_URL=/d' .env.local
           echo "Variables cargadas:"
           cut -d= -f1 .env.local
 
