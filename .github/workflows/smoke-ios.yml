@@ -139,7 +139,14 @@ jobs:
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/*.app
 
+      # El «driver» de Maestro (un runner de XCTest) arranca por primera vez en un
+      # simulador recién creado, y en la primera corrida tardó más que el tiempo
+      # por defecto: falló con «iOS driver not ready in time» sin llegar a abrir
+      # la app. Maestro mismo indica esta variable. Cinco minutos, en milisegundos.
       - name: smoke con Maestro
+        env:
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: 300000
+          MAESTRO_CLI_NO_ANALYTICS: 1
         run: maestro --device "$UDID" test maestro/flows/smoke.yaml --format junit --output "$RUNNER_TEMP/maestro-junit.xml" --test-output-dir "$RUNNER_TEMP/maestro-salida"
 
       # Si falla, la captura y el log de Maestro dicen en qué pantalla se quedó.
