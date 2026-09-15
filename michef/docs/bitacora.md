@@ -2199,8 +2199,12 @@ Quedan en GitHub las ramas ya mergeadas `chore/deps-expo-57-parches`,
 `feat/F0-D6.5b-componentes` y `docs/F0-D6.5b-cierre`. La de prueba, `test/smoke-rojo`, se
 borró al cerrar el PR #22.
 
-Pendiente: **Claude:** el revisor, push y CI en verde. **Luciano:** el «adelante» del merge.
-Nunca en rojo (#55).
+**Segunda vuelta: APROBADO.** Tres detalles que dejó para después se arreglaron antes del
+push: el coste del espejo ② en `roadmap.md`, un comentario del workflow que citaba un aviso
+con su nombre viejo, y la cifra de la #61.6.
+
+Pendiente: **Claude:** push y CI en verde. **Luciano:** el «adelante» del merge. Nunca en
+rojo (#55).
 
 ---
 

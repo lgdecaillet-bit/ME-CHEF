@@ -56,7 +56,7 @@ No hay un solo sitio donde ves tu código. Hay tres, y **dos son gratis**.
 | | Qué te muestra | Latencia | Coste |
 |---|---|---|---|
 | **① Expo Go** en tu iPhone | La app funcionando, con la cámara real | ~1 s | gratis |
-| **② Build de simulador** en un Mac de GitHub, en cada PR (#61) | Que tu configuración **nativa compila de verdad** | 15–25 min, automático | gratis (los builds de simulador van sin firmar) |
+| **② Build de simulador** en un Mac de GitHub, en cada PR (#61) | Que tu configuración **nativa compila de verdad** | 15–25 min, automático | gratis mientras el repositorio sea público (#61.2) |
 | **③ Development build** en tu iPhone | Todo, sin límites | ~1 s tras compilar una vez | 99 USD/año |
 
 El **②** es lo que hace seguro trabajar semanas en Expo Go: en cada PR, un Mac de GitHub

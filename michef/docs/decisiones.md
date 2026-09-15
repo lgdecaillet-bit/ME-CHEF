@@ -1099,7 +1099,7 @@ smoke en GitHub Actions. Eligió el segundo.
 5. **Versiones exactas**: Maestro 2.10.0, con su sha256 comprobado al descargar, y eas-cli
    24.3.0.
 6. **No es un check obligatorio todavía**, y por eso lleva `paths-ignore` (docs y `.md`):
-   tarda unos 28 minutos, 17 de ellos compilando. Para hacerlo obligatorio hay que quitar
+   tarda de 27 a 32 minutos, 15 a 20 de ellos compilando. Para hacerlo obligatorio hay que quitar
    ese filtro antes, o se queda «pendiente» para siempre en los PRs de documentos (lo que
    explica `ci.yml`). Se propone después de unas semanas en verde.
 

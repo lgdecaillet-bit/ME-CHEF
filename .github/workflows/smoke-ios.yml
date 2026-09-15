@@ -93,8 +93,8 @@ jobs:
       # Release, para simulador y sin firmar: con el JavaScript dentro y sin
       # servidor de desarrollo. No es un build de EAS: no lleva canal, así que la
       # parte de actualizaciones de un build real no la prueba. Sin subir mapas a
-      # Sentry: el token de la región EU no sirve para eso (estado.md, avisos
-      # para D7) y un build de CI no los necesita.
+      # Sentry: el token de la región EU no sirve para eso (estado.md, aviso
+      # «Antes del primer build real») y un build de CI no los necesita.
       - name: compilar para el simulador
         env:
           SENTRY_DISABLE_AUTO_UPLOAD: 'true'

@@ -10,7 +10,7 @@ Actualizado: 2026-09-15 · por sesión S-20260914-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D7 construido** (PR #21, decisión #61): el smoke de iOS en GitHub Actions, en verde. Falta el revisor, el CI y el «adelante» del merge. Después, D8 |
+| **Paso actual** | **D7 construido** (PR #21, decisión #61): el smoke de iOS en GitHub Actions, en verde y probado en rojo. Revisor APROBADO en la segunda vuelta. Falta el CI y el «adelante» del merge. Después, D8 |
 | **Decisiones vigentes** | hasta **#61** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | `chore/F0-D7-smoke-ios` (PR #21) |
@@ -98,7 +98,7 @@ desde el primer PR de código.
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ mergeado (PR #16, `0d4468f`), verificado en el iPhone |
 | D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | ✅ mergeado (PR #17, `e66df6d`), visto en el iPhone |
 | D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | ✅ mergeado (PR #18, `966de64`), visto en el iPhone |
-| D7 | Smoke de iOS con Maestro, en GitHub Actions (#61) | Claude + Luciano | 🔨 PR #21, smoke en verde; falta revisor y merge |
+| D7 | Smoke de iOS con Maestro, en GitHub Actions (#61) | Claude + Luciano | 🔨 PR #21, smoke en verde y en rojo; revisor APROBADO; falta CI y merge |
 | D8 | README | Claude | ⏳ |
 
 ### D0 · avances de Luciano
@@ -382,7 +382,9 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    primer build con `expo-symbols`, `expo-haptics` y `expo-localization`, y compiló.
    El rojo también probado: sin la dirección de Supabase, la app se cae y el smoke falla
    por la app, no por Maestro (PR #22, cerrado sin mergear).
-   **Falta:** el revisor, el CI y el «adelante» del merge.
+   Revisor: CAMBIOS en la primera vuelta (documentos que seguían prometiendo D7 y el límite
+   de tiempo) y **APROBADO** en la segunda.
+   **Falta:** el CI y el «adelante» del merge.
 16. Después, **D8**: el README. Cierra la Fase 0.
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
