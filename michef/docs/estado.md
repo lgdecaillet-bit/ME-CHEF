@@ -10,10 +10,10 @@ Actualizado: 2026-09-14 · por sesión S-20260914-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D6.5b mergeado** (PR #18, `966de64`, 2026-09-14), con el CI de `main` en verde. **Siguiente: presentar D7** (EAS Workflows y Maestro) y esperar «adelante» |
-| **Decisiones vigentes** | hasta **#60** |
+| **Paso actual** | **D7 construido** (PR #21, decisión #61): el smoke de iOS en GitHub Actions, en verde. Falta el revisor, el CI y el «adelante» del merge. Después, D8 |
+| **Decisiones vigentes** | hasta **#61** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | ninguna de código. `docs/F0-D6.5b-cierre` para este tablero |
+| **Rama de trabajo** | `chore/F0-D7-smoke-ios` (PR #21) |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
 
 ---
@@ -39,11 +39,11 @@ aprueba el siguiente.
 Cada sesión anota su ID aquí **antes de hacer nada** (letra siguiente a la última).
 Se vacía al cambiar de día.
 
-**2026-09-14**
+**2026-09-14 y 15**
 
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
-| S-20260914-a | retomar: dónde estamos, merge del #19, `main` dentro de D6.5b, y las 15 decisiones de la #59 | abierta |
+| S-20260914-a | retomar: dónde estamos, merge del #19, `main` dentro de D6.5b, las 15 decisiones de la #59, D6.5b mergeado y D7 | abierta |
 
 **2026-09-10 y 11** (días anteriores, se conservan por trazabilidad)
 
@@ -98,7 +98,7 @@ desde el primer PR de código.
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ mergeado (PR #16, `0d4468f`), verificado en el iPhone |
 | D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | ✅ mergeado (PR #17, `e66df6d`), visto en el iPhone |
 | D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | ✅ mergeado (PR #18, `966de64`), visto en el iPhone |
-| D7 | EAS Workflows + Maestro smoke | Claude | ⏳ |
+| D7 | Smoke de iOS con Maestro, en GitHub Actions (#61) | Claude + Luciano | 🔨 PR #21, smoke en verde; falta revisor y merge |
 | D8 | README | Claude | ⏳ |
 
 ### D0 · avances de Luciano
@@ -201,25 +201,26 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
   push, las sesiones de Claude corren gitleaks por su ruta completa**:
   `%LOCALAPPDATA%\Microsoft\WinGet\Packages\Gitleaks.Gitleaks_*\gitleaks.exe git --log-opts="main..HEAD" --redact`.
   En la terminal de Luciano el enganche sí funciona.
-- **⚠️ Para D7: el build no tendrá las variables de entorno si no se cargan antes en
-  EAS.** `.env` está ignorado por git y un build de EAS no lo ve. Sin
-  `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `env.ts` para la app al
-  arrancar y el smoke de Maestro falla. Cargarlas con `eas env:create` **antes** del primer
-  build (decisión #57, punto 8). No se sabe si ya hay alguna cargada: el revisor no pudo
-  mirarlo.
-- **⚠️ Para D7: los crashes nativos no pasan por el filtro de privacidad.** El SDK de Sentry
+- ~~Para D7: el build no tendrá las variables de entorno~~ **Resuelto el 2026-09-15**: las
+  tres `EXPO_PUBLIC_*` están en EAS, en los tres entornos, y el smoke las lee de ahí (#61).
+- **⚠️ Antes del primer build que llegue a una persona: los crashes nativos no pasan por el filtro de privacidad.** El SDK de Sentry
   le quita `beforeSend` a la parte nativa, así que un crash nativo sale sin pasar por
   `limpiarEvento` (decisión #57, punto 12). En Expo Go no aplica. En el primer build de
   desarrollo hay que decidir cómo se cubre, y mirar si la parte nativa de iOS manda el
-  nombre del dispositivo.
-- **⚠️ Para D7: el token de Sentry de GitHub probablemente no sirve para subir mapas de
+  nombre del dispositivo. El smoke de D7 no aplica: quita el DSN y no manda nada.
+- **⚠️ Antes del primer build real: el token de Sentry de GitHub probablemente no sirve para subir mapas de
   código.** La organización `mechef` está en la región EU, y los tokens de organización
   creados ahí llevan dentro la dirección de EE. UU.: `sentry-cli` la usa por encima de
   `SENTRY_URL` y la subida falla con `401 Invalid org token`
   (getsentry/sentry-cli#3385). La salida reconocida es un **token personal** con
   `SENTRY_URL=https://de.sentry.io`. No afecta a D6: Expo Go no sube nada. Se comprueba
-  con el primer build de D7 y, si falla así, Luciano crea el token personal y reemplaza
-  el secreto (decisión #57, punto 4).
+  con el primer build que suba mapas: el smoke de D7 no los sube (#61.4). Si falla así,
+  Luciano crea el token personal y reemplaza el secreto (decisión #57, punto 4).
+- **⚠️ El smoke de iOS es gratis porque el repositorio es público (#61).** Si vuelve a ser
+  privado, los minutos de macOS se cobran, y son los más caros.
+- **En expo.dev hay un proyecto `@tes0/me-chef`** en la cuenta de TESO. Estuvo conectado a
+  este repositorio hasta el 2026-09-15, que se desconectó. No lo usa nada. Luciano decide
+  si se borra.
 - **`eas` no está en la terminal de Luciano con Node 22.23.2.** Se instaló cuando usaba
   22.12.0, y cada versión de Node tiene sus propios programas globales. Las sesiones de
   Claude lo corren por ruta completa
@@ -373,10 +374,16 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    **Mergeado el 2026-09-14** (PR #18, `966de64`), por Luciano, después de verlo en el
    iPhone: los chips responden tocándolos por el borde de arriba («eso funciona»), y del
    resto dijo «listo quedó». El CI de `main` sobre el merge, en verde.
-15. Después, **D7**: EAS Workflows y Maestro (el smoke y las capturas de la galería). Será
-   también el primer build de simulador con `expo-symbols`, `expo-haptics` y
-   `expo-localization` (#59.14, #60.9). Se
-   presenta y espera «adelante».
+15. **D7 construido** (`chore/F0-D7-smoke-ios`, PR #21, decisión #61). El plan gratuito de
+   Expo no permite Maestro; Luciano eligió GitHub Actions. Conectó el repositorio al
+   proyecto `@lucogav8/mechef` en expo.dev (el primer intento quedó en `tes0` y se
+   corrigió), y Claude cargó las tres variables en EAS. El smoke compila la app, la abre en
+   un simulador y ve la pantalla de inicio: **verde en la segunda corrida**. Fue también el
+   primer build con `expo-symbols`, `expo-haptics` y `expo-localization`, y compiló.
+   El rojo también probado: sin la dirección de Supabase, la app se cae y el smoke falla
+   por la app, no por Maestro (PR #22, cerrado sin mergear).
+   **Falta:** el revisor, el CI y el «adelante» del merge.
+16. Después, **D8**: el README. Cierra la Fase 0.
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
 

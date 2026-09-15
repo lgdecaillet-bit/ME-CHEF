@@ -205,7 +205,8 @@ Además de ESLint. Dos herramientas, una regla: el editor avisa, CI bloquea. Reg
 `engine-no-ai`, `engine-no-native`, `ai-only-proxy`, `no-circular`.
 
 ### #32 · Maestro en EAS Workflows para E2E
-Fecha: 2026-09-09 · **vigente**
+Fecha: 2026-09-09 · **reemplazada en parte por la #61** (Maestro corre en GitHub Actions: el
+plan gratuito de Expo no lo permite). Sigue vigente: Maestro, y no Detox
 No Detox (necesita Mac local). Builds de simulador, gratis, desde el primer PR de Fase 0.
 
 ### #33 · Sentry desde Fase 0; PostHog desde Fase 1
@@ -1065,6 +1066,67 @@ sistema»), 5 (destructivo rojo sobre gris), 8 (`Stepper` como un solo control a
 Corrido, tal cual: `npm run gates` en verde · **639 tests** · cobertura 100 % · todas las
 reglas disparan · **22 de 22 mutaciones cazadas** (18 de los cambios y 4 de la región del
 iPhone) · `codigo-muerto` limpio · `expo-doctor` 21/21.
+
+### #61 · D7: el smoke de iOS corre en GitHub Actions, no en EAS Workflows
+
+Fecha: 2026-09-15 · **vigente** · reemplaza la #32 en lo que dice de dónde corre Maestro ·
+lo decidió Luciano (camino B) al saber el coste
+
+**Por qué cambia.** Al preparar D7 se comprobó en la página de precios de Expo que el plan
+gratuito **no permite trabajos de Maestro** («Run Maestro end-to-end test jobs»: no
+disponible en Free; 0,05 USD por trabajo más minutos desde Starter, 19 USD al mes). La #32
+lo daba por hecho. Se le presentaron a Luciano dos caminos: pagar Starter, o correr el
+smoke en GitHub Actions. Eligió el segundo.
+
+**Qué se hizo.**
+1. `.github/workflows/smoke-ios.yml`, en `macos-26` (Xcode 26.6, simulador iOS 26.5): `npm
+   ci`, variables desde EAS, `expo prebuild`, compilación Release para simulador sin
+   firmar, simulador, instalación y `maestro/flows/smoke.yaml`, que espera
+   `testID="home"`. Guarda la salida de Maestro (capturas y logs) 14 días.
+2. **Gratis porque el repositorio es público**: los runners estándar de GitHub, también
+   macOS, no cuentan minutos en repos públicos (documentación de facturación de GitHub).
+   **Si el repositorio vuelve a ser privado, esto se cobra**, y los minutos de macOS son
+   los más caros.
+3. **Las variables públicas viven en EAS** (`EXPO_PUBLIC_SUPABASE_URL`, `…_ANON_KEY` y
+   `…_SENTRY_DSN`, en los tres entornos), y el workflow las lee con `eas env:pull` y el
+   robot `github-ci`. Un solo sitio para ellas, que servirá igual a los builds de EAS.
+   Antes de subirlas se comprobó que la clave es la *publishable* de Supabase, no la de
+   servicio. **El workflow quita el DSN**: una app de CI no manda nada a sentry.io.
+4. **Sin subir mapas a Sentry** (`SENTRY_DISABLE_AUTO_UPLOAD`): el token de la región EU
+   sigue sin resolver, y un build de CI no los necesita.
+5. **Versiones exactas**: Maestro 2.10.0, con su sha256 comprobado al descargar, y eas-cli
+   24.3.0.
+6. **No es un check obligatorio todavía**, y por eso lleva `paths-ignore` (docs y `.md`):
+   tarda unos 28 minutos, 17 de ellos compilando. Para hacerlo obligatorio hay que quitar
+   ese filtro antes, o se queda «pendiente» para siempre en los PRs de documentos (lo que
+   explica `ci.yml`). Se propone después de unas semanas en verde.
+
+**Lo que NO se hizo del plan de D7, y por qué.**
+- `.eas/workflows/pr.yml`: el smoke vive en GitHub.
+- `.eas/workflows/main.yml` (update al canal preview) y `release.yml` (TestFlight): sin
+  licencia de Apple no hay ningún build instalado que reciba una actualización ni nada que
+  subir a TestFlight. Escribirlos ahora sería código que no corre ni se puede probar. Se
+  escriben con la licencia, y ese día se decide si van en EAS Workflows (60 minutos
+  gratis al mes) o en GitHub.
+- La reutilización del build por huella nativa: cada corrida compila entera. El
+  JavaScript va dentro de la app en Release, así que reutilizar un build viejo probaría
+  JavaScript viejo. Si el tiempo molesta, la mejora es cachear CocoaPods y la compilación,
+  no saltarse el build.
+- `maestro/flows/galeria.yaml`: la galería no existe en un build Release (#58). Llega con
+  el primer build de desarrollo.
+
+**Lo que salió al probarlo.** El «driver» de Maestro (un runner de XCTest que arranca
+dentro del simulador) tarda lo que quiera la máquina de GitHub: 2 minutos en una corrida,
+más de 5 en otra. Dos corridas fallaron con «iOS driver not ready in time» sin llegar a
+abrir la app. Por eso el paso espera 10 minutos y **reintenta hasta 3 veces, solo si el
+fallo es ese**: si la app se cae o no aparece la pantalla de inicio, falla a la primera.
+7. **Prueba del rojo superada** (PR #22, cerrado sin mergear, como #10 y #13): con
+   `EXPO_PUBLIC_SUPABASE_URL` quitada, `env.ts` para la app, y Maestro dijo «App crashed or
+   stopped» al primer intento; el workflow lo marcó como fallo de la app, sin reintento. La
+   misma versión, en la rama de D7, pasó en verde en 59 segundos de Maestro.
+
+**Cambia:** `protocolos-calidad.md` (capa 4 y la fila del smoke), `CLAUDE.md` (cómo se
+verifica), `fase-0-fundaciones.md` § D7 y la #32.
 
 ## Pendientes de decidir
 

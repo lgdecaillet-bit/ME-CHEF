@@ -20,7 +20,7 @@ Ordenadas de la más rápida a la más lenta. Cada una atrapa lo que la anterior
 | 1 | `pre-commit` | cada commit | `lint-staged`: eslint --fix, prettier, gitleaks sobre lo staged | < 5 s | el commit |
 | 2 | `pre-push` | cada push | `npm run gates` = typecheck + lint + tests + depcruise | < 60 s | el push |
 | 3 | CI · GitHub Actions | cada PR | capa 2 + Supabase local (migraciones, pgTAP, `db lint`, `deno test`) + `expo-doctor` + `expo export` + grep de secretos en el bundle + cobertura + knip | < 8 min | el merge |
-| 4 | CI · EAS Workflows | cada PR | `fingerprint` → si cambió lo nativo: build de simulador → Maestro smoke. Si no: solo `update` de preview | 15–35 min | el merge (cuando aplica) |
+| 4 | CI · smoke de iOS (GitHub Actions, `macos-26`) | cada PR que no sea solo documentos | `expo prebuild` → build Release de simulador → Maestro `smoke.yaml` (#61). En EAS no: el plan gratuito no permite Maestro | ~28 min | todavía nada: no es obligatorio (#61.6) |
 | 5 | `main` post-merge | cada merge | build `preview` o `update` al canal preview + source maps a Sentry | 15–35 min | — |
 | 6 | Release | tag `v*` | build `production` → TestFlight interno → **aprobación manual** → TestFlight externo | manual | TestFlight externo |
 
@@ -59,7 +59,7 @@ Configuradas como **GitHub Rulesets** sobre `main` (vía `gh api`, script en `sc
 | **Secretos** | `gitleaks` + `scripts/secrets-bundle.sh` (`expo export` y grep del bundle) | repo y bundle final | 0 hallazgos de `sk-ant-`, `AIza`, `service_role`, JWT que no sea la anon key |
 | **Backend · DB** | `supabase test db` (pgTAP) | migraciones, RLS, vistas | `anon` no escribe `precio`; nadie lee `cache_modelo` desde el cliente; el catálogo publicado sí se lee |
 | **Backend · proxy** | `deno test` en `supabase/functions/tests/` | `ai-proxy` con proveedores mockeados | rechaza sin JWT; aplica rate limit; enruta cada tarea a su modelo; **nunca persiste la imagen** |
-| **Smoke E2E** | Maestro en EAS (`maestro` job, simulador iOS) | `maestro/flows/smoke.yaml` y un flujo por función central | pasa en cada PR que cambie lo nativo y en cada merge a `main` |
+| **Smoke E2E** | Maestro 2.10.0 en GitHub Actions (`smoke-ios.yml`, simulador iOS, #61) | `maestro/flows/smoke.yaml` y un flujo por función central | pasa en cada PR que no sea solo documentos y en cada merge a `main` |
 | **Evals de IA** | Promptfoo, `eval/promptfooconfig.yaml` | las 200 fotos (locales, fuera de git) | **precisión de `seguro` > 95 %** para aceptar cualquier cambio de prompt, modelo o guía de cámara |
 | **Salud** | `npx expo-doctor`, `knip` | todo | 0 errores. `knip` avisa en Fase 0–1 y bloquea desde Fase 2 |
 | **Interfaz** | ESLint (tokens, textos, controles solo en `src/ui/`) + contraste AA + Maestro `galeria.yaml` con capturas (desde D7, #58) | `src/ui/**`, `src/app/**` | Detalle en [`diseno.md`](diseno.md) §4. Sin colores a mano, sin texto literal, AA en todos los pares, capturas revisadas a ojo |

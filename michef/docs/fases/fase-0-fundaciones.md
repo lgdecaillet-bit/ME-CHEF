@@ -386,6 +386,11 @@ además del inicio.
 
 ### D7 · `chore/eas-workflows` — los espejos ② y ⑤
 
+> **Hecho de otra forma: ver la decisión #61.** El plan gratuito de Expo no permite
+> Maestro, así que el smoke corre en GitHub Actions (`.github/workflows/smoke-ios.yml`),
+> y `main.yml` y `release.yml` esperan a la licencia de Apple. Lo de abajo es el plan
+> original, que se conserva.
+
 1. `.eas/workflows/pr.yml` — `on: pull_request`:
    ```
    fingerprint

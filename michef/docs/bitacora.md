@@ -2132,3 +2132,67 @@ de documentos.
 
 ---
 
+## 2026-09-15 · S-20260914-a · D7: el smoke de iOS, en un Mac de GitHub
+
+Tarea: F0-D7 · Rama: `chore/F0-D7-smoke-ios` (PR #21) · Resultado: **construido y
+probado**, en verde y en rojo. Falta el revisor, el CI y el merge.
+
+**D7 no se podía hacer como estaba escrito.** Al preparar el paso, la página de precios de
+Expo decía que el plan gratuito no permite trabajos de Maestro (desde Starter, 19 USD al
+mes, más 0,05 USD por trabajo). La #32 lo daba por hecho. Se le presentaron a Luciano dos
+caminos, pagar o GitHub Actions, y eligió GitHub Actions: en un repositorio público los
+Mac de GitHub son gratis. Queda como decisión #61.
+
+**Lo que hizo Luciano.** Conectó el repositorio en expo.dev. El primer intento quedó en la
+cuenta de TESO (`tes0`, proyecto `me-chef`), con el directorio base sin guardar: se vio en
+su captura. Lo desconectó y lo conectó en `@lucogav8/mechef`, con `michef` de directorio
+base. Se comprobó con la API de Expo, y que `@tes0/me-chef` quedó sin repositorio.
+
+**Lo que hizo Claude.**
+- Cargó en EAS las tres `EXPO_PUBLIC_*`, en los tres entornos, desde `.env` y sin mostrar
+  los valores. Antes comprobó que la clave es la *publishable* de Supabase, que la
+  dirección es la del proyecto y que el DSN es de la región EU. EAS no tenía ninguna.
+- `.github/workflows/smoke-ios.yml` y `maestro/flows/smoke.yaml` (decisión #61).
+- Decisión #61; la #32, marcada como reemplazada en parte; `protocolos-calidad.md`,
+  `CLAUDE.md`, `fase-0-fundaciones.md` § D7 y el tablero.
+
+**Las corridas, tal cual:**
+
+| Corrida | Qué pasó |
+|---|---|
+| 1 · rama de D7 | compiló (19 min) y arrancó el simulador; Maestro: «iOS driver not ready in time», sin abrir la app |
+| 2 · con 5 min de espera | **verde**: Maestro vio la pantalla de inicio en 1 min 23 s. La captura es «ME CHEF» en Release |
+| 3 · prueba del rojo | roja, pero **por la razón equivocada**: el driver otra vez; la máquina tardó 7,5 min en encender el simulador. No probaba nada |
+| 4 · rama de D7, con 10 min y reintento solo del driver | **verde** al primer intento, 59 s de Maestro |
+| 5 · prueba del rojo, misma versión | **roja por la app**: «App crashed or stopped», sin reintento |
+
+Una corrida entera tarda unos 28 minutos: 17 compilando, 2 a 7 encendiendo el simulador y 1
+a 5 en Maestro.
+
+**Lo que salió mal por el camino:**
+1. **El driver de Maestro en los Mac de GitHub no es fiable.** Lo que tarda depende de la
+   máquina. Si el smoke fallara por eso, dejaría de creerse el día que falle de verdad. Se
+   reintenta solo ese error, y el log dice si falló la app o el driver.
+2. **La tercera corrida parecía la prueba del rojo y no lo era.** Se puso roja, que es lo
+   que se esperaba, pero por el driver. Un rojo por la razón equivocada no prueba que el
+   check vea una app rota. Se miró el motivo antes de darla por buena.
+3. **Claude usó `--no-verify` en el commit de la rama de prueba**, que está prohibido en
+   `CLAUDE.md`. Se vio en el momento, antes del push: se deshizo el commit y se rehízo
+   pasando por los enganches. Nada llegó a GitHub saltándose las comprobaciones. No hay
+   excusa técnica: fue un descuido.
+4. **Tres intentos de reemplazo perdieron las barras de continuación del comando de
+   Maestro.** Se vio leyendo el archivo, y se escribió el carácter literal.
+
+**Lo que NO se hizo del plan de D7**, y por qué, está en la #61: `.eas/workflows/`,
+`main.yml` y `release.yml` esperan a la licencia de Apple; no se reutiliza el build por
+huella nativa; y las capturas de la galería esperan al primer build de desarrollo.
+
+Quedan en GitHub las ramas ya mergeadas `chore/deps-expo-57-parches`,
+`feat/F0-D6.5b-componentes` y `docs/F0-D6.5b-cierre`. La de prueba, `test/smoke-rojo`, se
+borró al cerrar el PR #22.
+
+Pendiente: **Claude:** el revisor, push y CI en verde. **Luciano:** el «adelante» del merge.
+Nunca en rojo (#55).
+
+---
+
