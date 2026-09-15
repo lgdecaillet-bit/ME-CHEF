@@ -2166,8 +2166,16 @@ base. Se comprobó con la API de Expo, y que `@tes0/me-chef` quedó sin reposito
 | 4 · rama de D7, con 10 min y reintento solo del driver | **verde** al primer intento, 59 s de Maestro |
 | 5 · prueba del rojo, misma versión | **roja por la app**: «App crashed or stopped», sin reintento |
 
-Una corrida entera tarda unos 28 minutos: 17 compilando, 2 a 7 encendiendo el simulador y 1
-a 5 en Maestro.
+Una corrida entera tarda de 27 a 32 minutos: 15 a 20 compilando, 2 a 8 encendiendo el
+simulador y 1 a 6 en Maestro.
+
+**El revisor, sobre D7: CAMBIOS**, sin nada de seguridad ni de visión. Comprobó los logs y
+el artefacto (sin la dirección ni la clave de Supabase, el token como `***`) y que el
+reintento no tapa un fallo de la app. Pidió: marcar la #58.3 y la #57.4 y corregir los
+documentos que seguían prometiendo para D7 la galería con Maestro, los checks `eas / …`
+obligatorios y el update post-merge; subir el límite del job de 60 a 75 minutos, porque
+con tres intentos de 10 minutos no cabían; y precisar las cifras del driver. Todo
+arreglado.
 
 **Lo que salió mal por el camino:**
 1. **El driver de Maestro en los Mac de GitHub no es fiable.** Lo que tarda depende de la

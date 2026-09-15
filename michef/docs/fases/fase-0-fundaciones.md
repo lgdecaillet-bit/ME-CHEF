@@ -308,7 +308,7 @@ comando.
 > **decisión #56** (`com.mechef.app`, `mechef`, `@lucogav8/mechef`). Lo que cambió
 > respecto a lo de abajo, con el porqué de cada cosa, en la **decisión #57**: `supabase-js`
 > pasa a Fase 1, el botón lanza un error de JavaScript y no `nativeCrash()`,
-> `ThemeProvider` pasa a D6.5, y `SENTRY_AUTH_TOKEN` en EAS pasa a D7 por un problema
+> `ThemeProvider` pasa a D6.5, y `SENTRY_AUTH_TOKEN` en EAS pasa a D7 (y de ahí a «antes del primer build real», #61.4) por un problema
 > conocido de los tokens de la región EU. `zod` y `drizzle-orm` ya estaban desde D3.
 
 **Qué pasa.** Se deja `app.json` y se pasa a `app.config.ts` con lo mínimo para que la app

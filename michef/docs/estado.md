@@ -5,7 +5,7 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-14 · por sesión S-20260914-a
+Actualizado: 2026-09-15 · por sesión S-20260914-a
 
 | | |
 |---|---|

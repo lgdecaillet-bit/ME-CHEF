@@ -21,7 +21,7 @@ Ordenadas de la más rápida a la más lenta. Cada una atrapa lo que la anterior
 | 2 | `pre-push` | cada push | `npm run gates` = typecheck + lint + tests + depcruise | < 60 s | el push |
 | 3 | CI · GitHub Actions | cada PR | capa 2 + Supabase local (migraciones, pgTAP, `db lint`, `deno test`) + `expo-doctor` + `expo export` + grep de secretos en el bundle + cobertura + knip | < 8 min | el merge |
 | 4 | CI · smoke de iOS (GitHub Actions, `macos-26`) | cada PR que no sea solo documentos | `expo prebuild` → build Release de simulador → Maestro `smoke.yaml` (#61). En EAS no: el plan gratuito no permite Maestro | ~28 min | todavía nada: no es obligatorio (#61.6) |
-| 5 | `main` post-merge | cada merge | build `preview` o `update` al canal preview + source maps a Sentry | 15–35 min | — |
+| 5 | `main` post-merge | cada merge | hoy, el smoke de iOS. El `update` al canal preview y los mapas a Sentry esperan a la licencia de Apple, que trae el primer build instalado (#61) | ~28 min | — |
 | 6 | Release | tag `v*` | build `production` → TestFlight interno → **aprobación manual** → TestFlight externo | manual | TestFlight externo |
 
 ### Qué hacer cuando cada capa falla
@@ -40,7 +40,7 @@ Configuradas como **GitHub Rulesets** sobre `main` (vía `gh api`, script en `sc
 
 - **Nada entra a `main` sin PR.** Aunque el autor sea el único desarrollador. El PR es donde corren las capas 3 y 4; sin PR no hay barrera.
 - **Nada entra a `main` en rojo, y `--admin` no es una salida** (decisión #55). La protección de rama no puede impedirlo — un administrador se salta sus propias reglas — así que a partir de ahí la barrera es esta regla. Ningún agente mergea en rojo, ni desactiva un check, ni relaja el ruleset para dejar pasar algo: **para y avisa**. El día que haya que hacerlo, lo hace Luciano y escribe por qué en el PR.
-- **Checks obligatorios:** `ci / gates`, `ci / supabase`, `eas / fingerprint`, y `eas / maestro` cuando se ejecute.
+- **Checks obligatorios:** `gates`, `supabase` y `secretos` (#55, `scripts/reglas-de-rama.js`). `smoke-ios` corre en cada PR que no sea solo documentos, pero **no es obligatorio todavía** (#61.6).
 - **Historia lineal.** Sin merge commits, sin force-push, sin borrar `main`.
 - **Ramas cortas:** `feat/…`, `fix/…`, `chore/…`, `docs/…`. Vida objetivo < 3 días. Si una rama vive una semana, la feature está mal partida.
 - **Trunk-based con feature flags.** Lo incompleto se mergea apagado, no se guarda en una rama larga.
@@ -62,7 +62,7 @@ Configuradas como **GitHub Rulesets** sobre `main` (vía `gh api`, script en `sc
 | **Smoke E2E** | Maestro 2.10.0 en GitHub Actions (`smoke-ios.yml`, simulador iOS, #61) | `maestro/flows/smoke.yaml` y un flujo por función central | pasa en cada PR que no sea solo documentos y en cada merge a `main` |
 | **Evals de IA** | Promptfoo, `eval/promptfooconfig.yaml` | las 200 fotos (locales, fuera de git) | **precisión de `seguro` > 95 %** para aceptar cualquier cambio de prompt, modelo o guía de cámara |
 | **Salud** | `npx expo-doctor`, `knip` | todo | 0 errores. `knip` avisa en Fase 0–1 y bloquea desde Fase 2 |
-| **Interfaz** | ESLint (tokens, textos, controles solo en `src/ui/`) + contraste AA + Maestro `galeria.yaml` con capturas (desde D7, #58) | `src/ui/**`, `src/app/**` | Detalle en [`diseno.md`](diseno.md) §4. Sin colores a mano, sin texto literal, AA en todos los pares, capturas revisadas a ojo |
+| **Interfaz** | ESLint (tokens, textos, controles solo en `src/ui/`) + contraste AA + Maestro `galeria.yaml` con capturas (desde el primer build de desarrollo, #61) | `src/ui/**`, `src/app/**` | Detalle en [`diseno.md`](diseno.md) §4. Sin colores a mano, sin texto literal, AA en todos los pares, capturas revisadas a ojo |
 
 ### Property-based testing en el motor
 

@@ -51,7 +51,9 @@ jobs:
   smoke-ios:
     name: smoke-ios
     runs-on: macos-26
-    timeout-minutes: 60
+    # 75 y no 60: compilar (15–20 min) y encender el simulador (2–8 min) dejan unos
+    # 30 minutos antes de Maestro, y cada intento del driver puede gastar 10.
+    timeout-minutes: 75
     defaults:
       run:
         working-directory: michef
@@ -88,8 +90,9 @@ jobs:
           CI: 1
         run: npx expo prebuild --platform ios --clean
 
-      # Release, para simulador y sin firmar: es la app que vería alguien, con
-      # el JavaScript dentro y sin servidor de desarrollo. Sin subir mapas a
+      # Release, para simulador y sin firmar: con el JavaScript dentro y sin
+      # servidor de desarrollo. No es un build de EAS: no lleva canal, así que la
+      # parte de actualizaciones de un build real no la prueba. Sin subir mapas a
       # Sentry: el token de la región EU no sirve para eso (estado.md, avisos
       # para D7) y un build de CI no los necesita.
       - name: compilar para el simulador
@@ -141,8 +144,9 @@ jobs:
 
       # El «driver» de Maestro (un runner de XCTest) tiene que arrancar dentro del
       # simulador antes de tocar la app, y en los Mac de GitHub tarda lo que quiere
-      # la máquina: 2 minutos en una corrida, más de 5 en otra, en la que también
-      # el simulador tardó 7 minutos en encender. Las dos veces falló con «iOS
+      # la máquina: no arrancó en el tiempo por defecto en una corrida, tardó unos 3
+      # minutos en otra y no arrancó en 5 en una tercera, en la que también el
+      # simulador tardó 7 minutos en encender. Las dos veces que falló dijo «iOS
       # driver not ready in time» sin llegar a abrir la app.
       # Por eso: 10 minutos de espera y hasta 3 intentos, **solo** si el fallo es
       # ese. Si la app se cae o no aparece la pantalla de inicio, falla a la
@@ -163,7 +167,7 @@ jobs:
             echo "::endgroup::"
             if [ "$codigo" -eq 0 ]; then exit 0; fi
             if ! grep -q "iOS driver not ready in time" "$RUNNER_TEMP/maestro-$intento.log"; then
-              echo "::error::El smoke falló, y no por el driver de Maestro: es la app."
+              echo "::error::El smoke falló, y no fue el driver de Maestro: mira la salida (la app, Maestro o el simulador)."
               exit "$codigo"
             fi
             echo "::warning::El driver de Maestro no arrancó (intento $intento de 3)."

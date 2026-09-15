@@ -750,7 +750,8 @@ Fecha: 2026-09-10 · **vigente**
    de `SENTRY_URL`, así que la subida falla con `401 Invalid org token`
    (getsentry/sentry-cli#3385, cerrado). La salida reconocida es un **token personal**
    con `SENTRY_URL=https://de.sentry.io`. El token que hay hoy en GitHub Secrets es de
-   organización, así que **probablemente habrá que reemplazarlo en D7**.
+   organización, así que **probablemente habrá que reemplazarlo en D7**. *(D7 no lo
+   necesitó: el smoke no sube mapas. Pasa a «antes del primer build real», #61.4.)*
 5. **`platforms: ['ios']`, explícito.** Sin él, Expo deducía `ios, android, web` de las
    librerías instaladas, en contra de lo decidido en D1.
 6. **El DSN de Sentry es opcional; un interruptor mal escrito no.** Sin DSN la app arranca
@@ -845,7 +846,8 @@ confirmó todos** el 2026-09-10, antes del merge
    `@gorhom/bottom-sheet` sin un caso real que la probara. Queda en la lista de
    componentes de Fase 2 (`diseno.md` § 5).
 3. **Las capturas de la galería con Maestro (`galeria.yaml`) pasan a D7**, que es el paso
-   donde entra Maestro. Hasta entonces la galería se revisa a ojo en el iPhone, que es lo
+   donde entra Maestro. *(Reemplazado por la #61: la galería no existe en un build Release,
+   así que las capturas esperan al primer build de desarrollo.)* Hasta entonces la galería se revisa a ojo en el iPhone, que es lo
    que el DoD pide de todas formas.
 4. **`eslint-plugin-react-native-a11y` no entra.** Su versión 3.5.1 declara compatibilidad
    solo hasta ESLint 8 (`peerDependencies: eslint ^3 … ^8`), y el proyecto usa ESLint 9
@@ -1113,11 +1115,13 @@ smoke en GitHub Actions. Eligió el segundo.
   JavaScript viejo. Si el tiempo molesta, la mejora es cachear CocoaPods y la compilación,
   no saltarse el build.
 - `maestro/flows/galeria.yaml`: la galería no existe en un build Release (#58). Llega con
-  el primer build de desarrollo.
+  el primer build de desarrollo. Reemplaza el punto 3 de la #58.
+- El `github-comment` con el resultado: lo cubre el propio check `smoke-ios` en el PR, con
+  la salida de Maestro como artefacto.
 
 **Lo que salió al probarlo.** El «driver» de Maestro (un runner de XCTest que arranca
-dentro del simulador) tarda lo que quiera la máquina de GitHub: 2 minutos en una corrida,
-más de 5 en otra. Dos corridas fallaron con «iOS driver not ready in time» sin llegar a
+dentro del simulador) tarda lo que quiera la máquina de GitHub: no arrancó en el tiempo por
+defecto en una corrida, tardó unos 3 minutos en otra y no arrancó en 5 en una tercera. Dos corridas fallaron con «iOS driver not ready in time» sin llegar a
 abrir la app. Por eso el paso espera 10 minutos y **reintenta hasta 3 veces, solo si el
 fallo es ese**: si la app se cae o no aparece la pantalla de inicio, falla a la primera.
 7. **Prueba del rojo superada** (PR #22, cerrado sin mergear, como #10 y #13): con
@@ -1125,8 +1129,10 @@ fallo es ese**: si la app se cae o no aparece la pantalla de inicio, falla a la 
    stopped» al primer intento; el workflow lo marcó como fallo de la app, sin reintento. La
    misma versión, en la rama de D7, pasó en verde en 59 segundos de Maestro.
 
-**Cambia:** `protocolos-calidad.md` (capa 4 y la fila del smoke), `CLAUDE.md` (cómo se
-verifica), `fase-0-fundaciones.md` § D7 y la #32.
+**Cambia:** `protocolos-calidad.md` (capas 4 y 5, checks obligatorios, filas del smoke y de
+interfaz), `CLAUDE.md` (cómo se verifica), `diseno.md` (§ 2.3 y § 4, las capturas de la
+galería), `roadmap.md` (espejo ②), `fase-0-fundaciones.md` § D7, la #32, la #57.4 y la
+#58.3.
 
 ## Pendientes de decidir
 
