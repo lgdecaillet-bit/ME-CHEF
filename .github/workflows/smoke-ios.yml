@@ -1,0 +1,155 @@
+# Smoke de iOS · ME CHEF (D7, decisión #61)
+#
+# Compila la app de verdad para el simulador de iOS, la abre, y Maestro
+# comprueba que llega a la pantalla de inicio. Es lo único que prueba que la app
+# arranca sin que Luciano la abra en su iPhone: los tests de Jest no ven un
+# módulo nativo que falta, una variable de entorno que no llega al bundle o un
+# error al montar la primera pantalla.
+#
+# Corre en las máquinas Mac de GitHub, no en EAS: el plan gratuito de Expo no
+# permite tests de Maestro (decisión #61). En un repositorio público los runners
+# estándar de GitHub, también los de macOS, son gratis. **Si el repositorio
+# vuelve a ser privado, esto se cobra, y caro**: los minutos de macOS cuentan
+# varias veces más que los de Linux.
+#
+# NO es un check obligatorio todavía. Por eso puede llevar `paths-ignore`: un
+# PR de solo documentos no gasta media hora compilando. El día que pase a
+# obligatorio hay que quitar el filtro primero (ver la nota de ci.yml sobre un
+# check que se queda «pendiente» para siempre).
+#
+# Versiones exactas en todo lo que se instala: Maestro y eas-cli. Las acciones
+# de GitHub van por versión mayor, como en ci.yml.
+
+name: smoke-ios
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'michef/docs/**'
+      - '**/*.md'
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'michef/docs/**'
+      - '**/*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: smoke-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  MAESTRO_VERSION: 2.10.0
+  # sha256 de maestro.zip de la release cli-2.10.0, tal como la publica GitHub.
+  MAESTRO_SHA256: 29b675e10cc12080e445e9bfb2e2b4e4dfb9c0f2e30d5884120d258b5e1cd991
+  EAS_CLI_VERSION: 24.3.0
+
+jobs:
+  smoke-ios:
+    name: smoke-ios
+    runs-on: macos-26
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: michef
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: michef/.node-version
+          cache: npm
+          cache-dependency-path: michef/package-lock.json
+
+      - name: instalar
+        run: npm ci
+
+      # Las variables públicas (EXPO_PUBLIC_*) viven en EAS, en un solo sitio, y
+      # se leen de ahí con el robot `github-ci` (rol Developer). Se quita el DSN
+      # de Sentry: una app abierta en un simulador de CI no debe mandar nada a
+      # sentry.io, y `env.ts` lo acepta vacío.
+      - name: variables de entorno desde EAS
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx --yes eas-cli@${EAS_CLI_VERSION} env:pull --environment preview --non-interactive --path .env.local
+          sed -i '' '/^EXPO_PUBLIC_SENTRY_DSN=/d' .env.local
+          echo "Variables cargadas:"
+          cut -d= -f1 .env.local
+
+      # `ios/` no está en el repositorio: se genera aquí desde app.config.ts
+      # (Continuous Native Generation), igual que haría un build de EAS.
+      - name: generar el proyecto nativo
+        env:
+          CI: 1
+        run: npx expo prebuild --platform ios --clean
+
+      # Release, para simulador y sin firmar: es la app que vería alguien, con
+      # el JavaScript dentro y sin servidor de desarrollo. Sin subir mapas a
+      # Sentry: el token de la región EU no sirve para eso (estado.md, avisos
+      # para D7) y un build de CI no los necesita.
+      - name: compilar para el simulador
+        env:
+          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
+        run: |
+          set -o pipefail
+          WORKSPACE=$(ls -d ios/*.xcworkspace | head -1)
+          ESQUEMA=$(basename "$WORKSPACE" .xcworkspace)
+          echo "workspace=$WORKSPACE esquema=$ESQUEMA"
+          xcodebuild \
+            -workspace "$WORKSPACE" \
+            -scheme "$ESQUEMA" \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+          ls -d build/Build/Products/Release-iphonesimulator/*.app
+
+      - name: instalar Maestro
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -fsSL -o maestro.zip \
+            "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
+          echo "${MAESTRO_SHA256}  maestro.zip" | shasum -a 256 -c -
+          unzip -q maestro.zip
+          echo "${RUNNER_TEMP}/maestro/bin" >> "$GITHUB_PATH"
+
+      - name: arrancar el simulador e instalar la app
+        run: |
+          UDID=$(xcrun simctl list devices available -j | node -e '
+            let s = "";
+            process.stdin.on("data", (d) => (s += d)).on("end", () => {
+              const porRuntime = JSON.parse(s).devices;
+              const ios = Object.keys(porRuntime).filter((r) => r.includes("iOS")).sort().reverse();
+              for (const r of ios) {
+                const iphone = porRuntime[r].find((d) => d.name.startsWith("iPhone"));
+                if (iphone) { console.log(iphone.udid); return; }
+              }
+              process.exit(1);
+            });
+          ')
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" build/Build/Products/Release-iphonesimulator/*.app
+
+      - name: smoke con Maestro
+        run: maestro --device "$UDID" test maestro/flows/smoke.yaml --format junit --output "$RUNNER_TEMP/maestro-junit.xml" --test-output-dir "$RUNNER_TEMP/maestro-salida"
+
+      # Si falla, la captura y el log de Maestro dicen en qué pantalla se quedó.
+      - name: guardar lo que vio Maestro
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro
+          path: |
+            ${{ runner.temp }}/maestro-junit.xml
+            ${{ runner.temp }}/maestro-salida
+          if-no-files-found: ignore
+          retention-days: 14
