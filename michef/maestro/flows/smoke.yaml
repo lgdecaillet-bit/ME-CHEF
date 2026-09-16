@@ -1,0 +1,16 @@
+# Smoke · ¿la app abre? (D7, decisión #61)
+#
+# Abre la app desde cero y espera la pantalla de inicio, que lleva
+# `testID="home"` (src/app/index.tsx). Si la app se cae al arrancar, si falta una
+# variable de entorno o si la primera pantalla no se monta, esto falla.
+#
+# Lo corre .github/workflows/smoke-ios.yml en un simulador de iOS.
+appId: com.mechef.app
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: home
+    timeout: 60000
+- takeScreenshot: inicio

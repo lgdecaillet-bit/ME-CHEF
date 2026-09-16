@@ -84,7 +84,7 @@ componente en cada estado**, en claro y en oscuro, con Dynamic Type en tres tama
 iPhone y dos simulados (decisión #58).
 
 - Es donde se diseña un componente antes de que exista la pantalla que lo usa.
-- **Desde D7** (decisión #58), Maestro le hace capturas en cada PR que toque `src/ui/` (`galeria.yaml`) → las capturas
+- **Desde el primer build de desarrollo** (#58, #61: la galería no existe en un build Release), Maestro le hace capturas en cada PR que toque `src/ui/` (`galeria.yaml`) → las capturas
   se adjuntan al PR → **se revisan a ojo**. Un cambio visual no intencionado se ve.
 - Es la primera pantalla que se abre para comprobar que el tema oscuro no rompió nada.
 
@@ -189,7 +189,7 @@ Se suman a los de `protocolos-calidad.md`.
 | Textos y controles solo desde `src/ui/` | `no-restricted-imports` de `Text`, `Pressable` y los demás controles de `react-native` y de `react-native-gesture-handler`, y del `Link` de expo-router, fuera de `src/ui/`; `Animated.Text` con `no-restricted-syntax`. Desde D6.5b, también `expo-symbols` (se usa `Icono`) y `ActivityIndicator` (se usa `Cargando`) | commit |
 | Una sola forma de animar | `no-restricted-imports` del `Animated` de `react-native` en **todo** `src/`, también en `src/ui/` y en los tests: las animaciones, con Reanimated (#60) | commit |
 | Estados cubiertos | Test RNTL por pantalla con los estados del brief. Sin test, el PR no cumple DoD | merge |
-| Regresión visual | **Desde D7** (#58): Maestro `galeria.yaml` + `takeScreenshot` en cada PR que toque `src/ui/` → capturas en el PR | revisión humana |
+| Regresión visual | **Desde el primer build de desarrollo** (#58, #61): Maestro `galeria.yaml` + `takeScreenshot` en cada PR que toque `src/ui/` → capturas en el PR | revisión humana |
 | Contraste | Test `src/ui/__tests__/contraste.test.ts` (decisión #58): cada color de texto sobre cada fondo de `tokens.ts` ≥ 4,5:1 (AA), y el borde ≥ 3:1, en claro y oscuro | pre-push y CI |
 
 Las reglas de ESLint de esta tabla se aplican a `src/app/` y `src/ui/`, no al resto de
