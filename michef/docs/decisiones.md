@@ -12,7 +12,8 @@
 > `### #N · Título` · fecha · estado · texto con el porqué · qué reemplaza · qué archivos
 > de `fases/` cambian.
 
-Vigentes: **#1–#3, #5–#54**. Reemplazadas: #4 (por #29).
+Vigentes: **#1–#3, #5–#27, #29–#62**. Reemplazadas o anuladas: #4 (por la #29), #28 (por
+la #62). Reemplazadas en parte: #32 (por la #61), #57.4 y #58.3 (por la #61).
 
 ---
 
@@ -172,20 +173,27 @@ Es lo que `create-expo-app` generó: RN 0.86.3, React 19.2.3, TypeScript 6.0.3. 
 Architecture obligatoria, sin opción legacy. `CLAUDE.md` se corrige en D1.
 
 ### #27 · Expo Go como entorno de desarrollo hasta Fase 2
-Fecha: 2026-09-09 · **vigente**
+Fecha: 2026-09-09 · **ampliada por la #62** (el título es el original; lo vigente es esto):
+Expo Go sirve hasta la Fase 5, y las cinco piezas que no caben ahí se aplazan en vez de
+abandonar Expo Go. La lista exacta y comprobada está en la #62. Sigue vigente todo lo que
+esta decisión verificó, y su última frase: Expo Go nunca es el destino final
 Verificado contra la documentación del SDK 57: cámara, SQLite sin cifrar, Supabase
 (sesión anónima, Edge Functions), notificaciones locales y Secure Store funcionan en Expo
 Go. SQLCipher, Sign in with Apple real y Live Activities no. Se abandona Expo Go al entrar
 cualquiera de esos tres. Nunca es el destino final.
 
 ### #28 · Licencia de Apple: recomendada semana 3–4, máximo semana 7
-Fecha: 2026-09-09 · **vigente**
+Fecha: 2026-09-09 · **anulada por la #62** (Luciano no paga licencia hasta que el producto
+funcione en Expo Go). Sigue vigente una sola frase: iniciar el alta una semana antes
 Los builds de simulador para E2E (Maestro en EAS) no la necesitan. Solo la exigen
 SQLCipher, Apple auth, Live Activities y TestFlight. Iniciar el alta una semana antes de
 necesitarla (24–48 h, a veces días). Cambia: `roadmap.md §3`.
 
 ### #29 · Onboarding sin cuenta; login al tocar «Cocinar»; cocinar requiere cuenta
-Fecha: 2026-09-09 · **vigente** · **reemplaza a #4**
+Fecha: 2026-09-09 · **vigente** · **reemplaza a #4** · **la #62 abre una pregunta**: ni
+Apple ni Google funcionan en Expo Go, así que durante el desarrollo la cuenta será por
+correo, y qué botones lleva la hoja definitiva está en «Pendientes de decidir». Todo lo
+demás — el momento, «Ahora no», cocinar requiere cuenta — sigue igual
 La primera foto y las tres recetas ocurren sin cuenta, con sesión anónima de Supabase. Al
 tocar «Cocinar esto» aparece una hoja («Guarda tu cocina», Apple/Google, «Ahora no»). Se
 vincula con `linkIdentity`, sin migrar datos. **No existe «cocinar sin cuenta»**: «Ahora
@@ -1134,8 +1142,111 @@ interfaz), `CLAUDE.md` (cómo se verifica), `diseno.md` (§ 2.3 y § 4, las capt
 galería), `roadmap.md` (espejo ②), `fase-0-fundaciones.md` § D7, la #32, la #57.4 y la
 #58.3.
 
+### #62 · Sin licencia de Apple hasta que el producto funcione en Expo Go
+
+Fecha: 2026-09-16 · **vigente** · **anula la #28** · la fija Luciano
+
+**La regla, en sus palabras:** «hasta que no tengas un producto funcional y construido en
+Expo Go yo no voy a pagar ninguna licencia».
+
+**Qué cambia.** La #28 recomendaba pagar los 99 USD en la semana 3 o 4, «máximo semana 7»,
+por riesgo acumulado y no por funciones. Queda anulada: la licencia se saca cuando la app
+tenga que salir de Expo Go, y no antes.
+
+**Qué se construye y se prueba entero en Expo Go:** el motor determinista, el inventario,
+la cámara y la foto de la nevera, el proxy y los modelos, las recetas, el ciclo del mercado
+con la factura y los precios, los timers de cocina como notificaciones locales, el catálogo
+y el asistente. Es decir, **la función central de ME CHEF de punta a punta**.
+
+**Qué no existe en Expo Go, y cómo se aplaza.** Son cinco piezas, comprobadas una por una
+contra `docs.expo.dev` el 2026-09-16:
+
+| Qué | Fase | Qué se hace mientras |
+|---|---|---|
+| **SQLCipher**, el cifrado del archivo de la base de datos | 1 | El código se escribe entero detrás del flag `EXPO_PUBLIC_FLAG_CIFRADO`. En Expo Go los datos quedan **sin cifrar** |
+| **Sign in with Apple contra Supabase** | 2 | La librería corre en Expo Go, pero los identificadores que devuelve son los de Expo Go y no los del bundle de ME CHEF, así que Supabase no puede validarlos. Mientras tanto, la cuenta se hace **por correo** vía Supabase, que es JavaScript puro. Apple se añade con la licencia. Ojo con la regla 4.8 de Apple: obliga a ofrecer Sign in with Apple cuando hay **logins sociales de terceros**, no cuando solo hay correo propio; con una hoja de solo correo probablemente no aplique |
+| **Live Activity** (el timer en la pantalla bloqueada y el Dynamic Island) | 4 | Los timers funcionan igual: son notificaciones locales. La Live Activity ya es su propio paso (4.3) y se aparca ahí hasta que haya licencia |
+| **Ejecución en segundo plano** (bajar el índice del catálogo cada 24 h) | 5 | El índice se baja **al abrir la app**. `expo-background-task` aparece listada en Expo Go, pero `expo-task-manager`, de la que depende, dice que en Expo Go **no hay ejecución en segundo plano en iOS**. Ver abajo |
+| **TestFlight y la App Store** | 5–6 | Nada. Aquí la licencia deja de ser aplazable |
+
+**La barrera que abre esta regla.** Mientras se desarrolle en Expo Go, los datos del
+teléfono están **sin cifrar**: SQLCipher necesita build. Por eso: **la app no llega a
+ninguna persona que no sea Luciano hasta que haya licencia, development build y cifrado
+encendido.** No es un recordatorio, es una condición de salida; está en las prohibiciones
+duras de `CLAUDE.md` y en los avisos del tablero. El día que se levante hay que resolver
+además lo de los crashes nativos, que en Expo Go no aplica porque no hay parte nativa,
+pero en un build sí (#57.12).
+
+**Lo que hace defendible la apuesta.** El smoke de D7 (#61) compila la app **nativa de
+verdad** en cada PR, aunque Luciano la vea en Expo Go. Si algo deja de compilar fuera de
+Expo Go se sabe el mismo día, no en la semana 14. Sin ese espejo, esta decisión sería
+temeraria; con él, el riesgo que la #28 quería comprar con dinero ya está cubierto.
+
+**Cuándo se saca, en concreto.** El primer momento en que la app tiene que salir de Expo
+Go es el **cierre de la Fase 5**, que pide TestFlight interno para que la mamá la instale
+(`fase-5-catalogo.md` § criterio de salida). Eso cae en la **semana 13**, así que **el alta
+se inicia en la semana 12**. Es lo único que sobrevive de la #28: una semana antes, porque
+Apple aprueba en 24–48 h pero si pide verificación de identidad se va a varios días. Si
+Luciano quiere enseñársela a alguien antes, la licencia se adelanta a ese momento.
+
+**Una consecuencia de producto que queda pendiente de decidir.** La hoja de cuenta de la
+#29 tiene dos botones, Apple y Google. En Expo Go no funciona ninguno de los dos: el de
+Apple por lo de arriba, y el de Google porque las librerías nativas de Google piden
+development build (`docs.expo.dev/guides/google-authentication`). Durante el desarrollo la
+cuenta será **por correo**. Qué forma toma la hoja definitiva — si el correo se queda como
+tercera opción o solo es un andamio de desarrollo — **lo decide Luciano en la Fase 2**, y
+está en «Pendientes de decidir».
+
+**Y una consecuencia técnica que no es cosmética.** `linkIdentity` **no sirve para el
+correo**: la documentación de Supabase lo reserva para identidades OAuth, y el camino de
+anónimo a permanente con correo es `updateUser({ email })`, esperar a que el usuario
+verifique, y `updateUser` otra vez si se le pone contraseña. Son dos APIs distintas, con
+un estado intermedio — «te mandamos un código» — que la hoja de la #29 no tiene. Hace
+falta una `vincularConCorreo()` al lado de las dos que la Fase 1 ya crea, y el paso 2.9
+tiene que dibujar ese estado intermedio.
+
+**Comprobado contra la documentación oficial del SDK 57 el 2026-09-16**, no de memoria:
+`expo-camera` (con `launchScanner`), `expo-sqlite` sin cifrar y `react-native-maps` con
+Apple Maps **sí** están en Expo Go. La primera versión de esta decisión decía que los mapas
+exigían build, y era falso: lo cazó el revisor.
+
+**El caso de `expo-background-task` merece contarse, porque casi se cuela dos veces.** Su
+página lo lista en Expo Go, así que la segunda versión de esta decisión lo dio por bueno.
+Pero depende de `expo-task-manager`, cuya página dice, literal, que en Expo Go **no hay
+ejecución en segundo plano en iOS** y que para eso hace falta development build. Dos
+páginas oficiales que no dicen lo mismo: se toma la restrictiva y se aplaza. **Lo que se
+aplaza es la ejecución en segundo plano, no la librería.** Se comprueba en el iPhone el
+día 1 de la Fase 5; si funciona, el índice recupera su job de 24 h sin cambiar nada más.
+
+**Queda por comprobar antes de depender de ello** (está también en la lista del final de
+este archivo): las notificaciones locales de `expo-notifications` en Expo Go, que la
+página afirma en el texto pero no lista en `platforms`; el ciclo del correo de Supabase de
+vuelta a la app en Expo Go; y la ejecución en segundo plano de arriba.
+
+**Dónde vuelve cada pieza aplazada.** Aplazar algo sin decir dónde se recoge es perderlo:
+al tachar el criterio de entrada de la Fase 3, el cifrado verificado se quedó un rato sin
+ninguna casilla en todo el roadmap. Las cinco tienen ahora su punto de reincorporación, y
+es el mismo: **el criterio de salida de la Fase 5**, que es donde la app llega por primera
+vez a una persona que no es Luciano.
+
+| Pieza | Qué la desbloquea | Dónde se verifica |
+|---|---|---|
+| Cifrado (SQLCipher) | development build | Criterio de salida de la Fase 5: `flags.cifrado` encendido y el archivo `.db` que no se abre sin clave |
+| Sign in with Apple contra Supabase | licencia + build | Criterio de salida de la Fase 5, con la hoja de cuenta completa |
+| Live Activity | licencia + build | Criterio de salida de la Fase 5, con el timer visible en la pantalla bloqueada |
+| Ejecución en segundo plano | comprobar Expo Go el día 1 de la Fase 5; si no, build | Criterio de salida de la Fase 5 |
+| TestFlight | licencia | Es el propio paso 5.9 |
+
+**Cambia:** `roadmap.md` § 3 y la tabla de fases; las cabeceras y los criterios de las
+fases 2, 3, 4 y 5; `fase-1-motor-y-datos.md`; `fase-0-fundaciones.md`; `CLAUDE.md`; el
+tablero; la #27, la #28 y la #29; y la lista «Por verificar antes de depender de ello».
+
 ## Pendientes de decidir
 
+- **La hoja de cuenta de la #29: ¿qué botones lleva?** En Expo Go no funcionan ni Apple ni
+  Google (#62), así que el desarrollo irá por correo. Falta decidir si el correo se queda
+  como tercera opción en el producto final o era solo un andamio. Se decide en la Fase 2,
+  y cambia el paso 2.9.
 - Porciones para varias personas: ¿tres porciones iguales o cada comensal con su apetito?
   (afecta directo el dolor principal del primer usuario)
 - Qué incluye la despensa básica por país
@@ -1155,3 +1266,17 @@ galería), `roadmap.md` (espejo ②), `fase-0-fundaciones.md` § D7, la #32, la 
 - Costos y términos de Google Places frente a Apple Maps
 - Existencia de datos abiertos de precios en Suiza y Colombia
 - Plan Production de EAS ($199/mes viene de fuente secundaria)
+- **Notificaciones locales en Expo Go** (#62, Fase 4). La página de `expo-notifications`
+  las da por buenas en el texto pero no lista `expo-go` en `platforms`. De esto depende la
+  cabecera entera de la Fase 4. Comprobar el día 1 de la fase, en el iPhone.
+- **Ejecución en segundo plano en Expo Go** (#62, Fase 5). `expo-background-task` se lista
+  en Expo Go; `expo-task-manager`, de la que depende, dice que en iOS no hay ejecución en
+  segundo plano sin development build. Mientras no se compruebe, el índice se baja al abrir
+  la app.
+- **El ciclo del correo de Supabase en Expo Go** (#62, Fase 2): que `updateUser({ email })`
+  y la verificación devuelvan al usuario a la app con el enlace `exp://`. De esto depende
+  la cuenta durante todo el desarrollo.
+- **El entitlement de las Live Activities** (#62, Fase 4). `fase-4-cocina.md` cita
+  `com.apple.developer.ActivityKit`; lo que Apple documenta es la clave
+  `NSSupportsLiveActivities` en el `Info.plist`. La conclusión no cambia — hace falta una
+  widget extension, o sea build — pero el dato se repite sin comprobar.

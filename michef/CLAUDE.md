@@ -53,12 +53,20 @@ Todo lo demás es determinista: porciones, lista de mercado, presupuesto,
   redistribuir bases derivadas.
 - **Sin claims médicos.** Los objetivos calóricos son orientativos y se muestran
   como aproximados.
+- **La app no llega a ninguna persona que no sea Luciano** hasta que haya licencia de
+  Apple, development build y **cifrado encendido y verificado** (decisión #62). En Expo Go
+  los datos del teléfono van sin cifrar: SQLCipher necesita build. El primer momento en
+  que la barrera se levanta es el paso 5.9, TestFlight interno.
 
 ### Cuenta
 
 La primera foto y las tres recetas ocurren **sin cuenta**, con sesión anónima de
-Supabase. El login (Apple/Google) se pide **al tocar «Cocinar»**, en una hoja que
-explica qué se guarda, y se vincula con `linkIdentity`. **Cocinar requiere cuenta.**
+Supabase. El login se pide **al tocar «Cocinar»**, en una hoja que explica qué se guarda,
+y se vincula con `linkIdentity` cuando es Apple o Google. En el diseño de la #29 la hoja
+lleva esos dos;
+**ninguno de los dos funciona en Expo Go** (#62), así que mientras se desarrolla ahí la
+cuenta es **por correo** — que no usa `linkIdentity` sino `updateUser` más verificación —
+y qué botones lleva la hoja definitiva está por decidir. **Cocinar requiere cuenta.**
 No existe «cocinar sin cuenta»: «Ahora no» vuelve a las recetas. Nunca se pide antes:
 ni al abrir, ni al ver las recetas (decisión #29).
 
@@ -97,8 +105,11 @@ Cachea **toda** respuesta de modelo. Sin excepción.
 
 - **App:** Expo SDK **57** (RN 0.86, React 19.2, TS 6; corregido de «54+» por decisión
   #26), React Native, TypeScript, iOS-only. Se desarrolla en Windows; los builds los
-  hace EAS Build en la nube. No hay Mac para compilar. Expo Go sirve para desarrollar
-  hasta la Fase 2 (decisión #27).
+  hace EAS Build en la nube. No hay Mac para compilar. **Expo Go sirve para desarrollar
+  hasta la Fase 5** (#27 ampliada por la #62): no se paga licencia de Apple hasta que el
+  producto funcione en Expo Go. Cinco piezas quedan aplazadas — el cifrado, Sign in with
+  Apple contra Supabase, la Live Activity, la ejecución en segundo plano y TestFlight.
+  Nunca es el destino final.
 - **Local:** `expo-sqlite` con SQLCipher + Drizzle ORM.
 - **Backend:** Supabase (Postgres + pgvector, Auth Apple/Google, Storage,
   Edge Functions).

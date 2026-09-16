@@ -1,6 +1,9 @@
 # Fase 5 · El catálogo y el asistente
 
-> **Semanas 12–13 · Requiere licencia de Apple** (TestFlight interno al cerrar).
+> **Semanas 12–13 · Solo TestFlight necesita licencia**, al cerrar la fase. El resto corre
+> en Expo Go, salvo **la ejecución en segundo plano** del índice, que se hace al abrir la
+> app hasta que se compruebe en el iPhone (#62). **Aquí se saca la licencia**: el alta se
+> inicia en la semana 12, una semana antes del paso 5.9 (decisión #62).
 >
 > Al terminar, el catálogo deja de ser 20 recetas a mano y pasa a cientos generadas en
 > lote, validadas, con imagen, texto por idioma y vector; el selector pide generar solo
@@ -24,13 +27,24 @@ línea, y las dos puertas de entrada de recetas nuevas: el selector y el usuario
 
 - [ ] ≥ 500 recetas `publicada` en el catálogo, generadas por el pipeline, cada una con: ingredientes canónicos por porción, pasos con «así debe verse»/timer/equipo, textos en `es`, imagen, vector.
 - [ ] **Validación automática** rechaza (test con 10 recetas malas a propósito): ingrediente que no mapea · macros incoherentes con el tipo · tiempo que no suma con los timers · duplicado (coseno > 0,92 con una existente) · texto que coincide > 8 palabras seguidas con el corpus de ideas.
-- [ ] Índice del catálogo (~3 MB) descargable en segundo plano; la app sigue sin red con el índice anterior.
+- [ ] Índice del catálogo (~3 MB) descargable **al abrir la app**; la app sigue sin red con el índice anterior. En segundo plano cada 24 h **solo si se comprueba que Expo Go lo permite** (#62); si no, con el development build.
 - [ ] Selector: cuando `faltan > 0`, encola un pedido al pipeline («falta pasta vegetariana de 20 min») y usa lo que hay mientras tanto. Test: el pedido llega a la cola con los filtros correctos.
 - [ ] Asistente: «¿Dónde hago mercado esta semana?» → router elige consultas → consultas locales → redactor devuelve una frase con datos reales + acción. **Contexto ≤ 20 líneas** (test: el body al proxy no supera 20 líneas). Nunca responde sin datos (test: sin lista, responde «No tienes lista esta semana. ¿La armamos?»).
 - [ ] Importador: un link de TikTok/YouTube/web → receta en estructura ME CHEF, pasada por la **misma** validación. El vídeo no se guarda. Si es buena y no duplica, entra al catálogo **sin decir quién la trajo**.
 - [ ] Ranking recalculado en lote (job diario) con la fórmula de `ranking.ts`. Decaimiento de confianza de precios (job semanal).
 - [ ] Estimación de precios por ingrediente y país, **una vez por país** (Sonnet), guardada con `fuente = 'estimado', confianza = 0,3`.
 - [ ] Bloques de hasta 4 semanas con boceto de proteínas sin repetir.
+- [ ] **Las cinco piezas que la #62 aplazó, recogidas antes de que la app salga del
+      teléfono de Luciano** — es la condición de la prohibición dura de `CLAUDE.md`, y
+      ninguna de estas casillas se marca «sobre el papel»:
+  - [ ] `flags.cifrado` encendido en el development build, y **verificado**: el archivo
+        `.db` no se abre sin la clave. Con fecha y cómo se comprobó.
+  - [ ] Sign in with Apple vinculando de verdad contra Supabase, con la hoja de cuenta
+        completa (y lo que Luciano decida sobre el correo, ver «Pendientes de decidir»).
+  - [ ] Live Activity visible en la pantalla bloqueada y el Dynamic Island. Test manual.
+  - [ ] Índice del catálogo en segundo plano, o anotado por qué no y que se baja al abrir.
+  - [ ] Los crashes nativos, resueltos: no pasan por `limpiarEvento` (#57.12), y en Expo
+        Go no existían. Decidir cómo se cubren antes de que alguien instale la app.
 - [ ] Build `production` en **TestFlight interno**; la mamá lo instala y cocina una receta real.
 - [ ] Coste del catálogo anotado (objetivo: 0,05–0,10 USD por receta).
 
@@ -49,7 +63,7 @@ línea, y las dos puertas de entrada de recetas nuevas: el selector y el usuario
 | Asistente | Haiku 4.5 con tool use (tarea `asistente`) | Router (qué consultar) + redactor (una frase) |
 | Importador | Gemini 3 Flash (vídeo/página → estructura) → mismo pipeline | Tarea `importar` |
 | Índice | `catalogo_indice` (tabla) + archivo JSON comprimido en Storage | Descarga incremental por `actualizado_en` |
-| App | `expo-background-task` | Bajar el índice en segundo plano |
+| App | `expo-background-task` | Bajar el índice en segundo plano — **por comprobar que corre en Expo Go** (#62); si no, se baja al abrir la app hasta el development build |
 | Búsqueda | Filtros locales (pills) + vector de consulta vía proxy (tarea `vector`) | «algo calientico para la noche» |
 
 **Cambia el fingerprint:** `expo-background-task`. Un PR.
@@ -79,7 +93,7 @@ idea (corpus | pedido del selector | link)
 
 - Tabla `catalogo_indice (receta_id, json_compacto, actualizado_en)` regenerada por job al publicar.
 - Endpoint público de solo lectura (RLS `select`) paginado por `actualizado_en > ?`.
-- App: `src/catalogo/sync.ts` con `expo-background-task` cada 24 h + al abrir si > 24 h. Escribe en `catalogo_cache`. **Atómico**: o entra la página entera o no entra.
+- App: `src/catalogo/sync.ts` con `expo-background-task` cada 24 h + al abrir si > 24 h. **El día 1 de la fase se comprueba si el job de 24 h corre en Expo Go** (#62): si no, queda solo el de abrir, y el de 24 h espera al development build. Escribe en `catalogo_cache`. **Atómico**: o entra la página entera o no entra.
 - Recetas completas (pasos, textos) se bajan **al abrir la receta** y se cachean. El índice solo tiene lo necesario para filtrar y mostrar tarjetas.
 
 ### 5.3 · `feat/selector-pide-generar`
@@ -120,6 +134,11 @@ con `inventario` vacío, el redactor recibe «sin datos» y la respuesta es la f
 - Limpieza de anónimos > 30 días.
 
 ### 5.9 · `release/testflight-interno`
+
+> **Aquí se levanta la barrera de la #62 y no antes.** Es el primer momento en que la app
+> llega a una persona que no es Luciano, y para eso hacen falta las tres cosas a la vez:
+> licencia de Apple, development build y el cifrado encendido y verificado. El alta de la
+> licencia se inicia **una semana antes**, en la semana 12.
 
 - Tag `v0.1.0` → `release.yml` → build production → TestFlight interno.
 - Checklist manual de la mamá: instalar, foto de su nevera, cocinar una receta, foto de una factura. Se anota qué falló.
