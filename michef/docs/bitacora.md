@@ -2320,6 +2320,41 @@ quedó anotado en «Por verificar».
 
 Para la siguiente sesión: presentar **D8, el README**, que cierra la Fase 0, y esperar el
 «adelante» de Luciano (#34). Recordarle lo de la contraseña de TESO. Nunca en rojo (#55).
+## 2026-09-17 · S-20260916-a · el parche 57.0.23 de Expo, que puso el CI en rojo
+
+Tarea: — · Rama: `chore/deps-expo-57-0-23` · Resultado: **`expo` a `~57.0.23`**, `gates`
+verde otra vez. *(2026-09-21: mientras el PR esperaba merge salió la 57.0.24, y se subió a
+esa en la misma rama. Es la cuarta vez en dos semanas: Expo publica un parche cada pocos
+días y `expo-doctor` exige el último, así que cualquier PR que espere más de unos días se
+pone rojo solo. Hay que decidir qué hacer con eso, y no es decisión de Claude.)*
+
+Tocado: `package.json` y `package-lock.json`. Nada más.
+
+Corrido: `npx expo install --check` (señalaba `expo@57.0.22`, esperado `~57.0.23`),
+`npx expo install --fix`, `npx expo-doctor` — **21/21**, y `npm run gates` — verde, 639
+tests en 35 suites.
+
+Decisiones nuevas: ninguna.
+
+Avances de Luciano: dio el «adelante» corriendo `npx expo install --check` él mismo. Le
+falló con «Project root directory not found» porque lo corrió desde
+`C:\Users\Luciano\Desktop\ME-CHEF` y el proyecto vive en `michef/`. Vale la pena
+recordarlo: **los comandos de Expo se corren desde `michef/`, no desde la raíz del
+repositorio.**
+
+---
+
+**Por qué existe esta rama.** El PR #23 (la decisión #62, solo documentos) se puso rojo en
+`gates`, y no por nada que llevara dentro: `expo-doctor` exige la última versión de parche
+del SDK, y Expo publicó la 57.0.23 mientras se escribía. Es la tercera vez que pasa
+— la anterior fue el PR #19, con los parches del 57.0.3 — y seguirá pasando: Expo publica
+parches cada pocos días y el check no perdona ni uno.
+
+Se separa del PR #23 a propósito. Mezclar una actualización de dependencias con una
+decisión de producto hace que el día que algo se rompa no se sepa cuál de las dos fue.
+
+Pendiente: mergear esta rama, traer `main` al PR #23 y que su `gates` se ponga verde.
+**Luciano:** el «adelante» de los dos merges. Nunca en rojo (#55).
 
 ---
 
