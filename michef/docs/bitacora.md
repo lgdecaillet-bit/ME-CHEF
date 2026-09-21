@@ -2211,7 +2211,10 @@ rojo (#55).
 ## 2026-09-17 · S-20260916-a · el parche 57.0.23 de Expo, que puso el CI en rojo
 
 Tarea: — · Rama: `chore/deps-expo-57-0-23` · Resultado: **`expo` a `~57.0.23`**, `gates`
-verde otra vez.
+verde otra vez. *(2026-09-21: mientras el PR esperaba merge salió la 57.0.24, y se subió a
+esa en la misma rama. Es la cuarta vez en dos semanas: Expo publica un parche cada pocos
+días y `expo-doctor` exige el último, así que cualquier PR que espere más de unos días se
+pone rojo solo. Hay que decidir qué hacer con eso, y no es decisión de Claude.)*
 
 Tocado: `package.json` y `package-lock.json`. Nada más.
 
