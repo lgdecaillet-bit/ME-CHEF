@@ -11,7 +11,7 @@ Actualizado: 2026-09-15 · por sesión S-20260914-a
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
 | **Paso actual** | **D7 construido** (PR #21, decisión #61): el smoke de iOS en GitHub Actions, en verde y probado en rojo. Revisor APROBADO en la segunda vuelta. Falta el CI y el «adelante» del merge. Después, D8 |
-| **Decisiones vigentes** | hasta **#61** |
+| **Decisiones vigentes** | hasta **#63** (la #62 viaja en el PR #23; esta rama sale de `main` sin ella) |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | `chore/F0-D7-smoke-ios` (PR #21) |
 | **Licencia de Apple** | no. Semana 3 (decisión #28) |
@@ -76,6 +76,7 @@ Se vacía al cambiar de día.
 | D6.5a · base del sistema de diseño | `feat/F0-D6.5a-sistema-diseno` | S-20260910-a | 2026-09-10 | **mergeada** (PR #17, `e66df6d`) |
 | Parches de Expo del SDK 57 | `chore/deps-expo-57-parches` | S-20260910-a | 2026-09-11 | **mergeada** (PR #19, `61b80f7`) |
 | D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | **mergeada** (PR #18, `966de64`) |
+| Decisión #63 · `expo-doctor` perdona el tercer número | `chore/F0-doctor-parches` | S-20260916-a | 2026-09-21 | **abierta** |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -221,6 +222,18 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 - **En expo.dev hay un proyecto `@tes0/me-chef`** en la cuenta de TESO. Estuvo conectado a
   este repositorio hasta el 2026-09-15, que se desconectó. No lo usa nada. Luciano decide
   si se borra.
+- **⏰ Rutina quincenal: poner al día los parches del SDK** (#63). Cada dos semanas, en una
+  rama `chore/deps-expo-parches-AAAAMMDD`: `npx expo install --fix`, `npx expo-doctor`,
+  `npm run gates`, PR aparte. `expo-doctor` ya no bloquea por un tercer número, así que
+  nada nos avisará en rojo: hay que mirarlo. **Próxima: la semana del 2026-10-05.** Los
+  parches atrasados salen como avisos amarillos en el job `gates` de cualquier PR.
+- **⚠️ `npm ci` desde cero rompe `better-sqlite3` en la máquina de Luciano** (visto el
+  2026-09-21). La versión 13.0.3 no publica ningún binario precompilado, así que `npm`
+  intenta compilarlo con `node-gyp`, y aquí no hay Visual Studio. Salida: `npm ci
+  --ignore-scripts`, que instala todo lo demás. Los 651 tests pasan igual: `schema.test.ts`
+  no llega a cargar el binario. En el CI (Ubuntu) se compila solo. Si un día un test
+  necesita el binario de verdad, hay que decidir: Visual Studio Build Tools (lo instala
+  Luciano) o cambiar de driver para los tests en Node.
 - **`eas` no está en la terminal de Luciano con Node 22.23.2.** Se instaló cuando usaba
   22.12.0, y cada versión de Node tiene sus propios programas globales. Las sesiones de
   Claude lo corren por ruta completa
