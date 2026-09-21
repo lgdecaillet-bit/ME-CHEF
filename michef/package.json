@@ -65,6 +65,7 @@
     "test:watch": "jest --watch",
     "arquitectura": "depcruise src --config .dependency-cruiser.cjs",
     "reglas": "node scripts/probar-reglas.js",
+    "doctor": "node scripts/doctor.js",
     "codigo-muerto": "knip",
     "secrets:bundle": "node scripts/secrets-bundle.js",
     "prepare": "cd .. && husky michef/.husky",

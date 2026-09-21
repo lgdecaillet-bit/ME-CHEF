@@ -60,8 +60,13 @@ jobs:
 
       # Cada gate por separado, con su nombre. Si se encadenaran con && , el log
       # diría "el paso falló" y habría que leerlo entero para saber cuál.
+      # A través de scripts/doctor.js y no a pelo (decisión #63): expo-doctor
+      # exige el último parche del SDK y Expo publica uno cada pocos días, así
+      # que un PR que esperara unos días se ponía rojo solo. El guion perdona
+      # SOLO un desajuste de tercer número, con aviso; lo mayor sigue bloqueando.
+      # Los parches se ponen al día en un PR aparte cada dos semanas.
       - name: expo-doctor
-        run: npx expo-doctor
+        run: npm run doctor
 
       - name: typecheck
         run: npm run typecheck
