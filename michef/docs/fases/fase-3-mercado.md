@@ -1,6 +1,7 @@
 # Fase 3 · El ciclo del mercado
 
-> **Semanas 8–9 · Requiere licencia de Apple** (development build ya en uso).
+> **Semanas 8–9 · No necesita licencia de Apple** (decisión #62: corre entera en Expo Go,
+> mapas incluidos — `react-native-maps` con Apple Maps no pide nada en Expo Go).
 >
 > Al terminar, el círculo se cierra: plan → lista de mercado con cantidades reales y
 > precio estimado → foto de la factura → inventario actualizado y precios reales → «8,60
@@ -17,8 +18,10 @@ supermercado.
 ## Criterio de entrada
 
 - Fase 2 cerrada (harness > 95 %).
-- Development build instalado en el iPhone. Cifrado (`flags.cifrado`) **encendido y verificado**.
-- Sign in with Apple funcionando contra Supabase.
+- Cuenta funcionando: por correo en Expo Go — comprobado en el iPhone en la Fase 2, no dado por hecho —; Apple y Google cuando haya licencia (#62).
+- ~~Development build con cifrado, y Sign in with Apple contra Supabase~~ **aplazado por la
+  #62**: ninguna de las dos cosas existe en Expo Go, y esta fase corre en Expo Go. Las dos
+  siguen siendo criterio de entrada del primer build que llegue a otra persona.
 
 ## Criterio de salida
 

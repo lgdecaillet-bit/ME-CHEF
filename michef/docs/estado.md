@@ -5,16 +5,16 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-15 · por sesión S-20260914-a
+Actualizado: 2026-09-16 · por sesión S-20260916-a
 
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D7 construido** (PR #21, decisión #61): el smoke de iOS en GitHub Actions, en verde y probado en rojo. Revisor APROBADO en la segunda vuelta. Falta el CI y el «adelante» del merge. Después, D8 |
-| **Decisiones vigentes** | hasta **#61** |
+| **Paso actual** | **D7 mergeado** (PR #21, `6216995`, 2026-09-16). Ahora: la **decisión #62** escrita, en rama local y **con su PR por abrir**. Después, **D8, el README**, que cierra la Fase 0: se presenta y espera «adelante» |
+| **Decisiones vigentes** | hasta **#62** |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `chore/F0-D7-smoke-ios` (PR #21) |
-| **Licencia de Apple** | no. Semana 3 (decisión #28) |
+| **Rama de trabajo** | `docs/F0-licencia-expo-go` (la decisión #62) |
+| **Licencia de Apple** | no, y **no se saca hasta que el producto funcione en Expo Go** (decisión #62, la fija Luciano; anula la #28). El alta se inicia en la **semana 12**, una antes de TestFlight interno (paso 5.9) |
 
 ---
 
@@ -39,11 +39,17 @@ aprueba el siguiente.
 Cada sesión anota su ID aquí **antes de hacer nada** (letra siguiente a la última).
 Se vacía al cambiar de día.
 
-**2026-09-14 y 15**
+**2026-09-16**
 
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
-| S-20260914-a | retomar: dónde estamos, merge del #19, `main` dentro de D6.5b, las 15 decisiones de la #59, D6.5b mergeado y D7 | abierta |
+| S-20260916-a | estado del proyecto, merge de D7, y la decisión #62 sobre la licencia | abierta |
+
+**2026-09-14 y 15** (días anteriores, se conservan por trazabilidad)
+
+| Sesión | Ventana / propósito | Estado |
+|---|---|---|
+| S-20260914-a | retomar: dónde estamos, merge del #19, `main` dentro de D6.5b, las 15 decisiones de la #59, D6.5b mergeado y D7 | cerrada |
 
 **2026-09-10 y 11** (días anteriores, se conservan por trazabilidad)
 
@@ -76,6 +82,8 @@ Se vacía al cambiar de día.
 | D6.5a · base del sistema de diseño | `feat/F0-D6.5a-sistema-diseno` | S-20260910-a | 2026-09-10 | **mergeada** (PR #17, `e66df6d`) |
 | Parches de Expo del SDK 57 | `chore/deps-expo-57-parches` | S-20260910-a | 2026-09-11 | **mergeada** (PR #19, `61b80f7`) |
 | D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | **mergeada** (PR #18, `966de64`) |
+| D7 · smoke de iOS | `chore/F0-D7-smoke-ios` | S-20260914-a | 2026-09-15 | **mergeada** (PR #21, `6216995`) |
+| Decisión #62 · la licencia espera a Expo Go | `docs/F0-licencia-expo-go` | S-20260916-a | 2026-09-16 | **abierta** · revisor APROBADO, PR por abrir |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -98,8 +106,8 @@ desde el primer PR de código.
 | D6 | App base en Expo Go, Sentry, `env.ts`, `flags.ts`, `eas init` | Claude + Luciano | ✅ mergeado (PR #16, `0d4468f`), verificado en el iPhone |
 | D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | ✅ mergeado (PR #17, `e66df6d`), visto en el iPhone |
 | D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | ✅ mergeado (PR #18, `966de64`), visto en el iPhone |
-| D7 | Smoke de iOS con Maestro, en GitHub Actions (#61) | Claude + Luciano | 🔨 PR #21, smoke en verde y en rojo; revisor APROBADO; falta CI y merge |
-| D8 | README | Claude | ⏳ |
+| D7 | Smoke de iOS con Maestro, en GitHub Actions (#61) | Claude + Luciano | ✅ mergeado (PR #21, `6216995`), probado en verde y en rojo |
+| D8 | README | Claude | ⏳ **siguiente**. Cierra la Fase 0 |
 
 ### D0 · avances de Luciano
 
@@ -218,9 +226,24 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
   Luciano crea el token personal y reemplaza el secreto (decisión #57, punto 4).
 - **⚠️ El smoke de iOS es gratis porque el repositorio es público (#61).** Si vuelve a ser
   privado, los minutos de macOS se cobran, y son los más caros.
+- **⚠️ La app no llega a ninguna persona que no sea Luciano hasta que haya licencia,
+  development build y cifrado encendido y verificado** (decisión #62, y está en las
+  prohibiciones duras de `CLAUDE.md`). En Expo Go los datos del teléfono van **sin
+  cifrar**: SQLCipher necesita build. Es una condición de salida, no un recordatorio. Se
+  levanta en el paso 5.9, TestFlight interno, semana 13; el alta de la licencia se inicia
+  en la 12.
 - **En expo.dev hay un proyecto `@tes0/me-chef`** en la cuenta de TESO. Estuvo conectado a
-  este repositorio hasta el 2026-09-15, que se desconectó. No lo usa nada. Luciano decide
-  si se borra.
+  este repositorio hasta el 2026-09-15, que se desconectó. No lo usa nada. **Se deja como
+  está** (2026-09-16): no cuesta nada y borrarlo no se deshace. Si estorba, lo borra
+  Luciano.
+- **Las ramas ya mergeadas se borran solas** desde el 2026-09-16
+  (`delete_branch_on_merge` activado). Quedan tres de antes —
+  `chore/deps-expo-57-parches`, `feat/F0-D6.5b-componentes` y `docs/F0-D6.5b-cierre` — que
+  las sesiones de Claude **no pueden borrar**: el clasificador bloquea el borrado de ramas
+  remotas, igual que los merges. Su contenido está entero en `main`.
+- **`smoke-ios` todavía no es un check obligatorio** (#61.6): tarda media hora. Se propone
+  hacerlo obligatorio tras unas semanas en verde, y hay que quitarle el `paths-ignore`
+  antes o se quedará «pendiente» para siempre en los PRs de documentos.
 - **`eas` no está en la terminal de Luciano con Node 22.23.2.** Se instaló cuando usaba
   22.12.0, y cada versión de Node tiene sus propios programas globales. Las sesiones de
   Claude lo corren por ruta completa
@@ -384,8 +407,19 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    por la app, no por Maestro (PR #22, cerrado sin mergear).
    Revisor: CAMBIOS en la primera vuelta (documentos que seguían prometiendo D7 y el límite
    de tiempo) y **APROBADO** en la segunda.
-   **Falta:** el CI y el «adelante» del merge.
-16. Después, **D8**: el README. Cierra la Fase 0.
+16. **D7 mergeado** (PR #21, `6216995`, 2026-09-16). El smoke corre en cada PR que no sea
+   solo documentos.
+17. **Luciano fijó la regla de la licencia** (decisión #62): no paga los 99 USD hasta que
+   el producto funcione en Expo Go. Anula la #28, que la recomendaba en la semana 3. Se
+   corrigieron el roadmap y las fases 1 a 5, que prometían licencia donde ya no hace falta.
+   Quedan aplazadas cinco piezas: el cifrado, Sign in with Apple contra Supabase, la Live
+   Activity, la ejecución en segundo plano y TestFlight. El revisor, en cuatro vueltas, cazó
+   tres afirmaciones técnicas de las que depende el plan, más una sobre el propio proceso,
+   dadas por buenas sin comprobar, y un cambio de producto sin
+   registrar: ni Apple ni Google funcionan en Expo Go, así que la cuenta irá por correo —
+   con otra API, `updateUser` y no `linkIdentity` — y **la forma de la hoja queda
+   pendiente de decidir** (#29, #62).
+18. Después, **D8**: el README. Cierra la Fase 0. Se presenta y espera «adelante».
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
 

@@ -5,7 +5,8 @@
 >
 > Este archivo es el índice. El detalle de cada fase está en `docs/fases/`.
 
-Última revisión: 2026-09-09 · Stack verificado contra la documentación oficial de esa fecha.
+Última revisión: 2026-09-16 (§ 3, por la decisión #62) · Stack verificado contra la
+documentación oficial del 2026-09-09.
 
 ---
 
@@ -81,7 +82,8 @@ Verificado módulo por módulo contra la documentación del SDK 57.
 | SQLite + Drizzle + migraciones (sin cifrar) | 1 |
 | Supabase: sesión anónima, Edge Functions, el proxy de IA | 1–2 |
 | Motor determinista completo | 1 |
-| Notificaciones **locales** (los timers de cocina) | 4 |
+| Notificaciones **locales** (los timers de cocina) — *por comprobar el día 1 de la Fase 4: la página lo afirma en el texto pero no lo lista en `platforms`* | 4 |
+| `react-native-maps` con **Apple Maps** (tiendas cercanas) | 3 |
 | Secure Store | 1 |
 | PostHog, Sentry (con límites), red, todo el JS | 0 |
 
@@ -90,31 +92,36 @@ Verificado módulo por módulo contra la documentación del SDK 57.
 | Capacidad | Fase | Cómo se pospone |
 |---|---|---|
 | **SQLCipher** (cifrado real del archivo) | 1 | Detrás de un flag. El código es idéntico; cambia una línea (`PRAGMA key`) |
-| **Sign in with Apple** real contra Supabase | 1 | Ya pospuesto por diseño: la app corre con sesión anónima; la cuenta se pide al tocar «Cocinar»; cocinar requiere cuenta, ver recetas no |
-| **Live Activities** (Dynamic Island) | 4 | No se pospone. Aquí ya hará falta |
-| **TestFlight** | 5 | No se pospone |
+| **Sign in with Apple** real contra Supabase (la librería corre en Expo Go, pero devuelve los identificadores de Expo Go, no los del bundle) | 2 | Ya pospuesto por diseño: la app corre con sesión anónima; la cuenta se pide al tocar «Cocinar»; cocinar requiere cuenta, ver recetas no. Mientras tanto la cuenta se hace con correo vía Supabase, que sí funciona en Expo Go. Google tampoco vale: sus librerías piden development build (#62) |
+| **Live Activities** (Dynamic Island) | 4 | Ya es su propio paso, el 4.3, y se aparca ahí. Los timers, que son notificaciones locales, funcionan sin ella (#62) |
+| **Ejecución en segundo plano** (índice del catálogo cada 24 h) | 5 | El índice se baja al abrir la app. `expo-background-task` se lista en Expo Go, pero `expo-task-manager` dice que en iOS no hay ejecución en segundo plano sin build (#62). Por comprobar |
+| **TestFlight** y la App Store | 5–6 | No se pospone. Es el momento de la licencia (#62) |
 | Push remoto (APNs) | — | **No se usa.** ME CHEF usa notificaciones locales |
 
 ### La conclusión
 
 ```
 Semana   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
-         ├───────────────────────────────┤
-         Fases 0, 1 y 2 · GRATIS, en Expo Go
-                                         ├──────────────────────────►
-                                         Aquí sí o sí: 99 USD/año
+         ├───────────────────────────────────────────────┤
+         Fases 0 a 5 · gratis, en Expo Go, con cinco piezas aplazadas
+                                                     ↑
+                                               alta de la licencia (semana 12)
+                                                         ├────────►
+                                                         99 USD/año · TestFlight (5.9) y Fase 6
 ```
 
-**Máximo aplazamiento defendible: semana 7.** Es seguro solo porque el espejo ② te avisa
-cada día si algo dejó de compilar.
+**La licencia se saca cuando la app tenga que salir de Expo Go, y no antes** (decisión
+#62, la fija Luciano). El primer momento en que eso pasa es el **cierre de la Fase 5**, que
+pide TestFlight interno para que la mamá instale la app: **semana 13**. Con la regla de
+iniciar el alta una semana antes, eso es **la semana 12** — antes si Luciano quiere
+enseñársela a alguien, porque en Expo Go los datos del teléfono van sin cifrar.
 
-**Recomendación: semana 3 o 4.** No por funciones, sino por riesgo acumulado. Firmar,
-entitlements, provisioning y prebuild son la parte impredecible de iOS. Descubrir sus
-problemas en la semana 7, todos juntos, con la Fase 2 encima, cuesta más que medio día
-tranquilo en la semana 3.
+Aplazarla tanto solo es defendible con un aviso diario de que la app sigue compilando
+fuera de Expo Go. Ese aviso existe desde D7: el smoke compila la app nativa de verdad en
+cada PR (#61). Sin él, esto sería temerario.
 
-**No negociable en ambas lecturas:** inicia el alta **una semana antes** de necesitarla.
-Apple aprueba en 24–48 h, pero si pide verificación de identidad se va a varios días.
+**No negociable:** inicia el alta **una semana antes** de necesitarla. Apple aprueba en
+24–48 h, pero si pide verificación de identidad se va a varios días.
 
 ---
 
@@ -128,9 +135,9 @@ funcionar, stack, tests y riesgos.
 | **0** | Fundaciones y barreras | 1–2 | no | [fase-0-fundaciones.md](fases/fase-0-fundaciones.md) |
 | **1** | El motor y los datos personales | 3–4 | no | [fase-1-motor-y-datos.md](fases/fase-1-motor-y-datos.md) |
 | **2** | La nevera de punta a punta | 5–7 | no | [fase-2-nevera.md](fases/fase-2-nevera.md) |
-| **3** | El ciclo del mercado | 8–9 | sí | [fase-3-mercado.md](fases/fase-3-mercado.md) |
-| **4** | Cocinar acompañado | 10–11 | sí | [fase-4-cocina.md](fases/fase-4-cocina.md) |
-| **5** | El catálogo y el asistente | 12–13 | sí | [fase-5-catalogo.md](fases/fase-5-catalogo.md) |
+| **3** | El ciclo del mercado | 8–9 | no (#62) | [fase-3-mercado.md](fases/fase-3-mercado.md) |
+| **4** | Cocinar acompañado | 10–11 | solo la Live Activity | [fase-4-cocina.md](fases/fase-4-cocina.md) |
+| **5** | El catálogo y el asistente | 12–13 | solo TestFlight | [fase-5-catalogo.md](fases/fase-5-catalogo.md) |
 | **6** | Endurecimiento y beta | 14–15 | sí | [fase-6-lanzamiento.md](fases/fase-6-lanzamiento.md) |
 
 ### Regla de avance
