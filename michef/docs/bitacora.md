@@ -2424,3 +2424,62 @@ presentar **D8**.
 
 ---
 
+## 2026-09-22 · S-20260916-a · La #62 en `main`, el #63 verde, y cierre de sesión
+
+Tarea: cierre de #62 y #63 · Rama: `docs/F0-cierre-sesion-22` · Resultado: **#62, el parche y
+la #63 en `main`** (PRs #23, #24 y #26). Esta sesión cierra aquí y sigue en otra
+conversación.
+
+Tocado: `docs/decisiones.md` (orden #62 → #63, índice de vigencia hasta #63, la #64 como
+propuesta en «Pendientes de decidir»), `docs/estado.md` (tablero al día, PRs #23 y #24 como
+mergeados, 651 → 655), este archivo (las entradas del 16, 17 y 21 en orden). Solo
+documentos: el código del #63 no se tocó desde la aprobación.
+
+Corrido: `git merge origin/main` con tres conflictos (bitácora, decisiones, tablero),
+resueltos a mano conservando las dos partes en orden cronológico. `npm run lint` limpio,
+`npx jest scripts` 16/16. CI del PR #26 sobre `7f0392d`: **los cuatro checks en verde**,
+smoke incluido. El paso `expo-doctor` dijo «no encontró nada»: **verde sin avisos**.
+
+Decisiones nuevas: ninguna. La **#64** queda como propuesta con número reservado, a la
+espera del «adelante» de Luciano y del permiso `Bash(gh pr merge:*)`, que solo puede poner
+él en sus ajustes de Claude Code.
+
+Avances de Luciano: mergeó el **PR #23** (la #62, `b3716f7`) y el **PR #26** (la #63,
+`a1ecff4`), este último mientras se escribía esta entrada: GitHub borró la rama al mergear y el
+push del cierre la recreó con un commit huérfano, que se movió a `docs/F0-cierre-sesion-22`.
+Pidió revisar esta bitácora sin tocarla, y luego escribir esta entrada y un prompt para
+seguir en otra conversación.
+
+---
+
+**Lo que hay que decir del verde sin avisos.** El PR #26 iba a ser la prueba en Actions de
+la ruta «verde con avisos» — `main` llevaba cuatro parches atrasados el día 21 —, pero el
+#24 los puso todos al día al entrar, y cuando el CI corrió sobre la rama reconciliada ya no
+había nada que perdonar. Esa ruta está probada en local con la salida real y en los 16
+tests, **no en Actions**. Se verá sola el primer día que Expo publique otro parche. La
+descripción del PR se corrigió para no afirmar lo que no pasó.
+
+**El revisor, segunda vuelta sobre la #63: APROBADO** (fue el 22, no el 21: la entrada
+anterior lo dejó como pendiente). Verificó con la salida real que la igualdad y el corte
+por filas vacías no ponen rojo lo que debe ser verde, corrió los 16 tests y simuló la rama
+roja con `exitCode` por tubería. Dejó dos cabos, ya cerrados en el commit de merge: la #64
+sin registrar en ningún sitio salvo aquí, y la cifra de tests.
+
+**D8 presentado**, a la espera del «adelante»: reescribir `README.md` en `docs/F0-D8-readme`
+— puesta en marcha real en Windows (Expo desde `michef/`, la salida de `better-sqlite3`),
+mapa del repositorio y qué documento manda, cómo se verifica, y Expo Go hasta la Fase 5
+con las cinco piezas aplazadas. Cierra la Fase 0.
+
+Pendiente: **Luciano:** mergear el PR de esta entrada; poner el permiso y dar «adelante» a
+la #64 si quiere que Claude mergee; el «adelante» de D8; rotar la contraseña de TESO (sigue
+pendiente, pidió que se le recuerde). Ramas remotas ya mergeadas o desechables que Claude
+no puede borrar: `chore/deps-expo-57-parches`, `feat/F0-D6.5b-componentes`,
+`docs/F0-D6.5b-cierre`, `test/doctor-rojo` y la recreada `chore/F0-doctor-parches`. Nunca
+en rojo (#55).
+
+Para la siguiente sesión: anotar su ID en el tablero (letra siguiente del día), leer
+`estado.md` y las tres últimas entradas de aquí, y esperar el «adelante» de D8 antes de
+tocar nada. La Fase 0 está a un paso (D8) de cerrarse.
+
+---
+
