@@ -223,14 +223,19 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
   este repositorio hasta el 2026-09-15, que se desconectó. No lo usa nada. Luciano decide
   si se borra.
 - **⏰ Rutina quincenal: poner al día los parches del SDK** (#63). Cada dos semanas, en una
-  rama `chore/deps-expo-parches-AAAAMMDD`: `npx expo install --fix`, `npx expo-doctor`,
-  `npm run gates`, PR aparte. `expo-doctor` ya no bloquea por un tercer número, así que
-  nada nos avisará en rojo: hay que mirarlo. **Próxima: la semana del 2026-10-05.** Los
-  parches atrasados salen como avisos amarillos en el job `gates` de cualquier PR.
+  rama `chore/deps-expo-parches-AAAAMMDD`: `npx expo install --fix`, `npm run doctor`
+  (esperado: 21/21 y ningún aviso), `npm run gates`, PR aparte. `expo-doctor` ya no bloquea
+  por un tercer número, así que nada nos avisará en rojo: hay que mirarlo. **Próxima: la
+  semana del 2026-10-05.** La abre la sesión de Claude que esté activa esa semana, y como
+  todo cambio de dependencias necesita el «adelante» de Luciano (#34). Los parches
+  atrasados salen como avisos amarillos en el job `gates` de cualquier PR.
 - **⚠️ `npm ci` desde cero rompe `better-sqlite3` en la máquina de Luciano** (visto el
   2026-09-21). La versión 13.0.3 no publica ningún binario precompilado, así que `npm`
   intenta compilarlo con `node-gyp`, y aquí no hay Visual Studio. Salida: `npm ci
-  --ignore-scripts`, que instala todo lo demás. Los 651 tests pasan igual: `schema.test.ts`
+  --ignore-scripts` **y después `npm run prepare`**, porque `--ignore-scripts` también se
+  salta el `prepare` que instala los enganches de husky, y un clon sin `pre-commit` ni
+  `pre-push` no avisa de nada (se comprueba con `git config core.hooksPath`, que debe
+  decir `michef/.husky`). Los 651 tests pasan igual: `schema.test.ts`
   no llega a cargar el binario. En el CI (Ubuntu) se compila solo. Si un día un test
   necesita el binario de verdad, hay que decidir: Visual Studio Build Tools (lo instala
   Luciano) o cambiar de driver para los tests en Node.

@@ -1186,8 +1186,10 @@ Antes corría sin fijar (`npx expo-doctor`), contra la regla de versiones exacta
 no sea un tercer número. No se añade nada a `expo.install.exclude`. `npm run gates` en
 local sigue sin correrlo, como hasta ahora; `npm run doctor` existe para correrlo a mano.
 
-**Cambia:** `.github/workflows/ci.yml` (el paso), `package.json` (`doctor`),
-`protocolos-calidad.md` (capa 3 y la fila de salud), el tablero (la rutina quincenal).
+**Cambia:** `scripts/doctor.js` y `scripts/__tests__/doctor.test.ts` (nuevos),
+`.github/workflows/ci.yml` (el paso), `package.json` (`doctor`), `protocolos-calidad.md`
+(capa 3 y la fila de salud), `fase-0-fundaciones.md` (§ D5, el job `gates`), el tablero
+(la rutina quincenal y el aviso de `better-sqlite3`) y la bitácora.
 
 ## Pendientes de decidir
 

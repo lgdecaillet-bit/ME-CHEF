@@ -79,9 +79,15 @@ function veredicto(salida, codigo) {
     };
   }
 
-  const lineasConCruz = texto.split('\n').filter((l) => l.trim().startsWith('✖'));
+  // Igualdad y no `includes`: un check futuro con la misma frase y algo más
+  // detrás no se perdona.
+  const lineasConCruz = texto
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.startsWith('✖'))
+    .map((l) => l.replace(/^✖\s*/, '').trim());
   const soloElDeVersiones =
-    lineasConCruz.length === 1 && lineasConCruz[0].includes(CHECK_DE_VERSIONES);
+    lineasConCruz.length === 1 && lineasConCruz[0] === CHECK_DE_VERSIONES;
   if (!soloElDeVersiones) {
     return {
       pasa: false,
@@ -119,6 +125,15 @@ function veredicto(salida, codigo) {
         .filter(Boolean)
         .map((l) => l.replace(/\s+/g, ' '))
     : [];
+  // La cabecera sin filas es una salida cortada o un formato nuevo. En duda, rojo.
+  if (avisos.length === 0) {
+    return {
+      pasa: false,
+      motivo:
+        'expo-doctor: se ve la sección de parches pero no sus filas. No se entiende la salida: rojo.',
+      avisos: [],
+    };
+  }
 
   return {
     pasa: true,
@@ -162,10 +177,12 @@ function main() {
         'Se ponen al día en el PR quincenal de parches (`npx expo install --fix`), no aquí.'
       );
     }
-    process.exit(0);
+    return;
   }
   console.log(`::error::${resultado.motivo}`);
-  process.exit(codigo || 1);
+  // exitCode y no exit(): con stdout por tubería, exit() puede cortar las
+  // últimas líneas antes de que salgan.
+  process.exitCode = codigo || 1;
 }
 
 module.exports = { veredicto, limpiar, VERSION_DE_DOCTOR };

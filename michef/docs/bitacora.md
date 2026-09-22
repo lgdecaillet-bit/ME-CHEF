@@ -2208,3 +2208,72 @@ rojo (#55).
 
 ---
 
+## 2026-09-21 · S-20260916-a · #63: `expo-doctor` perdona el tercer número, y la prueba del rojo
+
+Tarea: decisión #63 · Rama: `chore/F0-doctor-parches` · Resultado: **construido, probado en
+verde y en rojo, y revisado**. Falta el PR y el merge, detrás del #23.
+
+Tocado: `scripts/doctor.js` y `scripts/__tests__/doctor.test.ts` (nuevos),
+`.github/workflows/ci.yml`, `package.json`, `docs/decisiones.md` (#63),
+`docs/protocolos-calidad.md`, `docs/fases/fase-0-fundaciones.md`, `docs/estado.md`, este
+archivo.
+
+Corrido: `npx jest scripts/__tests__/doctor.test.ts` — **16 casos** en verde. `npm run
+doctor` sobre `main` — perdona los cuatro parches atrasados de hoy (`expo`, `expo-constants`,
+`expo-router`, `expo-updates`) con aviso amarillo y sale con 0. `npm run lint`, `npm run
+typecheck`, `npm run codigo-muerto` — limpios. `npm test` — 655 tests en 36 suites.
+**Prueba del rojo** (PR #25, cerrado sin mergear como #10, #13 y #22): rama desechable con
+`expo-haptics` 14.1.4, `gates` en rojo en el CI con «hay desajustes que no son de parche
+(Major version mismatches)». Corrida 35602397156.
+
+Decisiones nuevas: **#63** · `expo-doctor` perdona el tercer número, y solo eso.
+
+Avances de Luciano: mergeó el **PR #24** (el parche de Expo, ya en 57.0.24). Eligió el
+camino **C** entre los tres que se le presentaron. Pidió poder darle a Claude permiso para
+mergear; queda como propuesta #64, pendiente de su «adelante» y del permiso, que solo
+puede ponerlo él.
+
+---
+
+**Por qué existe.** Expo publica un parche del SDK cada pocos días y `expo-doctor` exige el
+último: cuatro PRs en dos semanas se pusieron rojos sin que cambiara nada nuestro. El #24
+lo demostró de la forma más tonta: se abrió con la 57.0.23 y cuatro días después ya pedía
+la 57.0.24. `expo-doctor` no tiene término medio, así que `scripts/doctor.js` lo corre,
+lee su salida y perdona solo cuando el único check caído es el de versiones y su única
+sección es «Patch». Todo lo demás: rojo, como antes.
+
+**Lo que se rompió por el camino, y no era del doctor.** Al arrancar la rama se hizo `npm
+ci` desde cero por primera vez en esta máquina, y falló compilando `better-sqlite3`: la
+13.0.3 no publica ningún binario y aquí no hay Visual Studio. `node_modules` quedó a medias
+y `expo` no estaba. Salida: `npm ci --ignore-scripts` y después `npm run prepare` para que
+husky vuelva a instalar los enganches. Los tests pasan igual porque ninguno carga ese
+binario. Queda en los avisos del tablero.
+
+**El revisor: CAMBIOS en la primera vuelta**, siete puntos, todos aplicados. Los que
+importaban: (1) la nota de `--ignore-scripts` no decía que se salta el `prepare` de husky,
+y un clon nuevo se quedaría sin `pre-commit` ni `pre-push` en silencio; (2) el guion
+perdonaba si veía la cabecera de parches sin ninguna fila debajo — una salida cortada —,
+y ahora eso es rojo; (3) el check se comparaba con `includes` y no por igualdad, así que un
+check futuro con la misma frase y algo más detrás se habría perdonado; (4) faltaban cuatro
+casos en el control positivo, entre ellos «Patch» junto a «Other/prerelease» y dos líneas
+`✖` con un resumen que dice un solo fallo; (5) no había entrada de bitácora aunque la #63
+decía que la prueba del rojo «está en la bitácora». El primer revisor que se lanzó se
+perdió con el cambio de día sin devolver nada; se relanzó.
+
+**Un descuido propio, cazado antes de que hiciera daño.** El primer guion de la rama
+desechable llevaba `git commit --no-verify` como primer intento. Está prohibido. Ese
+intento falló por otra razón (una versión *canary* que `npm` rechazó) y no llegó a
+commitear nada; el segundo guion no lo llevaba y el commit pasó por los enganches. Nada
+salió de esta máquina saltándose nada, pero el patrón es el mismo que en D7 y es el
+segundo aviso.
+
+Pendiente: mergear el **#23** (Luciano), traer `main` a esta rama y reconciliar
+`decisiones.md`, `estado.md` y `bitacora.md` con lo que trae la #62, segunda vuelta del
+revisor sobre el resultado, abrir el PR. **Luciano:** el «adelante» del merge, o el
+permiso y la #64 para que lo haga Claude. Nunca en rojo (#55).
+
+Para la siguiente sesión: si el #23 ya entró, reconciliar y abrir el PR del #63. Después,
+presentar **D8**.
+
+---
+

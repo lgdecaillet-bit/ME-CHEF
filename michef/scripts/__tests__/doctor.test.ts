@@ -52,13 +52,56 @@ describe('veredicto de expo-doctor', () => {
     ]);
   });
 
-  it('perdona igual con códigos de color en la salida (como en local)', () => {
+  it('perdona igual con códigos de color en la salida (como en local), y los avisos salen limpios', () => {
+    // 1.20.4 pinta `expected` en verde y `found` en rojo, fila a fila.
     const conColor = SOLO_PARCHES.replace(
       '✖ Check that packages',
       '\x1b[31m✖\x1b[39m \x1b[1mCheck that packages'
-    ).replace('Patch version mismatches', '\x1b[33mPatch version mismatches\x1b[39m');
+    )
+      .replace('Patch version mismatches', '\x1b[33mPatch version mismatches\x1b[39m')
+      .replace('~57.0.24  57.0.22', '\x1b[32m~57.0.24\x1b[39m  \x1b[31m57.0.22\x1b[39m');
     expect(limpiar(conColor)).toBe(SOLO_PARCHES);
-    expect(veredicto(conColor, 1).pasa).toBe(true);
+    const r = veredicto(conColor, 1);
+    expect(r.pasa).toBe(true);
+    expect(r.avisos[0]).toBe('expo ~57.0.24 57.0.22');
+  });
+
+  it('NO perdona si la sección de parches está pero no tiene filas (salida cortada)', () => {
+    const salida = SOLO_PARCHES.slice(
+      0,
+      SOLO_PARCHES.indexOf('package         expected')
+    );
+    const r = veredicto(salida + '\n\n', 1);
+    expect(r.pasa).toBe(false);
+    expect(r.motivo).toContain('no sus filas');
+  });
+
+  it('NO perdona parches junto a una sección «Other/prerelease»', () => {
+    const salida = SOLO_PARCHES.replace(
+      'Changelogs:',
+      '➿ Other/prerelease mismatches\npackage  expected  found\nexpo-foo  ~57.0.0  57.1.0-canary\n\nChangelogs:'
+    );
+    const r = veredicto(salida, 1);
+    expect(r.pasa).toBe(false);
+    expect(r.motivo).toContain('Other/prerelease');
+  });
+
+  it('NO perdona si el resumen dice 1 fallo pero hay dos líneas ✖', () => {
+    const salida = SOLO_PARCHES.replace(
+      '✖ Check that packages',
+      '✖ Validate packages against React Native Directory package metadata\n\n✖ Check that packages'
+    );
+    const r = veredicto(salida, 1);
+    expect(r.pasa).toBe(false);
+    expect(r.motivo).toContain('no es el de versiones');
+  });
+
+  it('NO perdona un check que solo contenga la frase del de versiones', () => {
+    const salida = SOLO_PARCHES.replace(
+      '✖ Check that packages match versions required by installed Expo SDK',
+      '✖ Check that packages match versions required by installed Expo SDK (canary)'
+    );
+    expect(veredicto(salida, 1).pasa).toBe(false);
   });
 
   it.each([
