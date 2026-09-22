@@ -10,7 +10,7 @@ Actualizado: 2026-09-22 · por sesión S-20260916-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D7 y la #62 en `main`** (PRs #21 y #23). Ahora: la **#63** (el doctor que perdona parches) en el PR #26, aprobada por el revisor, esperando el CI y el merge. Después, **D8, el README**, que cierra la Fase 0: se presenta y espera «adelante» |
+| **Paso actual** | **D7 y la #62 en `main`** (PRs #21 y #23). Ahora: la **#63** (el doctor que perdona parches) en el PR #26, aprobada por el revisor y **verde en los cuatro checks: solo falta el merge**. Después, **D8, el README**, que cierra la Fase 0: se presenta y espera «adelante» |
 | **Decisiones vigentes** | hasta **#63** (y la #64 propuesta, pendiente de «adelante») |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | `docs/F0-licencia-expo-go` (la decisión #62) |
@@ -43,7 +43,7 @@ Se vacía al cambiar de día.
 
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
-| S-20260916-a | estado del proyecto, merge de D7, la #62 (licencia), el parche 57.0.24 y la #63 (doctor). Sigue abierta desde el 16 | abierta |
+| S-20260916-a | estado del proyecto, merge de D7, la #62 (licencia), el parche 57.0.24 y la #63 (doctor). Abierta del 16 al 22 | **cerrada** el 2026-09-22; sigue en otra conversación |
 
 **2026-09-14 y 15** (días anteriores, se conservan por trazabilidad)
 
@@ -441,7 +441,8 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 18. **La #62 mergeada** (PR #23, `b3716f7`, 2026-09-22), tras el parche 57.0.24 (PR #24).
 19. **La #63 construida y aprobada** (`chore/F0-doctor-parches`, PR #26): `expo-doctor`
    perdona el tercer número y solo eso. Probada en verde (los parches de hoy, con aviso) y
-   en rojo (PR #25, `expo-haptics` de otro SDK). Falta el CI del #26 y el merge.
+   en rojo (PR #25, `expo-haptics` de otro SDK). CI del #26 verde en los cuatro checks el
+   2026-09-22; **falta solo el merge**. D8 ya presentado, espera «adelante».
 20. Después, **D8**: el README. Cierra la Fase 0. Se presenta y espera «adelante».
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
