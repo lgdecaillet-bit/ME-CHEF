@@ -12,7 +12,7 @@
 > `### #N · Título` · fecha · estado · texto con el porqué · qué reemplaza · qué archivos
 > de `fases/` cambian.
 
-Vigentes: **#1–#3, #5–#27, #29–#62**. Reemplazadas o anuladas: #4 (por la #29), #28 (por
+Vigentes: **#1–#3, #5–#27, #29–#63**. Reemplazadas o anuladas: #4 (por la #29), #28 (por
 la #62). Reemplazadas en parte: #32 (por la #61), #57.4 y #58.3 (por la #61).
 
 ---
@@ -1240,9 +1240,70 @@ vez a una persona que no es Luciano.
 **Cambia:** `roadmap.md` § 3 y la tabla de fases; las cabeceras y los criterios de las
 fases 2, 3, 4 y 5; `fase-1-motor-y-datos.md`; `fase-0-fundaciones.md`; `CLAUDE.md`; el
 tablero; la #27, la #28 y la #29; y la lista «Por verificar antes de depender de ello».
+### #63 · `expo-doctor` perdona el tercer número, y solo eso
+
+Fecha: 2026-09-21 · **vigente** · la eligió Luciano entre tres caminos (el C) · toca `gates`,
+así que es de las que decide él (#55)
+
+**El problema.** Expo publica un parche del SDK 57 cada pocos días y `expo-doctor`, que corre
+dentro de `gates` en el CI, exige siempre el último. Cualquier PR que espere más de tres o
+cuatro días se pone rojo solo, sin que cambie nada de lo nuestro. Pasó cuatro veces en dos
+semanas: el #18 (lo arregló el #19), el #23 (lo arregla el #24), y el propio #24, que se
+abrió con la 57.0.23 y cuatro días después ya pedía la 57.0.24. El arreglo era siempre otro
+PR de dependencias, y el coste era tiempo de Luciano mergeando y de Claude persiguiendo.
+
+**Los tres caminos que se le presentaron.** A, seguir así: lo más estricto, un PR de parche
+cada vez. B, meter el parche dentro del PR que lo necesite: menos PRs, pero mezcla
+dependencias con lo que sea que se esté haciendo, y el día que algo se rompa no se sabe
+cuál de las dos fue. C, que `expo-doctor` avise pero no bloquee cuando solo cambia el tercer
+número. Luciano eligió C.
+
+**Cómo se hace.** `expo-doctor` no tiene término medio: o comprueba todo, o se apaga entera
+la comprobación de versiones (`EXPO_DOCTOR_SKIP_DEPENDENCY_VERSION_CHECK`), y apagarla
+dejaría pasar un paquete de otro SDK, que es justo lo que hay que cazar. Pero su salida
+separa los desajustes en «Major», «Minor», «Patch» y «Other/prerelease». Así que
+`scripts/doctor.js` lo corre, enseña su salida tal cual y **perdona solo si el único check
+caído es el de versiones y su única sección es «Patch»**. Cualquier otra cosa —una sección
+mayor, otro check caído, una salida que no se entiende— falla igual que antes. En duda,
+rojo. Los parches atrasados salen como `::warning::` en el resumen del job, con nombre y
+versión.
+
+**Las dos condiciones de Luciano** (las puso Claude al recomendar C, y él las aceptó al
+elegirlo):
+1. **El smoke sigue compilando la app real en cada PR** (#61). Eso es lo que de verdad
+   prueba que un parche no rompió nada; `expo-doctor` solo compara números.
+2. **Los parches se ponen al día en un PR aparte cada dos semanas**, con `npx expo install
+   --fix`, y no cuando nos ponen rojo. Es una rutina del tablero, no una reacción.
+
+**El control positivo** (#47). `scripts/__tests__/doctor.test.ts`: doce casos con la salida
+real de `expo-doctor@1.20.4` en `main` el 2026-09-21 como fixture (cuatro paquetes
+atrasados solo de parche), y cada variante cambia una sola línea: una sección «Major»,
+«Minor» u «Other» aunque sea la única, parches más una mayor, dos checks caídos, otro check
+en vez del de versiones, la sección de parches ausente, una salida que no se entiende, y
+código distinto de 0 con un «21/21». Además, **la prueba del rojo en el CI de verdad**: una
+rama desechable con `expo-haptics` de otro SDK, para ver `gates` en rojo con el mensaje del
+guion. Está en la bitácora.
+
+**La versión de `expo-doctor` va fijada** (1.20.4), porque el guion lee su salida y una
+versión nueva podría cambiar el formato. Cuando se suba, se vuelven a capturar los fixtures.
+Antes corría sin fijar (`npx expo-doctor`), contra la regla de versiones exactas (#61.5).
+
+**Lo que NO cambia.** `expo-doctor` sigue siendo obligatorio y sigue bloqueando todo lo que
+no sea un tercer número. No se añade nada a `expo.install.exclude`. `npm run gates` en
+local sigue sin correrlo, como hasta ahora; `npm run doctor` existe para correrlo a mano.
+
+**Cambia:** `scripts/doctor.js` y `scripts/__tests__/doctor.test.ts` (nuevos),
+`.github/workflows/ci.yml` (el paso), `package.json` (`doctor`), `protocolos-calidad.md`
+(capa 3 y la fila de salud), `fase-0-fundaciones.md` (§ D5, el job `gates`), el tablero
+(la rutina quincenal y el aviso de `better-sqlite3`) y la bitácora.
 
 ## Pendientes de decidir
 
+- **#64 (propuesta, número reservado) · Claude puede mergear un PR** cuando los checks
+  obligatorios están en verde, el revisor dio APROBADO y Luciano dio el «adelante» del paso.
+  Nunca `--admin`, nunca push directo a `main`, nunca en rojo. Luciano lo pidió el
+  2026-09-21; falta su «adelante» a esta redacción y el permiso en los ajustes de Claude
+  Code, que solo puede poner él (`Bash(gh pr merge:*)`).
 - **La hoja de cuenta de la #29: ¿qué botones lleva?** En Expo Go no funcionan ni Apple ni
   Google (#62), así que el desarrollo irá por correo. Falta decidir si el correo se queda
   como tercera opción en el producto final o era solo un andamio. Se decide en la Fase 2,

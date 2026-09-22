@@ -5,13 +5,13 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-16 · por sesión S-20260916-a
+Actualizado: 2026-09-22 · por sesión S-20260916-a
 
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D7 mergeado** (PR #21, `6216995`, 2026-09-16). Ahora: la **decisión #62** escrita, en rama local y **con su PR por abrir**. Después, **D8, el README**, que cierra la Fase 0: se presenta y espera «adelante» |
-| **Decisiones vigentes** | hasta **#62** |
+| **Paso actual** | **D7 y la #62 en `main`** (PRs #21 y #23). Ahora: la **#63** (el doctor que perdona parches) en el PR #26, aprobada por el revisor, esperando el CI y el merge. Después, **D8, el README**, que cierra la Fase 0: se presenta y espera «adelante» |
+| **Decisiones vigentes** | hasta **#63** (y la #64 propuesta, pendiente de «adelante») |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | `docs/F0-licencia-expo-go` (la decisión #62) |
 | **Licencia de Apple** | no, y **no se saca hasta que el producto funcione en Expo Go** (decisión #62, la fija Luciano; anula la #28). El alta se inicia en la **semana 12**, una antes de TestFlight interno (paso 5.9) |
@@ -43,7 +43,7 @@ Se vacía al cambiar de día.
 
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
-| S-20260916-a | estado del proyecto, merge de D7, y la decisión #62 sobre la licencia | abierta |
+| S-20260916-a | estado del proyecto, merge de D7, la #62 (licencia), el parche 57.0.24 y la #63 (doctor). Sigue abierta desde el 16 | abierta |
 
 **2026-09-14 y 15** (días anteriores, se conservan por trazabilidad)
 
@@ -84,6 +84,8 @@ Se vacía al cambiar de día.
 | D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | **mergeada** (PR #18, `966de64`) |
 | D7 · smoke de iOS | `chore/F0-D7-smoke-ios` | S-20260914-a | 2026-09-15 | **mergeada** (PR #21, `6216995`) |
 | Decisión #62 · la licencia espera a Expo Go | `docs/F0-licencia-expo-go` | S-20260916-a | 2026-09-16 | **abierta** · revisor APROBADO, PR por abrir |
+| Parche 57.0.24 de Expo | `chore/deps-expo-57-0-23` | S-20260916-a | 2026-09-17 | **mergeada** (PR #24, `d1b8a32`, 2026-09-21) |
+| Decisión #63 · `expo-doctor` perdona el tercer número | `chore/F0-doctor-parches` | S-20260916-a | 2026-09-21 | **abierta** · PR #26, revisor APROBADO en la segunda vuelta |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -244,6 +246,23 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 - **`smoke-ios` todavía no es un check obligatorio** (#61.6): tarda media hora. Se propone
   hacerlo obligatorio tras unas semanas en verde, y hay que quitarle el `paths-ignore`
   antes o se quedará «pendiente» para siempre en los PRs de documentos.
+- **⏰ Rutina quincenal: poner al día los parches del SDK** (#63). Cada dos semanas, en una
+  rama `chore/deps-expo-parches-AAAAMMDD`: `npx expo install --fix`, `npm run doctor`
+  (esperado: 21/21 y ningún aviso), `npm run gates`, PR aparte. `expo-doctor` ya no bloquea
+  por un tercer número, así que nada nos avisará en rojo: hay que mirarlo. **Próxima: la
+  semana del 2026-10-05.** La abre la sesión de Claude que esté activa esa semana, y como
+  todo cambio de dependencias necesita el «adelante» de Luciano (#34). Los parches
+  atrasados salen como avisos amarillos en el job `gates` de cualquier PR.
+- **⚠️ `npm ci` desde cero rompe `better-sqlite3` en la máquina de Luciano** (visto el
+  2026-09-21). La versión 13.0.3 no publica ningún binario precompilado, así que `npm`
+  intenta compilarlo con `node-gyp`, y aquí no hay Visual Studio. Salida: `npm ci
+  --ignore-scripts` **y después `npm run prepare`**, porque `--ignore-scripts` también se
+  salta el `prepare` que instala los enganches de husky, y un clon sin `pre-commit` ni
+  `pre-push` no avisa de nada (se comprueba con `git config core.hooksPath`, que debe
+  decir `michef/.husky`). Los 655 tests pasan igual: `schema.test.ts`
+  no llega a cargar el binario. En el CI (Ubuntu) se compila solo. Si un día un test
+  necesita el binario de verdad, hay que decidir: Visual Studio Build Tools (lo instala
+  Luciano) o cambiar de driver para los tests en Node.
 - **`eas` no está en la terminal de Luciano con Node 22.23.2.** Se instaló cuando usaba
   22.12.0, y cada versión de Node tiene sus propios programas globales. Las sesiones de
   Claude lo corren por ruta completa
@@ -419,7 +438,11 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    registrar: ni Apple ni Google funcionan en Expo Go, así que la cuenta irá por correo —
    con otra API, `updateUser` y no `linkIdentity` — y **la forma de la hoja queda
    pendiente de decidir** (#29, #62).
-18. Después, **D8**: el README. Cierra la Fase 0. Se presenta y espera «adelante».
+18. **La #62 mergeada** (PR #23, `b3716f7`, 2026-09-22), tras el parche 57.0.24 (PR #24).
+19. **La #63 construida y aprobada** (`chore/F0-doctor-parches`, PR #26): `expo-doctor`
+   perdona el tercer número y solo eso. Probada en verde (los parches de hoy, con aviso) y
+   en rojo (PR #25, `expo-haptics` de otro SDK). Falta el CI del #26 y el merge.
+20. Después, **D8**: el README. Cierra la Fase 0. Se presenta y espera «adelante».
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
 

@@ -19,7 +19,7 @@ Ordenadas de la más rápida a la más lenta. Cada una atrapa lo que la anterior
 | 0 | Editor | al guardar | ESLint + Prettier + TypeScript (VS Code) | inmediato | nada — solo avisa |
 | 1 | `pre-commit` | cada commit | `lint-staged`: eslint --fix, prettier, gitleaks sobre lo staged | < 5 s | el commit |
 | 2 | `pre-push` | cada push | `npm run gates` = typecheck + lint + tests + depcruise | < 60 s | el push |
-| 3 | CI · GitHub Actions | cada PR | capa 2 + Supabase local (migraciones, pgTAP, `db lint`, `deno test`) + `expo-doctor` + `expo export` + grep de secretos en el bundle + cobertura + knip | < 8 min | el merge |
+| 3 | CI · GitHub Actions | cada PR | capa 2 + Supabase local (migraciones, pgTAP, `db lint`, `deno test`) + `expo-doctor` vía `scripts/doctor.js` (perdona solo el tercer número, #63) + `expo export` + grep de secretos en el bundle + cobertura + knip | < 8 min | el merge |
 | 4 | CI · smoke de iOS (GitHub Actions, `macos-26`) | cada PR que no sea solo documentos | `expo prebuild` → build Release de simulador → Maestro `smoke.yaml` (#61). En EAS no: el plan gratuito no permite Maestro | ~28 min | todavía nada: no es obligatorio (#61.6) |
 | 5 | `main` post-merge | cada merge | hoy, el smoke de iOS. El `update` al canal preview y los mapas a Sentry esperan a la licencia de Apple, que trae el primer build instalado (#61) | ~28 min | — |
 | 6 | Release | tag `v*` | build `production` → TestFlight interno → **aprobación manual** → TestFlight externo | manual | TestFlight externo |
@@ -61,7 +61,7 @@ Configuradas como **GitHub Rulesets** sobre `main` (vía `gh api`, script en `sc
 | **Backend · proxy** | `deno test` en `supabase/functions/tests/` | `ai-proxy` con proveedores mockeados | rechaza sin JWT; aplica rate limit; enruta cada tarea a su modelo; **nunca persiste la imagen** |
 | **Smoke E2E** | Maestro 2.10.0 en GitHub Actions (`smoke-ios.yml`, simulador iOS, #61) | `maestro/flows/smoke.yaml` y un flujo por función central | pasa en cada PR que no sea solo documentos y en cada merge a `main` |
 | **Evals de IA** | Promptfoo, `eval/promptfooconfig.yaml` | las 200 fotos (locales, fuera de git) | **precisión de `seguro` > 95 %** para aceptar cualquier cambio de prompt, modelo o guía de cámara |
-| **Salud** | `npx expo-doctor`, `knip` | todo | 0 errores. `knip` avisa en Fase 0–1 y bloquea desde Fase 2 |
+| **Salud** | `npm run doctor` (`expo-doctor` 1.20.4 fijado), `knip` | todo | 0 errores, salvo desajustes **solo de parche**, que avisan y no bloquean (#63); se ponen al día en un PR aparte cada dos semanas. `knip` avisa en Fase 0–1 y bloquea desde Fase 2 |
 | **Interfaz** | ESLint (tokens, textos, controles solo en `src/ui/`) + contraste AA + Maestro `galeria.yaml` con capturas (desde el primer build de desarrollo, #61) | `src/ui/**`, `src/app/**` | Detalle en [`diseno.md`](diseno.md) §4. Sin colores a mano, sin texto literal, AA en todos los pares, capturas revisadas a ojo |
 
 ### Property-based testing en el motor

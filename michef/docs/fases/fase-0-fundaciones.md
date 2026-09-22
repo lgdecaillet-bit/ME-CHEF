@@ -293,7 +293,7 @@ comando.
 
 1. `.github/workflows/ci.yml`:
    - `on: pull_request` y `push: main`. `paths-ignore: ['research/**', '**.md']`.
-   - Job `gates` (ubuntu, Node 22, caché npm): `npm ci` → `npx expo-doctor` → `typecheck` → `lint` → `depcruise` → `test:coverage` → `secrets:bundle` → `knip` (`continue-on-error: true` en Fase 0–1).
+   - Job `gates` (ubuntu, Node 22, caché npm): `npm ci` → `npm run doctor` (`expo-doctor` 1.20.4 vía `scripts/doctor.js`, que perdona solo parches, #63) → `typecheck` → `lint` → `depcruise` → `test:coverage` → `secrets:bundle` → `knip` (`continue-on-error: true` en Fase 0–1).
    - Job `supabase` (ubuntu, `supabase/setup-cli@v1`): `supabase start` → migraciones → `supabase test db` → `supabase db lint` → `deno test supabase/functions/tests/`.
 2. `.github/workflows/gitleaks.yml`: `gitleaks/gitleaks-action@v2` en push y PR.
 3. `.github/workflows/eval.yml`: `workflow_dispatch`, vacío. Se rellena en Fase 2.
@@ -516,7 +516,7 @@ y hay que sacarlo a su rama:
 |---|---|---|
 | Docker en Windows da problemas con `supabase start` | media | Se prueba el día 1. Si no va: WSL2 + Docker, o se deja `supabase:test` solo en CI y en local se usa el proyecto remoto con una rama de Supabase |
 | El cupo gratuito de EAS se agota (15 builds/mes) | media | `get-build` reutiliza builds por fingerprint. Se restringe `maestro` a PRs con etiqueta `native` si hace falta |
-| `expo-doctor` marca warnings del scaffold (deps de web, iconos) | alta | Se limpian en D1. `expo-doctor` es bloqueante desde D5 |
+| `expo-doctor` marca warnings del scaffold (deps de web, iconos) | alta | Se limpian en D1. `expo-doctor` es bloqueante desde D5, salvo desajustes solo de parche (#63) |
 | TypeScript 6 + Jest: babel-preset-expo no soporte alguna sintaxis nueva | baja | Se usa la config de `jest-expo` tal cual; si falla, se fija TS a 5.9 y se anota |
 | `knip` marca falsos positivos en un proyecto Expo | alta | Empieza como `continue-on-error`. Se configura `knip.json` con los entry points de expo-router |
 | Git Bash en Windows y hooks de Husky | media | Se prueba en D2 con un commit real. Husky 9 funciona en Git Bash; si el shell es PowerShell, se documenta usar Git Bash para git |
