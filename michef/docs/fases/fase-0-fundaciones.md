@@ -103,7 +103,7 @@ Todo lo de D1 en adelante depende de que esto exista. Apple **no** entra aquí.
 | 0.9 | Secretos en GitHub (Settings → Secrets → Actions) | github.com | `EXPO_TOKEN`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`, `SENTRY_AUTH_TOKEN` | D5, D7 |
 | 0.10 | ~~Secretos en EAS por environment~~ **Movido a D6** (decisión #39): `eas env:create` necesita el proyecto vinculado con `eas init`, que toca `app.json`. En D0 solo se guardan los valores | — | — | D6 |
 | 0.11 | PostHog (Free, **EU cloud**) | eu.posthog.com | Project API key | Fase 1 (puede esperar) |
-| — | **Apple Developer Program** | developer.apple.com | — | **Semana 3, no ahora.** Alta tarda 24–48 h, a veces días |
+| — | **Apple Developer Program** | developer.apple.com | — | **No, hasta que el producto funcione en Expo Go** (#62). Alta tarda 24–48 h, a veces días: se inicia una semana antes |
 
 **Seguridad de D0:**
 - Los tokens **nunca** se pegan en el chat, en un archivo del repo, ni en `.env`. Van directo a GitHub Secrets y a `eas env:create --type secret`.
@@ -445,10 +445,14 @@ Las dos primeras filas (SDK 57, Expo Go) y la de «Cuenta» en «Estado y orden�
 aplicaron en D0.5** al canónico (`michef-starter/CLAUDE.md`), citando #26, #27 y #29.
 El resto se aplica en D1. Diffs concretos:
 
+> **Esta tabla es el registro de lo que se cambió en D1**, y las citas de `CLAUDE.md` son
+> de entonces. La fila de Expo Go se actualizó con la #62; la de Cuenta sigue citando un
+> texto que la #62 ya cambió. La autoridad es `decisiones.md`, no esta tabla.
+
 | Sección | Antes | Después |
 |---|---|---|
 | Stack · App | «Expo SDK 54+» | «Expo SDK 57 (RN 0.86, React 19.2, TS 6). New Architecture obligatoria.» |
-| Stack · App | (nada sobre Expo Go) | «**Expo Go sirve para desarrollar hasta la Fase 2.** Se abandona al entrar SQLCipher, Sign in with Apple o Live Activities. Nunca es el destino final.» |
+| Stack · App | (nada sobre Expo Go) | «**Expo Go sirve para desarrollar hasta la Fase 5** (#27, #62). No se paga licencia hasta que el producto funcione ahí; el cifrado, Sign in with Apple contra Supabase, la Live Activity, la ejecución en segundo plano y TestFlight quedan aplazados. Nunca es el destino final.» |
 | Estado y orden | «Fase actual: 0 — fundaciones» + lista de 6 puntos | «Fase actual: 0. El roadmap completo está en `docs/roadmap.md`; el detalle de cada fase en `docs/fases/`.» |
 | Prohibiciones | (nada sobre cuenta) | Sección nueva **«Cuenta»**: «La primera foto y las tres recetas ocurren **sin cuenta**, con sesión anónima. El login (Apple/Google) se pide **al tocar «Cocinar»**, explicando qué se guarda. **Cocinar requiere cuenta.** Nunca antes: ni al abrir, ni al ver las recetas.» |
 | Cómo trabajar conmigo | 3 puntos | + «Corre `npm run gates` antes de decir que algo está listo. Si no lo corriste, dilo.» + «Prohibido `--no-verify`.» + «Una feature = una rama = un PR.» |
@@ -462,8 +466,8 @@ resumen; la autoridad es `docs/decisiones.md`. Todas fechadas 2026-09-08 o 2026-
 - **Layout del repo:** todo dentro de `michef/`. `research/` al lado, fuera de CI.
 - **SDK 57.** No 54. New Architecture, sin opción de legacy.
 - **Onboarding sin cuenta.** Foto y 3 recetas con sesión anónima; **login al tocar «Cocinar», obligatorio para cocinar**. Es el momento con una acción concreta que lo justifica («para guardar tu nevera y lo que cocinas»): ver es anónimo, cocinar recuerda. Motivo: el informe de research (P1, ⚠ CONTRADICE) — cuenta antes del valor no baja el rating pero genera un flujo constante de 1★ evitables. Coste: una sesión anónima que se migra con `linkIdentity`.
-- **Expo Go como entorno de desarrollo hasta Fase 2.** Verificado: cámara, SQLite sin cifrar, Supabase, notificaciones locales funcionan en Expo Go SDK 57. SQLCipher, Apple auth y Live Activities no.
-- **Licencia de Apple: recomendada semana 3–4, máximo semana 7.** Los builds de simulador para E2E no la necesitan.
+- **Expo Go como entorno de desarrollo hasta Fase 5** (#27, ampliada por la #62). Verificado: cámara, SQLite sin cifrar, Supabase, notificaciones locales funcionan en Expo Go SDK 57. SQLCipher, Apple auth y Live Activities no: se aplazan.
+- ~~Licencia de Apple: recomendada semana 3–4~~ **anulado por la #62** (2026-09-16): no se saca hasta que el producto funcione en Expo Go. Los builds de simulador para E2E nunca la necesitaron.
 - **Jest-expo como único runner.** No Vitest. Un solo runner, un solo mock de lo nativo.
 - **dependency-cruiser** para la regla «engine no importa ai», además de ESLint. Dos herramientas, una regla: el editor avisa, CI bloquea.
 - **Maestro en EAS Workflows** para E2E. No Detox (necesita Mac local).

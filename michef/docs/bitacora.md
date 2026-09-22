@@ -2208,6 +2208,153 @@ rojo (#55).
 
 ---
 
+## 2026-09-16 · S-20260916-a · D7 mergeado, y la licencia de Apple se aplaza
+
+Tarea: decisión #62 · Rama: `docs/F0-licencia-expo-go` · Resultado: **la regla de la
+licencia queda escrita, y los documentos corregidos**. Solo documentación.
+
+Tocado: `docs/decisiones.md` (#62 nueva; #27 ampliada, #28 anulada, #29 con una pregunta
+abierta; un pendiente de decidir nuevo), `docs/roadmap.md` (§ 3 entera y la tabla de
+fases), `docs/fases/` 0 a 5, `CLAUDE.md`, `docs/estado.md`, este archivo.
+
+Corrido: `npm run gates` — verde, **639 tests** en 35 suites, cobertura de `src/ui` y
+`src/i18n` al 100 %. `npx prettier --check` sobre los documentos — **no comprobó nada**: `.prettierignore`
+excluye `*.md` a propósito, y el mensaje de «todo en orden» sale igual con cero archivos.
+Tres consultas a
+`docs.expo.dev` y dos a `supabase.com/docs` para comprobar lo que se afirmaba. No se tocó
+código, así que el smoke de iOS no correrá en el PR: lo filtra `paths-ignore` (#61.6).
+
+Decisiones nuevas: **#62** · sin licencia de Apple hasta que el producto funcione en Expo
+Go.
+
+Avances de Luciano: mergeó el **PR #21** (D7, `6216995`). Fijó la regla de la licencia.
+Dejó a criterio de Claude las tres decisiones pequeñas que estaban abiertas. Sigue
+pendiente rotar la contraseña de TESO; pidió que se le recuerde.
+
+---
+
+**D7 está en `main`.** El smoke de iOS corre en cada PR que no sea solo documentos:
+compila la app nativa, la abre en un simulador y comprueba que llega a la pantalla de
+inicio.
+
+**Luciano fijó la regla de la licencia.** Dijo, literal: «hasta que no tengas un producto
+funcional y construido en Expo Go yo no voy a pagar ninguna licencia». Antes de escribirlo
+se le dio la respuesta honesta a su premisa — **no todo se puede probar en Expo Go** — y
+decidió igual. Queda como **#62**, y anula la #28, que recomendaba pagar en la semana 3.
+
+**El revisor devolvió CAMBIOS cuatro veces, y tenía razón las cuatro.** Esta rama es un caso de
+estudio de lo que pasa cuando se escribe de memoria: **tres afirmaciones técnicas de las
+que depende el plan entero estaban mal**, y ninguna se habría notado hasta la fase
+correspondiente. La cuarta fila de la tabla no es del plan, es del proceso, y da más
+vergüenza: se dio por comprobado un comando que no comprobó nada.
+
+| Lo que se afirmó | La verdad, comprobada en `docs.expo.dev` |
+|---|---|
+| Los mapas de «tiendas cercanas» esperan al build | Falso. `react-native-maps` está en Expo Go, y la Fase 3 usa Apple Maps, que es el proveedor que no pide configuración |
+| `expo-background-task` exige development build | Falso a medias, y es el caso interesante. Su página lo lista en Expo Go — así que la segunda versión lo dio por bueno — pero depende de `expo-task-manager`, cuya página dice que en Expo Go **no hay ejecución en segundo plano en iOS**. Dos páginas oficiales que no coinciden: se toma la restrictiva y se aplaza **la ejecución**, no la librería |
+| Al correo se le vincula la cuenta con `linkIdentity` | Falso. Supabase reserva `linkIdentity` para OAuth; de anónimo a correo se va con `updateUser({ email })` y verificación. Es otra API y otro estado de pantalla, y la hoja de la #29 no lo tenía dibujado |
+| `npx prettier --check` dejaba los documentos limpios | Falso. `.prettierignore` excluye `*.md`, así que no miró ni un archivo de este PR. El mensaje de «todo en orden» sale igual con cero archivos |
+
+Las cazó todas el revisor. Las piezas aplazadas se quedan
+en **cinco**: el cifrado, Sign in with Apple contra Supabase, la Live Activity, la
+ejecución en segundo plano y TestFlight. La de en medio se comprueba en el iPhone el día 1
+de la Fase 5, y si funciona el índice recupera su job de 24 h sin cambiar nada más.
+
+Todo lo que quedó sin comprobar está ahora en la lista **«Por verificar antes de depender
+de ello»** de `decisiones.md`, que es donde se mira el día 1 de cada fase, y no enterrado
+en el cuerpo de una decisión larga.
+
+El revisor cazó además estas cosas, todas corregidas:
+
+1. **La Fase 3 seguía exigiendo licencia en su criterio de entrada**, tres líneas debajo de
+   la cabecera nueva que decía que no hace falta. Con la regla de avance, eso bastaba para
+   que la fase no pudiera empezar.
+2. **El cambio de login no estaba registrado donde manda.** La #29 seguía «vigente» con
+   Apple y Google, y el cuerpo de la Fase 2 entero la sostenía. Se marcó la #29, se
+   corrigió el paso 2.9, y **qué botones lleva la hoja definitiva pasó a «Pendientes de
+   decidir»**: es de producto, y lo decide Luciano, no Claude.
+3. **El argumento de los crashes nativos estaba al revés.** Se había escrito que en Expo
+   Go no pasan por el filtro de privacidad; la #57.12 dice lo contrario, y el código
+   también: en Expo Go no hay parte nativa. La barrera sigue en pie — los datos **sí** van
+   sin cifrar — pero con la mitad falsa quitada.
+4. **«Sign in with Apple no existe en Expo Go» era impreciso.** La librería corre; lo que
+   no sirve son los identificadores, que son los de Expo Go y no los del bundle, así que
+   Supabase no puede validarlos. La #27 ya lo decía bien y la #62 había perdido el matiz.
+5. **Cuándo se saca la licencia decía cuatro cosas distintas en cuatro documentos.** La
+   respuesta operativa es una: **cierre de la Fase 5, semana 13**, que es TestFlight
+   interno, y el alta se inicia en la **semana 12**. Está igual en los cuatro sitios.
+
+6. **El índice de vigencia de `decisiones.md` llevaba desfasado desde la #54.** Ahora dice
+   qué está vigente, qué anulado y qué reemplazado en parte.
+7. **El diagrama de semanas del roadmap no apuntaba a ninguna columna real.** Se redibujó
+   calculando las posiciones, no a ojo.
+8. **Y el peor, que lo abrió esta misma rama.** Al tachar el criterio de entrada de la Fase
+   3 — que era correcto tacharlo — el **cifrado verificado se quedó sin ninguna casilla en
+   todo el roadmap**. La Fase 5 se podía cerrar entregando la app a la mamá con el cifrado
+   apagado, que es exactamente lo que la prohibición dura nueva prohíbe. Aplazar algo sin
+   decir dónde se recoge es perderlo. Ahora la #62 tiene una tabla de **dónde vuelve cada
+   pieza**, y el criterio de salida de la Fase 5 lleva las cinco casillas, más la de los
+   crashes nativos.
+
+**Lo que hace defendible aplazarla.** El smoke de D7 compila la app nativa de verdad en
+cada PR. Si algo deja de compilar fuera de Expo Go se sabe el mismo día. Sin ese espejo
+esta decisión sería temeraria.
+
+**Lo de las ramas.** Se activó `delete_branch_on_merge` en el repositorio: las mergeadas se
+borran solas. Las tres viejas no se pudieron borrar — el clasificador de la sesión bloquea
+el borrado de ramas remotas, igual que los merges — y se comprobó antes que su contenido
+está entero en `main`. El proyecto `@tes0/me-chef` se deja como está.
+
+**La barrera que abre la regla.** En Expo Go los datos del teléfono van sin cifrar. Queda
+en las **prohibiciones duras** de `CLAUDE.md`, no solo en los avisos del tablero: la app no
+llega a nadie que no sea Luciano hasta que haya licencia, build y cifrado verificado. Se
+levanta en el paso 5.9 y no antes, y las casillas que lo comprueban están en el criterio
+de salida de esa fase.
+
+Pendiente: el merge del PR de esta rama. Quedan dos cosas menores sin tocar, anotadas en
+el PR: el formato de las entradas anteriores de esta bitácora se ha desviado de la
+plantilla de arriba, y `docs/producto.html` (v0.4, congelado) acumula contradicciones con
+decisiones vigentes mientras cuatro documentos lo citan como fuente sin avisar de que está
+congelado. El entitlement de las Live Activities, que la Fase 4 cita sin comprobar, sí
+quedó anotado en «Por verificar».
+
+Para la siguiente sesión: presentar **D8, el README**, que cierra la Fase 0, y esperar el
+«adelante» de Luciano (#34). Recordarle lo de la contraseña de TESO. Nunca en rojo (#55).
+## 2026-09-17 · S-20260916-a · el parche 57.0.23 de Expo, que puso el CI en rojo
+
+Tarea: — · Rama: `chore/deps-expo-57-0-23` · Resultado: **`expo` a `~57.0.23`**, `gates`
+verde otra vez. *(2026-09-21: mientras el PR esperaba merge salió la 57.0.24, y se subió a
+esa en la misma rama. Es la cuarta vez en dos semanas: Expo publica un parche cada pocos
+días y `expo-doctor` exige el último, así que cualquier PR que espere más de unos días se
+pone rojo solo. Hay que decidir qué hacer con eso, y no es decisión de Claude.)*
+
+Tocado: `package.json` y `package-lock.json`. Nada más.
+
+Corrido: `npx expo install --check` (señalaba `expo@57.0.22`, esperado `~57.0.23`),
+`npx expo install --fix`, `npx expo-doctor` — **21/21**, y `npm run gates` — verde, 639
+tests en 35 suites.
+
+Decisiones nuevas: ninguna.
+
+Avances de Luciano: dio el «adelante» corriendo `npx expo install --check` él mismo. Le
+falló con «Project root directory not found» porque lo corrió desde
+`C:\Users\Luciano\Desktop\ME-CHEF` y el proyecto vive en `michef/`. Vale la pena
+recordarlo: **los comandos de Expo se corren desde `michef/`, no desde la raíz del
+repositorio.**
+
+---
+
+**Por qué existe esta rama.** El PR #23 (la decisión #62, solo documentos) se puso rojo en
+`gates`, y no por nada que llevara dentro: `expo-doctor` exige la última versión de parche
+del SDK, y Expo publicó la 57.0.23 mientras se escribía. Es la tercera vez que pasa
+— la anterior fue el PR #19, con los parches del 57.0.3 — y seguirá pasando: Expo publica
+parches cada pocos días y el check no perdona ni uno.
+
+Se separa del PR #23 a propósito. Mezclar una actualización de dependencias con una
+decisión de producto hace que el día que algo se rompa no se sepa cuál de las dos fue.
+
+Pendiente: mergear esta rama, traer `main` al PR #23 y que su `gates` se ponga verde.
+**Luciano:** el «adelante» de los dos merges. Nunca en rojo (#55).
 ## 2026-09-21 · S-20260916-a · #63: `expo-doctor` perdona el tercer número, y la prueba del rojo
 
 Tarea: decisión #63 · Rama: `chore/F0-doctor-parches` · Resultado: **construido, probado en

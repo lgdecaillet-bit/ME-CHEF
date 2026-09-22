@@ -140,7 +140,7 @@ Todo determinista. Todo con tests de ejemplo y de propiedad antes de la implemen
 1. Activar **Anonymous sign-ins** en el panel de Supabase (Authentication → Providers).
 2. `src/lib/supabase.ts` — cliente con `AsyncStorage`… **no**: con un storage adapter sobre `expo-secure-store` (la sesión es un token; va al Keychain).
 3. Al arrancar (`_layout.tsx`): si no hay sesión → `signInAnonymously()`. Sin pantalla, sin pregunta. El usuario no sabe que pasó.
-4. `src/lib/auth.ts` — `vincularConApple()` y `vincularConGoogle()` usando `linkIdentity`. Detrás de `flags.auth_apple`. Se llama desde el botón **«Cocinar esto»** (primera vez, Fase 2 con licencia) y desde ajustes. En Fase 1, con el flag apagado, «Cocinar esto» no pide nada.
+4. `src/lib/auth.ts` — `vincularConApple()` y `vincularConGoogle()` usando `linkIdentity`, y `vincularConCorreo()` usando `updateUser({ email })` más la verificación, que es la única de las tres que funciona en Expo Go (#62). Detrás de `flags.auth_apple`. Se llama desde el botón **«Cocinar esto»** (primera vez, Fase 2) y desde ajustes. En Expo Go la vía que funciona es el correo (#62); Apple y Google llegan con la licencia. En Fase 1, con el flag apagado, «Cocinar esto» no pide nada.
 5. RLS: las políticas de la Fase 0 ya permiten `authenticated` (un anónimo es `authenticated` con `is_anonymous = true`). No hay nada personal en Supabase, así que un anónimo no puede hacer daño: solo lee catálogo.
 6. Test contra Supabase local: `signInAnonymously` devuelve sesión; `select` de `ingrediente` funciona; `insert` en `precio` falla.
 
@@ -242,7 +242,7 @@ uno ausente, no.
 - Pasos en texto plano, numerados. El "así debe verse" y los timers son Fase 4.
 - Botón «Cocinar esto» → en Fase 1 solo registra `receta_elegida` y muestra un mensaje:
   «Guardado. El paso a paso llega pronto.» Honesto. **Este botón es donde vivirá el login**
-  (Fase 2, con licencia): tocar «Cocinar» sin cuenta abre la hoja de cuenta; **cocinar
+  (Fase 2): tocar «Cocinar» sin cuenta abre la hoja de cuenta; **cocinar
   requiere cuenta**. Antes de ese toque, nunca se pide.
 
 ### Pantalla 5 · Las dos preguntas (después del primer resultado)

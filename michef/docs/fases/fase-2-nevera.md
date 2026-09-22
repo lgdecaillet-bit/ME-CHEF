@@ -1,6 +1,8 @@
 # Fase 2 · La nevera de punta a punta
 
-> **Semanas 5–7 · No necesita licencia de Apple** hasta el último paso (vincular cuenta).
+> **Semanas 5–7 · No necesita licencia de Apple.** La cuenta del último paso se hace con
+> correo vía Supabase — **por comprobar el día 1 de la fase** que el ciclo de verificación
+> vuelve a la app en Expo Go —; Sign in with Apple se añade con la licencia (#62).
 >
 > Al terminar, la función central existe: una foto → lo reconocido marcado sobre la foto
 > → tres recetas con lo que hay, en menos de 8 segundos, con **más del 95 % de precisión**
@@ -173,9 +175,15 @@ manual. La generación bajo demanda es Fase 5.
 4. `.github/workflows/eval.yml` (`workflow_dispatch`) — corre el harness con las fotos **subidas como artefacto cifrado por el usuario**, nunca en git. Publica el número como comentario. Se usa solo para cambios de prompt/modelo.
 5. **Si no llega al 95 %**, en orden: (1) guía de cámara — recalibrar umbrales con las fotos que fallan; (2) prompt de la pasada 2 — es la que filtra alucinaciones; (3) subir de modelo. En esta función el coste no se negocia.
 
-### 2.9 · `feat/vincular-cuenta` — el login, al tocar «Cocinar» (requiere licencia)
+### 2.9 · `feat/vincular-cuenta` — el login, al tocar «Cocinar»
 
-Es el único paso de la fase que necesita development build.
+**En Expo Go, por correo.** Ni Apple ni Google funcionan ahí (#62): la librería de Apple
+corre pero devuelve los identificadores de Expo Go, no los del bundle de ME CHEF, y las de
+Google piden development build. Lo que no cambia es el momento y la hoja; lo que
+cambia es qué botón hay dentro **y con qué API se vincula**: `linkIdentity` sirve para
+Apple y Google, pero el correo va por `updateUser({ email })` y verificación, que trae un
+estado de pantalla que la hoja de la #29 no tenía. **Qué botones lleva
+la hoja definitiva lo decide Luciano en esta fase** («Pendientes de decidir»).
 
 **El momento:** el usuario ya vio la foto reconocida y las tres recetas. Toca **«Cocinar
 esto»** en una. Ahí — y solo ahí, la primera vez — la app pide la cuenta. Es el único punto
@@ -186,13 +194,13 @@ cocinas». Ver las recetas no la pide. Corregir etiquetas no la pide. Abrir la a
 recetas es gratis y anónimo; cruzar a cocinar es el punto donde la app pasa a recordar cosas
 del usuario (lo cocinado, el inventario descontado, las reseñas) y por eso pide identidad.
 
-1. Al tocar «Cocinar esto» sin cuenta vinculada: una **hoja** (no una pantalla nueva, no un modal que tape las recetas) con: título «Guarda tu cocina», una línea «Para recordar tu nevera, tus recetas y lo que cocinas», dos botones del mismo tamaño: **Apple**, **Google**. Debajo, un enlace pequeño «Ahora no» que **cierra la hoja y vuelve a las recetas** — no entra a cocinar. Sin preseleccionar. Sin X escondida.
-2. `linkIdentity` sobre la sesión anónima. Todo lo local (inventario, escaneos, hogar) **ya está en SQLite** y no se toca: vincular no migra nada, solo asocia el `user.id`. Al terminar, la hoja se cierra y **entra directo a cocinar** — el usuario no pierde el hilo.
+1. Al tocar «Cocinar esto» sin cuenta vinculada: una **hoja** (no una pantalla nueva, no un modal que tape las recetas) con: título «Guarda tu cocina», una línea «Para recordar tu nevera, tus recetas y lo que cocinas», botones del mismo tamaño — en el diseño de la #29, **Apple** y **Google**; en Expo Go, **correo** (#62; los botones definitivos están por decidir). Debajo, un enlace pequeño «Ahora no» que **cierra la hoja y vuelve a las recetas** — no entra a cocinar. Sin preseleccionar. Sin X escondida.
+2. Sobre la sesión anónima: `linkIdentity` para Apple y Google, y `updateUser({ email })` más la verificación para el correo — son dos APIs distintas, y la del correo tiene un estado intermedio («te mandamos un código») que la hoja tiene que dibujar (#62). Todo lo local (inventario, escaneos, hogar) **ya está en SQLite** y no se toca: vincular no migra nada, solo asocia el `user.id`. Al terminar, la hoja se cierra y **entra directo a cocinar** — el usuario no pierde el hilo.
 3. «Ahora no»: vuelve a la pantalla de recetas con todo intacto. Puede seguir viendo, corrigiendo, tomando otra foto. La próxima vez que toque «Cocinar esto» la hoja vuelve a aparecer — cada vez, porque cocinar requiere cuenta. Sin contador, sin «tercera vez».
-4. Si `linkIdentity` falla (red, cancelación de Apple): mensaje corto en la hoja, botón «Reintentar», y «Ahora no» sigue disponible. Nunca un bucle de login (research: queja nº1 de Google Health).
-5. Con `flags.auth_apple` apagado (Expo Go, Fase 1): «Cocinar esto» entra directo, porque la hoja no puede existir sin licencia. Es el único caso, y es de desarrollo, no de producto.
+4. Si la vinculación falla (red, cancelación del proveedor, correo que no llega, código caducado): mensaje corto en la hoja, botón «Reintentar», y «Ahora no» sigue disponible. Nunca un bucle de login (research: queja nº1 de Google Health).
+5. Con `flags.auth_apple` apagado (Fase 1, antes de que exista la hoja): «Cocinar esto» entra directo. Es de desarrollo, no de producto. Desde esta fase el flag se enciende y la hoja existe también en Expo Go, con el correo dentro.
 6. Ajustes tiene «Crear cuenta» siempre disponible para quien quiera hacerlo antes.
-7. Tests de componente: sin sesión vinculada → «Cocinar esto» abre la hoja y **no navega**; «Ahora no» → cierra y **no navega**; vincular OK → navega a cocinar; vincular falla → hoja sigue con «Reintentar»; con flag apagado → navega directo. Test E2E en `nevera.yaml` con flag apagado.
+7. Tests de componente: sin sesión vinculada → «Cocinar esto» abre la hoja y **no navega**; «Ahora no» → cierra y **no navega**; vincular OK → navega a cocinar; vincular falla → hoja sigue con «Reintentar»; con flag apagado → navega directo. **Y los del camino del correo** (#62): correo introducido → la hoja pasa al estado «revisa tu correo» y **no navega**; verificación pendiente y el usuario cierra la app → al volver, la hoja sigue en ese estado; código o enlace caducado → mensaje y «Reenviar», sin bucle. Test E2E en `nevera.yaml` con flag apagado.
 
 ---
 
@@ -292,7 +300,7 @@ puede, te lo dice en la cara, sin hacerte esperar.
 - «Se te va a dañar» aparece cuando corresponde.
 - La foto desaparece de todas partes al confirmar.
 - Apagar `flags.nevera` en PostHog quita el botón en < 1 min sin build.
-- Con licencia: tocar «Cocinar esto» sin cuenta abre la hoja; vincular Apple sobre la sesión anónima conserva todo lo local y entra directo a cocinar. «Ahora no» vuelve a las recetas sin cocinar. **No se puede cocinar sin cuenta.**
+- Tocar «Cocinar esto» sin cuenta abre la hoja; vincular (correo en Expo Go, Apple o Google con licencia) sobre la sesión anónima conserva todo lo local y entra directo a cocinar. «Ahora no» vuelve a las recetas sin cocinar. **No se puede cocinar sin cuenta.**
 
 ## Qué NO debe funcionar todavía
 

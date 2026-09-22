@@ -1,6 +1,9 @@
 # Fase 4 · Cocinar acompañado
 
-> **Semanas 10–11 · Requiere licencia de Apple** (Live Activities exige entitlements).
+> **Semanas 10–11 · Solo la Live Activity necesita licencia**: va en una widget extension,
+> que es código nativo y no cabe en Expo Go. Todo lo demás, timers incluidos, sí corre ahí:
+> son notificaciones locales. El paso 4.3 se escribe y se aparca hasta que haya licencia
+> (decisión #62), y su criterio de salida se aparca con él.
 >
 > Al terminar, cocinar una receta es un paso por pantalla, con «así debe verse», timers
 > que suenan aunque el teléfono esté bloqueado, un toque en el hombro si te distraes, y
@@ -22,7 +25,7 @@ quien sabe, necesita que no le estorben. Las dos cosas, sin modelo, sin internet
 
 - [ ] Flujo completo **sin red**: receta → pasos → timers → cierre → inventario descontado.
 - [ ] Timers son **notificaciones locales con sonido**: suenan con la app cerrada y con el teléfono bloqueado (test manual en iPhone, anotado).
-- [ ] **Live Activity** muestra el timer activo en pantalla bloqueada y Dynamic Island (iOS 16.2+). Test manual.
+- [ ] ~~**Live Activity** muestra el timer activo en pantalla bloqueada y Dynamic Island (iOS 16.2+)~~ **aplazado por la #62**: necesita build nativo. No bloquea el cierre de la fase; se verifica con el primer development build.
 - [ ] Inactividad: a los 3 minutos sin tocar la pantalla en un paso, notificación local suave. Se **cancela** al avanzar de paso (test: avanzar cancela la programada).
 - [ ] `descontarCocinado` corre al terminar y solo descuenta lo usado (test de propiedad: nunca queda negativo).
 - [ ] Pantalla de cierre: estrellas (1 toque) + reseña opcional + «Saltar». Nunca bloqueante.
@@ -37,7 +40,7 @@ quien sabe, necesita que no le estorben. Las dos cosas, sin modelo, sin internet
 
 | Capa | Herramienta | Para qué | Nota |
 |---|---|---|---|
-| Notificaciones | `expo-notifications` (SDK 57) | Timers y recordatorios **locales** | Local funciona en Expo Go; pero esta fase ya va en dev build |
+| Notificaciones | `expo-notifications` (SDK 57) | Timers y recordatorios **locales** | Local funciona en Expo Go, y es como corre esta fase (#62). Por comprobar el día 1: la página lo afirma en el texto pero no lista `expo-go` en `platforms` |
 | Live Activities | `expo-live-activity` o módulo propio con `expo-modules` + ActivityKit | Timer en pantalla bloqueada / Dynamic Island | Requiere entitlement `com.apple.developer.ActivityKit` → **licencia**. Widget extension en Swift: se escribe una vez, se compila en EAS |
 | Hápticos | `expo-haptics` | Al avanzar paso, al terminar timer | |
 | Pantalla | `expo-keep-awake` | La pantalla no se apaga mientras cocinas | |
@@ -162,7 +165,7 @@ confías. Al terminar, la app te felicita en una línea y te deja ir.
 
 - Todo sin red.
 - Timers con la app cerrada y el teléfono bloqueado.
-- Live Activity visible.
+- Live Activity visible (solo con development build, #62).
 - Inactividad se cancela al avanzar.
 - Inventario descontado; lo agotado ofrece ir a la lista.
 - Estrellas opcionales.
