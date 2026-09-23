@@ -55,32 +55,65 @@ if (dep.trim() === '') {
   );
   process.exit(1);
 }
-debeAparecer(
+// Cada caso se busca en SU línea: regla y destino juntos. Buscar solo el nombre
+// de la regla daba «ok» aunque la mitad de los imports se escapara (revisión
+// retroactiva del 2026-09-23: `expo-haptics` y `react-native-reanimated` pasaban).
+function debeAparecerJuntos(salida, regla, destino, comoSeLlama) {
+  const linea = salida
+    .split(/\r?\n/)
+    .some((l) => l.includes(`${regla}:`) && l.includes(destino));
+  debeAparecer(linea ? 'si' : '', 'si', comoSeLlama);
+}
+
+debeAparecerJuntos(
   dep,
   'engine-no-native',
-  'engine-no-native detecta react-native en el motor'
+  'node_modules/react-native/',
+  'engine-no-native detecta react-native'
 );
-debeAparecer(dep, 'ai-only-proxy', 'ai-only-proxy detecta un SDK de modelo');
-debeAparecer(dep, 'engine-no-ai', 'engine-no-ai detecta un import de src/ai/');
-debeAparecer(dep, 'engine-no-db', 'engine-no-db detecta un import de src/db/');
+debeAparecerJuntos(
+  dep,
+  'engine-no-native',
+  'node_modules/react-native-reanimated/',
+  'engine-no-native detecta react-native-* (Reanimated)'
+);
+debeAparecerJuntos(
+  dep,
+  'engine-no-native',
+  'node_modules/expo-haptics/',
+  'engine-no-native detecta expo-* (Haptics)'
+);
+debeAparecerJuntos(
+  dep,
+  'ai-only-proxy',
+  'openai',
+  'ai-only-proxy detecta un SDK de modelo'
+);
+debeAparecerJuntos(
+  dep,
+  'engine-no-ai',
+  'src/ai/',
+  'engine-no-ai detecta un import de src/ai/'
+);
+debeAparecerJuntos(
+  dep,
+  'engine-no-db',
+  'src/db/',
+  'engine-no-db detecta un import de src/db/'
+);
+debeAparecerJuntos(dep, 'no-circular', 'ciclo-a', 'no-circular detecta un ciclo');
 
-console.log('\nESLint · sobre los fixtures, con --no-ignore');
+console.log('\nESLint · el test con .only, con --no-ignore');
 // --no-inline-config: los fixtures llevan un /* eslint-disable */ para que el
 // editor no los pinte de rojo, y sin esta bandera ese comentario apagaba las
 // reglas y el control daba todo por muerto.
-const lint = correr('npx eslint src/engine/__fixtures__ --no-ignore --no-inline-config');
+const lint = correr(
+  'npx eslint src/engine/__fixtures__/violacion.test.ts --no-ignore --no-inline-config'
+);
 if (lint.trim() === '') {
   console.error('  ESLint no devolvió nada. Revisa el comando antes de fiarte de esto.');
   process.exit(1);
 }
-debeAparecer(lint, 'no-restricted-imports', 'no-restricted-imports dispara en el motor');
-debeAparecer(
-  lint,
-  'Ninguna API key de modelo',
-  'el SDK de modelo está prohibido dentro del motor'
-);
-debeAparecer(lint, 'no-explicit-any', 'no-explicit-any dispara');
-debeAparecer(lint, 'no-console', 'no-console dispara');
 debeAparecer(lint, 'no-only-tests', 'no-only-tests dispara');
 
 // ── Interfaz: línea a línea ──────────────────────────────────────────────────
@@ -151,6 +184,9 @@ function comprobarPorLinea(ruta) {
     process.exit(1);
   }
 }
+
+console.log('\nESLint · el motor, línea a línea');
+comprobarPorLinea('src/engine/__fixtures__/violacion.ts');
 
 console.log(
   '\nESLint · interfaz, sobre una pantalla que viola cada regla (diseno.md § 4)'

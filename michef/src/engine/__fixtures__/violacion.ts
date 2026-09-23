@@ -6,12 +6,20 @@
 // El `eslint-disable` de arriba NO desactiva nada: probar-reglas.js corre con
 // --no-ignore y las reglas se evalúan igual. Está para que tu editor no te
 // pinte el archivo de rojo mientras trabajas en otra cosa.
-import OpenAI from 'openai';
-import { View } from 'react-native';
-import { llamarModelo } from '../../ai/client';
-import { hogar } from '../../db/schema';
+//
+// Cada línea lleva el mensaje que tiene que salir en ELLA (desde el 2026-09-23).
+// Antes se buscaba el mensaje en toda la salida, y una regla muerta quedaba
+// tapada por otra viva: se podía vaciar MOTOR_NO_IA y el control seguía en «ok».
+// Hay un import por familia de paquetes nativos, porque el patrón se quedó corto
+// justo en las familias (`expo-*`, `react-native-*`).
+import OpenAI from 'openai'; // @espera Ninguna API key de modelo
+import { View } from 'react-native'; // @espera El motor es puro
+import * as Haptics from 'expo-haptics'; // @espera El motor es puro
+import Animated from 'react-native-reanimated'; // @espera El motor es puro
+import { llamarModelo } from '../../ai/client'; // @espera src/engine/ no importa nada de src/ai/
+import { hogar } from '../../db/schema'; // @espera El motor es puro
 
-export function malaIdea(x: any): unknown {
-  console.log('esto tampoco debería pasar');
-  return [OpenAI, View, llamarModelo, hogar, x];
+export function malaIdea(x: any): unknown { // @espera no-explicit-any
+  console.log('esto tampoco debería pasar'); // @espera no-console
+  return [OpenAI, View, Haptics, Animated, llamarModelo, hogar, x];
 }

@@ -31,7 +31,12 @@ module.exports = {
         // dos formas: con `^(react-native|…)` a secas no casaba ninguna y la
         // regla nunca disparó. Sin `dependencyTypes`, porque el tipo de una
         // dependencia sin resolver es 'unknown' y se escapaba por ahí.
-        path: '(^|node_modules/)(react-native|react|expo|@expo|@supabase|@sentry|posthog)(/|$)',
+        //
+        // Las familias van con `[^/]*` (revisión retroactiva del 2026-09-23): con
+        // `expo` a secas seguido de `(/|$)`, `expo-haptics` y
+        // `react-native-reanimated` no casaban y el motor podía importarlos con
+        // los gates en verde. Hay un fixture por familia.
+        path: '(^|node_modules/)(@?react-native[^/]*|react|expo[^/]*|@expo|@supabase|@sentry|posthog[^/]*)(/|$)',
       },
     },
     {
