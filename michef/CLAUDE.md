@@ -172,7 +172,8 @@ gates` y el revisor aplican desde el primer PR de código (D1).
 1. `npm run gates` verde.
 2. Invocar al subagente `revisor` (`.claude/agents/revisor.md`) sobre el diff. Solo con
    `APROBADO` se abre el PR. El veredicto se pega en la descripción del PR.
-3. Entrada en `docs/bitacora.md` con todos los campos. Actualizar `docs/estado.md`:
+3. Entrada en `docs/bitacora.md` con todos los campos, **incluida la línea `Revisor:` con el
+   veredicto final y la vuelta** (decisión #65). Actualizar `docs/estado.md`:
    progreso, quitar la fila de tareas tomadas, «Siguiente paso concreto».
 4. Si se tomó una decisión nueva con Luciano, añadirla a `docs/decisiones.md` con número
    y subir el «vigentes hasta» de `estado.md`.

@@ -12,7 +12,7 @@
 > `### #N · Título` · fecha · estado · texto con el porqué · qué reemplaza · qué archivos
 > de `fases/` cambian.
 
-Vigentes: **#1–#3, #5–#27, #29–#63**. Reemplazadas o anuladas: #4 (por la #29), #28 (por
+Vigentes: **#1–#3, #5–#27, #29–#63, #65** (la #64 es una propuesta con número reservado). Reemplazadas o anuladas: #4 (por la #29), #28 (por
 la #62). Reemplazadas en parte: #32 (por la #61), #57.4 y #58.3 (por la #61).
 
 ---
@@ -1296,6 +1296,38 @@ local sigue sin correrlo, como hasta ahora; `npm run doctor` existe para correrl
 `.github/workflows/ci.yml` (el paso), `package.json` (`doctor`), `protocolos-calidad.md`
 (capa 3 y la fila de salud), `fase-0-fundaciones.md` (§ D5, el job `gates`), el tablero
 (la rutina quincenal y el aviso de `better-sqlite3`) y la bitácora.
+
+### #65 · El veredicto del revisor se escribe en la bitácora, siempre
+
+Fecha: 2026-09-23 · **vigente** · la pidió Luciano («doble asegurar lo de la bitácora, que es
+de lo más importante para darle continuidad real al trabajo sin errores»); la forma concreta
+la propuso Claude al hacer el repaso de la Fase 0. Si la forma no le sirve, se reemplaza.
+
+**El problema.** El criterio de salida de la Fase 0 pide que cada PR tenga APROBADO del
+revisor y su entrada en la bitácora. Al repasarlo, de 27 PRs mergeados solo 8 tenían un
+APROBADO escrito en algún sitio, repartido entre la bitácora, `estado.md`, los commits y la
+descripción de los PRs en GitHub. Cuatro no tenían entrada propia. Varios dejaban constancia
+de las vueltas con CAMBIOS pero no del APROBADO final, así que una sesión nueva no podía
+saber si el PR se mergeó aprobado o no. La revisión retroactiva que se hizo (opción A de
+Luciano) encontró tres bugs del motor y dos protecciones que no existían.
+
+**Qué cambia.**
+1. **Cada entrada de la bitácora lleva una línea `Revisor:`**, justo después de la de
+   `Tarea`: `Revisor: APROBADO en la vuelta N (antes, CAMBIOS en las vueltas 1…N-1)`, o
+   `Revisor: no pasó — <motivo> — excepción de Luciano`. **No hay otro valor válido.** Un
+   PR que no la tenga no cumple la Definition of Done (`protocolos-calidad.md` § 4, punto 9).
+2. **Un PR, una entrada.** Si una sesión mergea varios PRs, cada uno tiene su entrada o su
+   fila en una tabla de la entrada, con su `Revisor:`.
+3. **Los PRs de solo documentos no están exentos.** Luciano eligió la opción A y no la C.
+   Solo Luciano puede eximir un PR, por escrito y para ese PR (como el README de la raíz en
+   el #28).
+4. **La fuente única del veredicto es la bitácora.** La descripción del PR lo repite, pero
+   si discrepan, manda la bitácora, y se corrige la que esté mal.
+5. **La Fase 0 tiene su registro de revisión** en la entrada del 2026-09-23. Cada fase cierra
+   con el suyo: una tabla PR → entrada → veredicto, antes de marcar el criterio de salida.
+
+**Cambia:** el formato de `bitacora.md` (cabecera), `CLAUDE.md` (protocolo de cierre, paso
+3), `protocolos-calidad.md` (§ 4, punto 9) y el tablero.
 
 ## Pendientes de decidir
 

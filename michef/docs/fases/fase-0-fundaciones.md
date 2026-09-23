@@ -21,19 +21,21 @@ impedir que la pantalla cincuenta rompa la pantalla uno.
 
 ## Criterio de salida — se verifica cada punto, en orden
 
-- [ ] `npm run gates` verde en local. `pre-push` lo ejecuta solo.
-- [ ] Un PR con un test roto **queda bloqueado** por CI. Al arreglarlo, se puede mergear. `main` no acepta push directo. (Evidencia anotada en `protocolos-calidad.md §8`.)
-- [ ] `npm run supabase:test` verde: migraciones aplican, pgTAP pasa, `anon` no puede escribir en `precio` ni leer `cache_modelo`.
-- [ ] El proxy responde `401` sin JWT y `200` en `/health`, verificado por `deno test`.
-- [ ] Un PR que toca `app.config.ts` dispara build de simulador en EAS y Maestro pasa el smoke.
-- [ ] La app abre en **Expo Go en tu iPhone** y muestra la pantalla inicial.
-- [ ] Un crash provocado desde el menú de desarrollo aparece en Sentry con stack trace legible.
-- [ ] El motor tiene tests: los bugs conocidos están registrados como `test.failing`; cobertura del engine ≥ 95 %.
-- [ ] Sistema de diseño: tokens, componentes base con tests, galería en Expo Go en claro y oscuro, `contraste.ts` verde, gates de interfaz en ESLint activos.
-- [ ] `michef-starter/` borrado. `CLAUDE.md`, `decisiones.md`, `README.md` actualizados.
-- [ ] `docs/protocolos-calidad.md`, `docs/roadmap.md` y `docs/fases/` en el repo.
+> Repasado el 2026-09-23 (S-20260923-a): doce de trece. Evidencia de cada uno en la bitácora de ese día.
+
+- [x] `npm run gates` verde en local. `pre-push` lo ejecuta solo.
+- [x] Un PR con un test roto **queda bloqueado** por CI. Al arreglarlo, se puede mergear. `main` no acepta push directo. (Evidencia anotada en `protocolos-calidad.md §8`.)
+- [x] `npm run supabase:test` verde: migraciones aplican, pgTAP pasa, `anon` no puede escribir en `precio` ni leer `cache_modelo`.
+- [x] El proxy responde `401` sin JWT y `200` en `/health`, verificado por `deno test`.
+- [x] Un PR que toca `app.config.ts` dispara build de simulador ~~en EAS~~ **en GitHub Actions (#61)** y Maestro pasa el smoke. (El smoke corre en todo PR que no sea solo documentos; verde y rojo probados en los PRs #21 y #22.)
+- [x] La app abre en **Expo Go en tu iPhone** y muestra la pantalla inicial.
+- [x] Un crash provocado desde el menú de desarrollo aparece en Sentry con stack trace legible. (Un error de JavaScript, con «Provocar error», el 2026-09-10. El crash nativo no se puede provocar en Expo Go y no pasa por el filtro de privacidad: aviso en `estado.md` para el primer build.)
+- [x] El motor tiene tests: los bugs conocidos están registrados como `test.failing`; cobertura del engine ≥ 95 %. (BUG-10, 11 y 12, encontrados en la revisión retroactiva del 2026-09-23, se registran en el primer PR de arreglo.)
+- [x] Sistema de diseño: tokens, componentes base con tests, galería en Expo Go en claro y oscuro, `contraste.ts` verde, gates de interfaz en ESLint activos.
+- [x] `michef-starter/` borrado. `CLAUDE.md`, `decisiones.md`, `README.md` actualizados.
+- [x] `docs/protocolos-calidad.md`, `docs/roadmap.md` y `docs/fases/` en el repo.
 - [x] **Memoria del proyecto** (D0.5): `docs/estado.md`, `docs/bitacora.md`, `docs/decisiones.md` numerado, protocolo de sesión en `CLAUDE.md`, `.claude/agents/revisor.md`. Verificado abriendo una sesión nueva que retoma sin contexto.
-- [ ] Cada PR de esta fase tiene veredicto `APROBADO` del revisor y su entrada en `bitacora.md`.
+- [ ] Cada PR de esta fase tiene veredicto `APROBADO` del revisor y su entrada en `bitacora.md`. **Abierto** (2026-09-23): el registro de revisión está en la entrada de ese día de la bitácora. La revisión retroactiva dio CAMBIOS en #2, #3, #4, #5, #7, #9, #23 y #24; se marca cuando los cinco PRs de arreglo estén en `main` y esos PRs pasen a APROBADO.
 
 ---
 

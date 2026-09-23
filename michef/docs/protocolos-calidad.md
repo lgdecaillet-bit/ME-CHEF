@@ -100,7 +100,7 @@ Un PR está listo cuando cumple **todo** esto. No hay "casi".
 6. Si tocó lo nativo (plugin, dependencia nativa, `app.config.ts`): el fingerprint cambió → build de simulador + Maestro pasaron.
 7. La descripción del PR dice **qué, por qué y cómo se probó**. "Cómo se probó" no puede ser "corrí los tests" — dice qué se miró en el iPhone.
 8. **Veredicto `APROBADO` del revisor** (`.claude/agents/revisor.md`) pegado en la descripción del PR. Decisión #37.
-9. **Entrada en `docs/bitacora.md`** y `docs/estado.md` actualizado, en el mismo PR. Decisión #36.
+9. **Entrada en `docs/bitacora.md`**, con la línea `Revisor:` y el veredicto final (decisión #65), y `docs/estado.md` actualizado, en el mismo PR. Decisión #36.
 10. El paso fue **aprobado por Luciano antes de empezar** («adelante» explícito). Decisión #34.
 
 ---
