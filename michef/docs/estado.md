@@ -93,7 +93,7 @@ Se vacía al cambiar de día.
 | Parche 57.0.24 de Expo | `chore/deps-expo-57-0-23` | S-20260916-a | 2026-09-17 | **mergeada** (PR #24, `d1b8a32`, 2026-09-21) |
 | Decisión #63 · `expo-doctor` perdona el tercer número | `chore/F0-doctor-parches` | S-20260916-a | 2026-09-21 | **mergeada** (PR #26, `a1ecff4`, 2026-09-22) |
 | D8 · README | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **mergeada** (PR #28, `4afc294`) |
-| Repaso del criterio de salida de la Fase 0 y revisión retroactiva | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **construida** · PR por abrir |
+| Repaso del criterio de salida de la Fase 0 y revisión retroactiva | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **construida** · revisor APROBADO (vuelta 2) · PR #29 |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican

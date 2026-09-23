@@ -1,6 +1,6 @@
 # Bitácora · ME CHEF
 
-> **El historial.** Una entrada por sesión de trabajo, en orden cronológico, siempre con
+> **El historial.** Una entrada por PR (#65), en orden cronológico, siempre con
 > los mismos campos. Solo se añade al final; lo anterior no se edita. Una sesión nueva lee
 > las últimas 3 entradas y sabe qué se hizo, qué salió y qué toca.
 >
@@ -2553,12 +2553,12 @@ punto por punto y marcarlo en `fase-0-fundaciones.md`. Solo entonces se abre la 
 ## 2026-09-23 · S-20260923-a · Repaso del criterio de salida de la Fase 0 y revisión retroactiva
 
 Tarea: cierre de la Fase 0 · Rama: `claude/next-steps-963d09` (desde `main` tras el #28) ·
-PR: por abrir · Resultado: **la Fase 0 no se cierra todavía.** Once de los trece puntos del
+PR: #29 · Resultado: **la Fase 0 no se cierra todavía.** Once de los trece puntos del
 criterio se cumplen con evidencia; el 8 se cumple cuando BUG-10, 11 y 12 estén registrados; el decimotercero (cada PR con APROBADO y entrada en la bitácora)
 no se cumplía, se hizo la revisión retroactiva que eligió Luciano (opción A), y esa
 revisión encontró cosas reales que hay que arreglar antes de cerrar.
-Revisor: CAMBIOS en la vuelta 1 (cifras del punto 13, dos filas del registro, citas de línea,
-el punto 8 marcado sin cumplirse y dos huecos de la #65), corregidos; vuelta 2 pendiente.
+Revisor: APROBADO en la vuelta 2 (antes, CAMBIOS en la 1: cifras del punto 13, dos filas del
+registro, citas de línea, el punto 8 marcado sin cumplirse y dos huecos de la #65).
 
 Tocado: `docs/fases/fase-0-fundaciones.md` (criterio de salida marcado punto por punto),
 `docs/estado.md`, `docs/decisiones.md` (#65), `docs/protocolos-calidad.md` (§ 4, punto 9),
