@@ -2523,6 +2523,14 @@ guarda solo `COMANDOS.md` y los workflows, commitlint corre en `commit-msg` y no
 `pre-commit`, en `bugs.test.ts` solo los pendientes son `it.failing`, y el tablero daba
 la revisión por hecha antes del veredicto. **Segunda vuelta: APROBADO.**
 
+**El README de la raíz, sin revisor, por decisión de Luciano y solo esta vez.** Tras el
+APROBADO, Luciano pidió abrir el PR, dio por buena la rama `claude/next-steps-963d09` y
+pidió que el `README.md` de la raíz (que solo decía `# ME-CHEF` y es la portada del repo
+en GitHub) apunte a `michef/README.md`, **sin otra vuelta del revisor**, como excepción
+explícita de esta vez. No cambia la regla: el próximo PR vuelve a pasar por el revisor.
+El cambio es solo de texto (la raíz y la línea del mapa de `michef/README.md` que la
+describe); los gates corren igual en `pre-push` y en el CI.
+
 **La rama no sigue la convención.** El entorno de la sesión en la nube asignó
 `claude/next-steps-963d09` y no deja empujar a otra sin permiso explícito. El contenido
 es el de `docs/F0-D8-readme`.

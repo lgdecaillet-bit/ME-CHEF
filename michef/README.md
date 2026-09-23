@@ -173,7 +173,7 @@ El mensaje de commit sigue el formato `tipo: qué hiciste` (`feat`, `fix`, `docs
 
 ```
 ME-CHEF/
-  README.md                  una línea; el README de verdad es este
+  README.md                  la portada en GitHub: apunta a este
   COMANDOS.md                la chuleta de comandos de Luciano
   .github/workflows/         ci (gates + supabase), gitleaks, smoke-ios, eval (vacío hasta Fase 2)
   michef/                    la app: todo se corre desde aquí
