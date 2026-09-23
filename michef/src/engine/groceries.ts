@@ -46,7 +46,10 @@ export function listaDeMercado(
   // corto de mercado es peor que comprar de más.
   const enCasa = new Map<string, number>();
   for (const i of inventario) {
-    if (i.confianza < UMBRAL_CONFIABLE) continue;
+    // Escrito en positivo a propósito (arreglo de BUG-11): `NaN < UMBRAL` es falso
+    // y una confianza rota contaba como confiable. Así, lo que no es un número
+    // claro por encima del umbral no resta.
+    if (!(i.confianza >= UMBRAL_CONFIABLE)) continue;
     // Sin cantidad conocida no hay nada que restar: cuenta como cero.
     if (i.cantidad == null) continue;
     const clave = `${i.ingredienteId}|${i.unidad}`;
@@ -59,7 +62,17 @@ export function listaDeMercado(
     const tengo = enCasa.get(`${ingredienteId}|${unidad}`) ?? 0;
     // Hacia arriba, nunca al más cercano (BUG-9): una lista que se queda corta
     // manda a la persona de vuelta a la tienda.
-    const comprar = redondearParaComprar(Math.max(0, cantidad - tengo), unidad);
+    //
+    // Arreglo de BUG-10: el ruido de la coma flotante se quita ANTES del `ceil`.
+    // 100 g × 4,9 porciones es 490,00000000000006, y `Math.ceil` convertía ese
+    // ruido en medio gramo o en diez. Se corta a seis decimales: el ruido de una
+    // suma de doubles de este tamaño está muy por debajo (del orden de 1e-13), y
+    // un faltante real de una millonésima de gramo es la única cantidad que se
+    // deja de comprar. Esa es la tolerancia, y la fija un test. Con dos
+    // decimales se dejaban de comprar faltantes de hasta 0,005 g, y la regla de
+    // BUG-9 («nunca menos de lo que falta») dejaba de cumplirse.
+    const falta = Math.max(0, +(cantidad - tengo).toFixed(6));
+    const comprar = redondearParaComprar(falta, unidad);
     if (comprar === 0) continue;
 
     const precio = preciosPorId.get(ingredienteId);

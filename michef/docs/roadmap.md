@@ -92,8 +92,8 @@ Verificado módulo por módulo contra la documentación del SDK 57.
 | Capacidad | Fase | Cómo se pospone |
 |---|---|---|
 | **SQLCipher** (cifrado real del archivo) | 1 | Detrás de un flag. El código es idéntico; cambia una línea (`PRAGMA key`) |
-| **Sign in with Apple** real contra Supabase (la librería corre en Expo Go, pero devuelve los identificadores de Expo Go, no los del bundle) | 2 | Ya pospuesto por diseño: la app corre con sesión anónima; la cuenta se pide al tocar «Cocinar»; cocinar requiere cuenta, ver recetas no. Mientras tanto la cuenta se hace con correo vía Supabase, que sí funciona en Expo Go. Google tampoco vale: sus librerías piden development build (#62) |
-| **Live Activities** (Dynamic Island) | 4 | Ya es su propio paso, el 4.3, y se aparca ahí. Los timers, que son notificaciones locales, funcionan sin ella (#62) |
+| **Sign in with Apple** real contra Supabase (la librería corre en Expo Go, pero devuelve los identificadores de Expo Go, no los del bundle) | 2 | Ya pospuesto por diseño: la app corre con sesión anónima; la cuenta se pide al tocar «Cocinar»; cocinar requiere cuenta, ver recetas no. Mientras tanto la cuenta se hace con correo vía Supabase, que debería funcionar en Expo Go: el ciclo del correo de vuelta a la app está por comprobar (#62). Google tampoco vale: sus librerías piden development build (#62) |
+| **Live Activities** (Dynamic Island) | 4 | Ya es su propio paso, el 4.3, y se aparca ahí. Los timers, que son notificaciones locales, no la necesitan; que corran en Expo Go está por comprobar el día 1 de la Fase 4 (#62) |
 | **Ejecución en segundo plano** (índice del catálogo cada 24 h) | 5 | El índice se baja al abrir la app. `expo-background-task` se lista en Expo Go, pero `expo-task-manager` dice que en iOS no hay ejecución en segundo plano sin build (#62). Por comprobar |
 | **TestFlight** y la App Store | 5–6 | No se pospone. Es el momento de la licencia (#62) |
 | Push remoto (APNs) | — | **No se usa.** ME CHEF usa notificaciones locales |

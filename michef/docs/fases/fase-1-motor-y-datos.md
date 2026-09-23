@@ -61,7 +61,7 @@ válida), pero su rama de código queda apagada por flag hasta que haya developm
 
 ## Qué se construye, paso a paso
 
-### 1.1 · Los bugs del motor — **cuatro hechos, cinco pendientes**
+### 1.1 · Los bugs del motor — **siete hechos, cinco pendientes**
 
 > **Actualizado el 2026-09-09 por la decisión #49.** Este paso ya no empieza de cero.
 > BUG-1, BUG-4, BUG-5 y BUG-7 se arreglaron el mismo día que se registraron, en la rama
@@ -70,8 +70,11 @@ válida), pero su rama de código queda apagada por flag hasta que haya developm
 > en dos casos no coincide con lo que este documento planeaba; donde difiere, manda el
 > código y aquí queda dicho por qué.
 >
-> Aparecieron además **BUG-8 y BUG-9**, registrados y sin arreglar, esperando el
-> «adelante» de Luciano.
+> Aparecieron además **BUG-8 y BUG-9**. BUG-9 se arregló el mismo 2026-09-09 (#50).
+>
+> **Actualizado el 2026-09-23.** La revisión retroactiva de la Fase 0 encontró **BUG-10,
+> 11 y 12**. Los dos primeros se arreglaron en cuanto se registraron (#49); BUG-12 espera
+> la misma decisión de forma que BUG-8. Quedan pendientes BUG-2, 3, 6, 8 y 12.
 
 Cada bug: primero se quita `.failing` del test (queda rojo) → se arregla → verde → commit.
 Nunca dos bugs en un commit. **Salvedad de la #49:** cuando varios arreglos van en un solo
@@ -90,6 +93,9 @@ se abren PRs separados.
 | BUG-7 | ✅ **hecho**, tal cual. Hay además un test de ejecución que comprueba que `cantidadPorPorcion` no reaparece: la causa original era un `...i`, y **TypeScript no avisa de las propiedades de más que llegan por un spread** — comprobado rompiéndolo. |
 | BUG-8 | ⏳ registrado, sin arreglar. `fusionarEscaneo` y `descontarCocinado` tienen el mismo `new Map` con claves repetidas que tenía BUG-4: seis huevos de factura más seis de escaneo quedan en seis al sacar una foto. **Antes de arreglarlo hay que decidir** si el inventario se normaliza a una fila por (ingrediente, unidad, origen) o si estas funciones agrupan como hace `listaDeMercado`. |
 | BUG-9 | ✅ **hecho** (decisión #50). Función nueva `redondearParaComprar`, hacia arriba, solo para la lista; `redondear` sigue al más cercano para las recetas. Dos nombres en vez de un booleano, para que haya que elegir. `cantidadNecesaria` deja de redondearse: es lo que las recetas piden, y así `necesaria − en casa` cuadra con lo que falta. |
+| BUG-10 | ✅ **hecho** (2026-09-23). El ruido de la coma flotante llegaba al `Math.ceil` de BUG-9: 100 g × 4,9 porciones = 490,00000000000006, y con 490 g en casa la lista pedía 0,5 g. La resta se corta a **seis** decimales antes de redondear: quita el ruido (del orden de 1e-13) y la única cantidad que se deja de comprar es un faltante de menos de una millonésima de gramo. Los tests fijan que el corte no baje de cinco decimales (un faltante de 1e-5 g se compra). Con dos decimales, que fue el primer intento, se dejaban de comprar faltantes de hasta 0,005 g y caía la regla de BUG-9. Tests nuevos: porciones decimales, 0,3 g que faltan, 1,003 g necesarios, y la confianza justo en el umbral. |
+| BUG-11 | ✅ **hecho** (2026-09-23). El arreglo de BUG-4 cambió `>= UMBRAL` por `< UMBRAL → continue`, y una confianza `NaN` pasó a contar como confiable. El filtro se escribe en positivo. |
+| BUG-12 | ⏳ registrado, sin arreglar. Dos detecciones del mismo ingrediente en una foto se pisan y el resultado depende del orden. **Antes de arreglarlo hay que decidir** si se suman o se deduplican en la frontera, junto con BUG-8. El test afirma solo que el orden no cambia el resultado. |
 
 Además, en este PR:
 
@@ -140,7 +146,7 @@ Todo determinista. Todo con tests de ejemplo y de propiedad antes de la implemen
 1. Activar **Anonymous sign-ins** en el panel de Supabase (Authentication → Providers).
 2. `src/lib/supabase.ts` — cliente con `AsyncStorage`… **no**: con un storage adapter sobre `expo-secure-store` (la sesión es un token; va al Keychain).
 3. Al arrancar (`_layout.tsx`): si no hay sesión → `signInAnonymously()`. Sin pantalla, sin pregunta. El usuario no sabe que pasó.
-4. `src/lib/auth.ts` — `vincularConApple()` y `vincularConGoogle()` usando `linkIdentity`, y `vincularConCorreo()` usando `updateUser({ email })` más la verificación, que es la única de las tres que funciona en Expo Go (#62). Detrás de `flags.auth_apple`. Se llama desde el botón **«Cocinar esto»** (primera vez, Fase 2) y desde ajustes. En Expo Go la vía que funciona es el correo (#62); Apple y Google llegan con la licencia. En Fase 1, con el flag apagado, «Cocinar esto» no pide nada.
+4. `src/lib/auth.ts` — `vincularConApple()` y `vincularConGoogle()` usando `linkIdentity`, y `vincularConCorreo()` usando `updateUser({ email })` más la verificación, que es la única de las tres que puede funcionar en Expo Go (#62; el ciclo del correo de vuelta a la app, por comprobar). Detrás de `flags.auth_apple`. Se llama desde el botón **«Cocinar esto»** (primera vez, Fase 2) y desde ajustes. En Expo Go la única vía posible es el correo (#62, por comprobar); Apple y Google llegan con la licencia. En Fase 1, con el flag apagado, «Cocinar esto» no pide nada.
 5. RLS: las políticas de la Fase 0 ya permiten `authenticated` (un anónimo es `authenticated` con `is_anonymous = true`). No hay nada personal en Supabase, así que un anónimo no puede hacer daño: solo lee catálogo.
 6. Test contra Supabase local: `signInAnonymously` devuelve sesión; `select` de `ingrediente` funciona; `insert` en `precio` falla.
 

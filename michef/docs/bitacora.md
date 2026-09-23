@@ -2704,3 +2704,105 @@ TESO, rutina de parches la semana del 2026-10-05).
 Para la siguiente sesión: leer esta entrada entera. La Fase 0 **sigue abierta** hasta que el
 punto 13 esté marcado. Empezar por el PR 1 (el motor), que es el que afecta a lo que ve el
 usuario, cuando Luciano dé «adelante».
+
+---
+
+## 2026-09-23 · S-20260923-a · Los arreglos de la revisión retroactiva, y la Fase 0 cerrada
+
+Tarea: cierre de la Fase 0 (los cinco arreglos del plan) · Rama: `claude/next-steps-963d09` ·
+PR: #30 · Resultado: **los ocho PRs retroactivos con CAMBIOS pasan a APROBADO, los puntos 8
+y 13 del criterio se marcan, y la Fase 0 queda cerrada al mergear este PR.**
+Revisor: APROBADO en la vuelta 2 del PR entero (antes, CAMBIOS en la 1 por cuatro erratas de
+texto; el código, en las vueltas retroactivas de la tabla de abajo).
+
+Tocado: `src/engine/groceries.ts` y `__tests__/bugs.test.ts` (BUG-10, 11 y 12);
+`.dependency-cruiser.cjs`, `eslint.config.js`, `scripts/probar-reglas.js` y
+`src/engine/__fixtures__/` (reglas del motor); `.github/workflows/ci.yml` y `gitleaks.yml`;
+`package.json` y `package-lock.json` (`expo-updates`); `.husky/pre-commit`,
+`scripts/revisar-secretos.sh` y su test; `docs/fases/fase-0`, `fase-1`, `fase-4`,
+`roadmap.md`, `decisiones.md` (notas fechadas en la #27 y la #62), `protocolos-calidad.md`,
+`estado.md` y este archivo.
+
+Corrido: `npm run gates` en cada commit (el `pre-push` lo repite): de 655 a **669 tests**,
+37 suites, cobertura 100 %; `npm run reglas`, todas disparan. Mutaciones a mano para
+comprobar que cada test y cada control caen cuando deben (abajo). CI del PR sobre
+`46eb131`: `gates` (con `npm audit`: 19 moderadas, ninguna alta; las tres `EXPO_PUBLIC_*`
+de producción bajadas de EAS; y el bundle escaneado con ellas: 25 archivos, 0 secretos),
+`supabase` y `secretos` **en verde**: los pasos nuevos probados en Actions, no solo en
+local. Sobre `481637f`, que ya lleva las reglas nuevas, `gates`, `supabase` y `secretos`
+también en verde. `smoke-ios`: no obligatorio (#61.6), ver el PR.
+
+Decisiones nuevas: ninguna. **Dos cosas que decidió Luciano, anotadas aquí:** que todo fuera
+en **un solo PR** en vez de los cinco del plan (los arreglos van en commits separados por
+tema; al mergear con squash se funden, como avisa la salvedad de la #49), y el «adelante» a
+tocar `gates` con el audit y las variables de EAS, que por la #55 es suyo.
+
+Avances de Luciano: mergeó el PR #29. Pidió «arregla todos, de pronto podrías hacer solo un PR».
+
+---
+
+### Qué se arregló, y cómo se comprobó que el arreglo muerde
+
+| PR retroactivo | Arreglo | Cómo se comprobó |
+|---|---|---|
+| #7 · BUG-10 | la resta se corta a 6 decimales antes del `ceil` | 3 tests caen sin el arreglo; con `toFixed(2)`, `(3)` o `(4)` cae uno de los de tolerancia (1,003 g y 1e-5 g) |
+| #5 · BUG-11 | filtro de confianza en positivo | el test del `NaN` cae sin el arreglo; `>` en vez de `>=` hace caer el del umbral exacto |
+| #4 · BUG-12 | registrado como `it.failing` (decisión pendiente, con BUG-8) | falla por la aserción, no por una excepción |
+| #2 · reglas del motor | patrón por familias en dependency-cruiser y ESLint; un import y una comprobación por familia; control por línea; `no-circular` con fixture | quitada cada familia, una a una, en las dos herramientas: cae su comprobación y solo esa |
+| #2 · `npm audit` | paso en `gates` | CI en verde con el paso |
+| #9 · bundle | las `EXPO_PUBLIC_*` de producción desde EAS antes de exportar | CI en verde con el paso |
+| #9 · acciones | por SHA; gitleaks 8.30.1 explícito | SHA contrastados con `git ls-remote` |
+| #24 · `expo-updates` | exacto; la rutina quincenal dice qué volver a fijar | `npm ls`, `expo install --check` |
+| #23 · #62 | «por comprobar» donde la #62 no comprobó; sin promesas de Apple antes de la Fase 5 | búsqueda de «funciona en Expo Go» en todos los documentos |
+| #3 · pre-commit | el control de secretos en `scripts/revisar-secretos.sh`, con test | con el defecto original reintroducido, 2 de 3 caen |
+
+**Lo que apareció al arreglar, y que nadie había visto.** La exclusión de dependency-cruiser
+`(^|/)dist/` borraba del grafo todo paquete que publica en `dist/`: `@sentry/react-native`,
+y el SDK de Supabase o de un modelo en cuanto se instalen. Ni `engine-no-native` ni
+`ai-only-proxy` podían verlos. Se ancló a la raíz; el grafo pasa de 227 a 252
+dependencias, sin ninguna violación. Lo destapó el fixture de `@sentry/*`.
+
+**Tres desviaciones, dichas.** En la segunda vuelta de BUG-10 (commit `02e545d`) el test y
+el arreglo van en el mismo commit: no hubo commit en rojo antes. Lo compensa la mutación
+(con el corte viejo el test cae), pero no cumple la regla al pie de la letra. El commit
+`4284929` arregla BUG-10 y BUG-11 juntos, y `fase-1` § 1.1 dice «nunca dos bugs en un
+commit»; lo cubre la salvedad de la #49 (con squash los commits se funden), pero queda
+dicho. Y `'react-native/*'` salió de ESLint porque `'react-native'` ya lo cubría y no podía
+tener control propio.
+
+### El registro de revisión de la Fase 0, cerrado
+
+Actualiza la tabla de la entrada anterior. Con esto, **los 25 PRs mergeados de la fase (los 24 del
+registro anterior más el #29) y este tienen su veredicto escrito**.
+
+| PR | Veredicto final |
+|---|---|
+| #1, #16, #17, #18, #21, #26, #28 | APROBADO (original) |
+| #8, #19 | APROBADO (retroactivo, primera vuelta) |
+| #3, #4, #5, #24 | APROBADO (retroactivo, segunda vuelta) |
+| #9, #23 | APROBADO (retroactivo, tercera vuelta) |
+| #2, #7 | APROBADO (retroactivo, cuarta vuelta) |
+| #6 | exento declarado en el PR (solo documentos, antes de la #65) |
+| #11, #12, #14, #15, #20, #27 | solo documentos, antes de la #65; su contenido lo cubre la revisión del #23 y la de hoy de `protocolos-calidad.md` |
+| #29 | APROBADO en la vuelta 2 |
+| #30 (este) | APROBADO en la vuelta 2 del PR entero |
+
+### Para después (no bloquea el cierre)
+
+- **Antes de la primera tarea del proxy (Fase 2):** el verificador de JWT sin `role`/`aud`/`sub`
+  y el `exp` opcional (en «Avisos» del tablero).
+- `listaDeMercado` con cantidades `NaN` o `Infinity`, o confianza `Infinity` o 1,5: entra en la
+  frontera de zod de la Fase 1, junto a BUG-6.
+- Una regla de lista blanca para el motor (solo rutas relativas y `zod`) cubriría los paquetes
+  nativos que ningún patrón nombra (`lottie-react-native`, `@gorhom/*`…).
+- Los PRs de forks o de Dependabot salen en rojo en `gates` por el `EXPO_TOKEN`: hoy solo lo dice
+  un comentario de `ci.yml`. Si algún día se activa Dependabot, se decide en la #55 o la #46.
+- `cantidadEnCasa` sale sin redondear y puede mostrar ruido de coma flotante (Fase 3, al pintarla).
+- Correr `npm run gates` en PowerShell: el test del `pre-commit` usa el `sh` de Git for Windows,
+  razonado pero no ejecutado en Windows.
+
+Pendiente: mergear este PR. Lo de antes: la #64, la contraseña de TESO, la rutina de parches la
+semana del 2026-10-05.
+
+Para la siguiente sesión: **la Fase 0 está cerrada.** Leer `fases/fase-1-motor-y-datos.md`
+entero y presentar a Luciano el primer paso de la Fase 1, con su «adelante».

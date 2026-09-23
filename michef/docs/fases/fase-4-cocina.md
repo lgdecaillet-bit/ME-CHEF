@@ -1,8 +1,9 @@
 # Fase 4 · Cocinar acompañado
 
 > **Semanas 10–11 · Solo la Live Activity necesita licencia**: va en una widget extension,
-> que es código nativo y no cabe en Expo Go. Todo lo demás, timers incluidos, sí corre ahí:
-> son notificaciones locales. El paso 4.3 se escribe y se aparca hasta que haya licencia
+> que es código nativo y no cabe en Expo Go. Todo lo demás debería correr ahí; los timers
+> son notificaciones locales, y **que funcionen en Expo Go está por comprobar el día 1 de
+> esta fase** (#62). De eso depende esta cabecera entera. El paso 4.3 se escribe y se aparca hasta que haya licencia
 > (decisión #62), y su criterio de salida se aparca con él.
 >
 > Al terminar, cocinar una receta es un paso por pantalla, con «así debe verse», timers
@@ -40,8 +41,8 @@ quien sabe, necesita que no le estorben. Las dos cosas, sin modelo, sin internet
 
 | Capa | Herramienta | Para qué | Nota |
 |---|---|---|---|
-| Notificaciones | `expo-notifications` (SDK 57) | Timers y recordatorios **locales** | Local funciona en Expo Go, y es como corre esta fase (#62). Por comprobar el día 1: la página lo afirma en el texto pero no lista `expo-go` en `platforms` |
-| Live Activities | `expo-live-activity` o módulo propio con `expo-modules` + ActivityKit | Timer en pantalla bloqueada / Dynamic Island | Requiere entitlement `com.apple.developer.ActivityKit` → **licencia**. Widget extension en Swift: se escribe una vez, se compila en EAS |
+| Notificaciones | `expo-notifications` (SDK 57) | Timers y recordatorios **locales** | Esta fase cuenta con que lo local funcione en Expo Go (#62), **por comprobar el día 1**: la página lo afirma en el texto pero no lista `expo-go` en `platforms` |
+| Live Activities | `expo-live-activity` o módulo propio con `expo-modules` + ActivityKit | Timer en pantalla bloqueada / Dynamic Island | Requiere licencia; el entitlement exacto (`com.apple.developer.ActivityKit` u otro) está por comprobar (#62). Widget extension en Swift: se escribe una vez, se compila en EAS |
 | Hápticos | `expo-haptics` | Al avanzar paso, al terminar timer | |
 | Pantalla | `expo-keep-awake` | La pantalla no se apaga mientras cocinas | |
 | Motor | `cocina.ts`, `horario.ts` | Secuencia de pasos, timers, mediana de horas | Puro |

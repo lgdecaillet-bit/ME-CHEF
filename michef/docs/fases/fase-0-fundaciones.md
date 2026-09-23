@@ -21,7 +21,8 @@ impedir que la pantalla cincuenta rompa la pantalla uno.
 
 ## Criterio de salida — se verifica cada punto, en orden
 
-> Repasado el 2026-09-23 (S-20260923-a): once de trece. Evidencia de cada uno en la bitácora de ese día.
+> Repasado el 2026-09-23 (S-20260923-a): once de trece; los dos que faltaban (8 y 13) se
+> cierran con el PR #30 el mismo día. **Trece de trece.** Evidencia en la bitácora de ese día.
 
 - [x] `npm run gates` verde en local. `pre-push` lo ejecuta solo.
 - [x] Un PR con un test roto **queda bloqueado** por CI. Al arreglarlo, se puede mergear. `main` no acepta push directo. (Evidencia anotada en `protocolos-calidad.md §8`.)
@@ -30,12 +31,12 @@ impedir que la pantalla cincuenta rompa la pantalla uno.
 - [x] Un PR que toca `app.config.ts` dispara build de simulador ~~en EAS~~ **en GitHub Actions (#61)** y Maestro pasa el smoke. (El smoke corre en todo PR que no sea solo documentos; verde y rojo probados en los PRs #21 y #22.)
 - [x] La app abre en **Expo Go en tu iPhone** y muestra la pantalla inicial.
 - [x] Un crash provocado desde el menú de desarrollo aparece en Sentry con stack trace legible. (Un error de JavaScript, con «Provocar error», el 2026-09-10. El crash nativo no se puede provocar en Expo Go y no pasa por el filtro de privacidad: aviso en `estado.md` para el primer build. Aceptado así por Luciano el 2026-09-23, bitácora.)
-- [ ] El motor tiene tests: los bugs conocidos están registrados como `test.failing`; cobertura del engine ≥ 95 %. **Abierto** (2026-09-23): la cobertura se cumple, pero BUG-10, 11 y 12, encontrados en la revisión retroactiva, aún no están registrados. Se marca con el primer PR de arreglo.
+- [x] El motor tiene tests: los bugs conocidos están registrados como `test.failing`; cobertura del engine ≥ 95 %. (BUG-10, 11 y 12, encontrados en la revisión retroactiva del 2026-09-23, registrados en el PR #30: los dos primeros arreglados, BUG-12 como `it.failing`.)
 - [x] Sistema de diseño: tokens, componentes base con tests, galería en Expo Go en claro y oscuro, `contraste.ts` verde, gates de interfaz en ESLint activos.
 - [x] `michef-starter/` borrado. `CLAUDE.md`, `decisiones.md`, `README.md` actualizados.
 - [x] `docs/protocolos-calidad.md`, `docs/roadmap.md` y `docs/fases/` en el repo.
 - [x] **Memoria del proyecto** (D0.5): `docs/estado.md`, `docs/bitacora.md`, `docs/decisiones.md` numerado, protocolo de sesión en `CLAUDE.md`, `.claude/agents/revisor.md`. Verificado abriendo una sesión nueva que retoma sin contexto.
-- [ ] Cada PR de esta fase tiene veredicto `APROBADO` del revisor y su entrada en `bitacora.md`. **Abierto** (2026-09-23): el registro de revisión está en la entrada de ese día de la bitácora. La revisión retroactiva dio CAMBIOS en #2, #3, #4, #5, #7, #9, #23 y #24; se marca cuando los cinco PRs de arreglo estén en `main` y esos PRs pasen a APROBADO.
+- [x] Cada PR de esta fase tiene veredicto `APROBADO` del revisor y su entrada en `bitacora.md`. (El registro de revisión está en la bitácora del 2026-09-23. Los ocho PRs con CAMBIOS en la revisión retroactiva pasaron a APROBADO tras los arreglos del PR #30, en la segunda, tercera o cuarta vuelta. Los PRs de solo documentos anteriores a la #65 quedan como están, con su contenido cubierto por la revisión del #23; el #6 se declaró exento en su día.)
 
 ---
 
@@ -65,8 +66,8 @@ Versiones verificadas el 2026-09-09 contra el proyecto real y la documentación 
 | | Deno | 2.x (lo trae el CLI) | Edge Functions y sus tests |
 | | pgTAP | (incluido) | Tests de la base de datos y de RLS |
 | CI | GitHub Actions | ubuntu-latest | Capa 3 |
-| | EAS Build + EAS Workflows | eas-cli 23.2.0 | Capa 4, 5, 6. Builds en la nube sobre Macs de Expo |
-| | Maestro (job `maestro` de EAS, alpha) | — | Smoke E2E en simulador iOS, en la nube, **sin cuenta de Apple** |
+| | ~~EAS Build + EAS Workflows~~ **GitHub Actions en `macos-26` (#61)** | eas-cli 24.3.0 | Capa 4: build de simulador y smoke. Las capas 5 y 6 esperan a la licencia (#62) |
+| | Maestro 2.10.0 (en GitHub Actions, no en EAS: el plan gratuito no lo permite, #61) | — | Smoke E2E en simulador iOS, **sin cuenta de Apple** |
 | Observabilidad | Sentry (`@sentry/react-native`) | 7.x | Crashes desde el primer día |
 | Dispositivo | **Expo Go** | App Store | Ver la app en el iPhone. Gratis |
 
@@ -74,8 +75,8 @@ Versiones verificadas el 2026-09-09 contra el proyecto real y la documentación 
 
 | | Por qué no |
 |---|---|
-| SQLCipher | Necesita development build → licencia. Fase 1, detrás de flag |
-| Sign in with Apple | Igual. Fase 1, al final |
+| SQLCipher | Necesita development build → licencia. El código en la Fase 1, detrás de `flags.cifrado`; encendido y verificado al cerrar la Fase 5 (#62) |
+| Sign in with Apple | Igual. El código en la Fase 1, detrás de `flags.auth_apple`; contra Supabase real, con la licencia, al cerrar la Fase 5 (#62) |
 | PostHog | No hay eventos que medir. Fase 1 |
 | expo-camera, expo-notifications | Se instalan en su fase; cada dependencia nativa cambia el fingerprint |
 | Promptfoo | No hay prompts. Fase 2 |
@@ -468,7 +469,7 @@ resumen; la autoridad es `docs/decisiones.md`. Todas fechadas 2026-09-08 o 2026-
 - **Layout del repo:** todo dentro de `michef/`. `research/` al lado, fuera de CI.
 - **SDK 57.** No 54. New Architecture, sin opción de legacy.
 - **Onboarding sin cuenta.** Foto y 3 recetas con sesión anónima; **login al tocar «Cocinar», obligatorio para cocinar**. Es el momento con una acción concreta que lo justifica («para guardar tu nevera y lo que cocinas»): ver es anónimo, cocinar recuerda. Motivo: el informe de research (P1, ⚠ CONTRADICE) — cuenta antes del valor no baja el rating pero genera un flujo constante de 1★ evitables. Coste: una sesión anónima que se migra con `linkIdentity`.
-- **Expo Go como entorno de desarrollo hasta Fase 5** (#27, ampliada por la #62). Verificado: cámara, SQLite sin cifrar, Supabase, notificaciones locales funcionan en Expo Go SDK 57. SQLCipher, Apple auth y Live Activities no: se aplazan.
+- **Expo Go como entorno de desarrollo hasta Fase 5** (#27, ampliada por la #62). Verificado: cámara, SQLite sin cifrar y Supabase funcionan en Expo Go SDK 57; las notificaciones locales, **por comprobar el día 1 de la Fase 4** (#62). SQLCipher, Apple auth y Live Activities no: se aplazan.
 - ~~Licencia de Apple: recomendada semana 3–4~~ **anulado por la #62** (2026-09-16): no se saca hasta que el producto funcione en Expo Go. Los builds de simulador para E2E nunca la necesitaron.
 - **Jest-expo como único runner.** No Vitest. Un solo runner, un solo mock de lo nativo.
 - **dependency-cruiser** para la regla «engine no importa ai», además de ESLint. Dos herramientas, una regla: el editor avisa, CI bloquea.

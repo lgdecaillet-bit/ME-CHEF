@@ -12,8 +12,11 @@
 # regla. Dos minutos en un PR de documentación cuestan menos que esa trampa.
 # (`research/` tampoco está en el repo, así que ignorarlo no ahorraba nada.)
 #
-# Versiones: las acciones de GitHub van por versión mayor; las de terceros y
-# todo lo que instalan lleva versión exacta, que es lo que pide CLAUDE.md. La
+# Versiones: las acciones oficiales de GitHub (`actions/*`) van por versión
+# mayor; las de terceros van fijadas por SHA, con su versión en un comentario,
+# porque una etiqueta mayor se puede mover (revisión retroactiva del
+# 2026-09-23: antes decía «versión exacta» e iban por `@v1`/`@v2`). Todo lo que
+# instalan lleva versión exacta, que es lo que pide CLAUDE.md. La
 # de Node sale de `michef/.node-version`, para que CI y la máquina de Luciano
 # lean el mismo archivo y no se puedan separar.
 
@@ -77,7 +80,7 @@ jobs:
       - name: reglas de arquitectura
         run: npm run arquitectura
 
-      # El control positivo: comprueba que las nueve reglas DISPARAN de verdad
+      # El control positivo: comprueba que cada regla de arquitectura DISPARA de verdad
       # sobre fixtures que las violan a propósito. Sin esto, una regla muerta se
       # ve igual que una que funciona (decisión #47).
       - name: las reglas disparan
@@ -85,6 +88,29 @@ jobs:
 
       - name: tests y cobertura
         run: npm run test
+
+      # La #46 acepta las vulnerabilidades moderadas de Expo y corta en alta y
+      # crítica. Hasta el 2026-09-23 lo decía y no lo corría nadie (lo encontró
+      # la revisión retroactiva del PR #2).
+      - name: vulnerabilidades altas o criticas
+        run: npm audit --audit-level=high
+
+      # El bundle se exporta con las variables REALES, las de EAS, y no sin
+      # ninguna: el `.env` no está en el repo, así que sin este paso el escaneo
+      # de abajo no veía nada que entrara por una EXPO_PUBLIC_ (revisión
+      # retroactiva del PR #9). Se usa el entorno `production`, que es el que
+      # llega a las personas. Mismo robot y misma versión de eas-cli que el smoke.
+      # Sin `EXPO_TOKEN` (un PR desde un fork o de Dependabot) este paso falla y
+      # `gates` sale en rojo, a propósito: saltárselo dejaría escanear un bundle
+      # sin variables, que es justo el agujero que este paso cierra. Esos PRs los
+      # rehace Luciano en una rama propia. Si EAS está caído, también rojo.
+      - name: variables de entorno desde EAS
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx --yes eas-cli@24.3.0 env:pull --environment production --non-interactive --path .env.local
+          echo "Variables cargadas:"
+          cut -d= -f1 .env.local
 
       # Mira lo que se instalaría en el teléfono, no el repo. Una key puede
       # entrar por una variable EXPO_PUBLIC_ o por una dependencia, y gitleaks
@@ -108,11 +134,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
         with:
           version: 2.117.0
 
-      - uses: denoland/setup-deno@v2
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: v2.9.6
 

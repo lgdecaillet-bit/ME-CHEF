@@ -3,8 +3,8 @@
  *
  * Empezaron siendo siete, encontrados leyendo el motor en D3. El revisor añadió
  * BUG-8 y un test propio destapó BUG-9, los dos el mismo día que se arreglaron
- * los cuatro primeros. Que aparezcan dos nuevos al arreglar cuatro es lo normal
- * y es buena señal: mirar de cerca encuentra cosas.
+ * los cuatro primeros. La revisión retroactiva del 2026-09-23 encontró BUG-10,
+ * 11 y 12. Que aparezcan nuevos al mirar de cerca es lo normal y es buena señal.
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * CÓMO FUNCIONA ESTE ARCHIVO
@@ -20,10 +20,10 @@
  * bug encontrado se convierte en test ANTES del arreglo. Si no, no hay forma de
  * saber si el arreglo arregla algo, y el bug puede volver sin que nadie lo note.
  *
- * ESTADO: **cuatro arreglados, tres pendientes.**
+ * ESTADO: **siete arreglados, cinco pendientes.**
  *
- * BUG-1, BUG-4, BUG-5 y BUG-7 tenían una única respuesta correcta y ningún
- * llamador que romper, así que se arreglaron en cuanto se registraron. Sus tests
+ * BUG-1, 4, 5, 7, 9, 10 y 11 tenían una única respuesta correcta y ningún
+ * llamador que romper, así que se arreglaron en cuanto se registraron (#49). Sus tests
  * dejaron de ser `.failing` y ahora son tests de regresión normales: si el bug
  * vuelve, se ponen rojos. Se comprobó el paso: con el motor sin arreglar los
  * cinco daban «Failing test passed even though it was supposed to fail».
@@ -34,10 +34,10 @@
  * (BUG-6). Arreglarlos hoy sería inventarse las conversiones, que es justo lo
  * que CLAUDE.md prohíbe.
  *
- * BUG-8 y BUG-9 se registraron el 2026-09-09 y esperan el «adelante» de Luciano
- * (decisión #34). BUG-8 necesita además decidir si el inventario se normaliza a
- * una fila por (ingrediente, unidad, origen); mientras esa decisión no exista,
- * su test afirma solo el invariante que cualquier arreglo correcto cumple.
+ * BUG-8 y BUG-12 necesitan antes una decisión: si el inventario se normaliza a
+ * una fila por (ingrediente, unidad, origen), y si las detecciones repetidas de
+ * una foto se suman o se deduplican en la frontera. Mientras no exista, sus
+ * tests afirman solo el invariante que cualquier arreglo correcto cumple.
  *
  * Cada bug lleva escrito qué le pasa al usuario, que es lo que decide su orden.
  * ─────────────────────────────────────────────────────────────────────────────
@@ -251,7 +251,7 @@ describe('BUG-5 · ARREGLADO · la alergia llega sola al filtro de recetas', () 
   // Por qué importaba: una alergia es una restricción DURA. El comportamiento por
   // defecto de una función de seguridad no puede ser «inseguro salvo que quien
   // llama se acuerde». Era el segundo más grave de los siete.
-  // Arreglo: la función recibe los comensales como sexto parámetro y excluye su
+  // Arreglo: la función recibe los comensales como cuarto parámetro y excluye su
   // `noCome` SIEMPRE, sin depender de quién la llame.
   it('quien es alérgico al maní no ve recetas con maní', () => {
     const conMani = receta({
@@ -516,5 +516,183 @@ describe('BUG-9 · ARREGLADO · la lista de mercado redondea hacia arriba', () =
         }
       )
     );
+  });
+});
+
+describe('BUG-10 · ARREGLADO · la coma flotante ya no pide comprar de más', () => {
+  // Dónde: groceries.ts, `listaDeMercado`, la resta que va a `redondearParaComprar`.
+  // Qué pasa: 1,4 + 1,8 + 1 + 0,7 = 4,9 porciones, y 100 g × 4,9 da
+  // 490,00000000000006. El `Math.ceil` del arreglo de BUG-9 convierte ese ruido en
+  // medio gramo o en diez: con 490 g en casa la lista dice «compra 0,5 g», y con
+  // la casa vacía pide 500 en vez de 490. El `Math.round` de antes lo tapaba.
+  // Por qué importa: una línea fantasma en la lista («necesitas 490, tienes 490,
+  // compra 0,5») es una lista en la que ya no se puede confiar.
+  // Lo encontró la revisión retroactiva del PR #7, el 2026-09-23.
+  // Arreglo: la resta se corta a seis decimales antes del `ceil`. La
+  // tolerancia la fijan los tests de 1,003 g y de 1e-5 g: cualquier corte por
+  // debajo de cinco decimales hace caer uno de los dos.
+  const hogar = 1.4 + 1.8 + 1 + 0.7;
+  const semana = () => [
+    { receta: receta({ ingredientes: [ingrediente('arroz', 100)] }), porciones: hogar },
+  ];
+
+  it('con 490 g en casa no hay nada que comprar', () => {
+    const lineas = listaDeMercado(semana(), [
+      item({ ingredienteId: 'arroz', cantidad: 490 }),
+    ]);
+    expect(lineas).toEqual([]);
+  });
+
+  it('con la casa vacía pide 490, que ya es un número redondo', () => {
+    expect(listaDeMercado(semana(), [])[0]?.cantidadAComprar).toBe(490);
+  });
+
+  it('PROPIEDAD · lo que se compra es el redondeo de lo que falta, con porciones decimales', () => {
+    // La propiedad de BUG-9 solo usaba porciones enteras, y por eso no lo vio.
+    const factores = [0.7, 1, 1.4, 1.8];
+    fc.assert(
+      fc.property(
+        fc.array(fc.constantFrom(...factores), { minLength: 1, maxLength: 4 }),
+        fc.integer({ min: 1, max: 400 }),
+        (comensales, porPorcion) => {
+          const porciones = comensales.reduce((t, f) => t + f, 0);
+          const necesita = porPorcion * porciones;
+          const semanaX = [
+            {
+              receta: receta({ ingredientes: [ingrediente('arroz', porPorcion)] }),
+              porciones,
+            },
+          ];
+          // Con lo justo en casa (redondeado como lo mostraría la app), no se compra nada.
+          const justo = +necesita.toFixed(2);
+          const lineas = listaDeMercado(semanaX, [
+            item({ ingredienteId: 'arroz', cantidad: justo }),
+          ]);
+          return lineas.length === 0;
+        }
+      )
+    );
+  });
+
+  it('un faltante de 0,3 g se compra: el arreglo no se come lo que de verdad falta', () => {
+    const semanaX = [
+      { receta: receta({ ingredientes: [ingrediente('sal', 1.3)] }), porciones: 1 },
+    ];
+    const lineas = listaDeMercado(semanaX, [item({ ingredienteId: 'sal', cantidad: 1 })]);
+    expect(lineas[0]?.cantidadAComprar).toBe(0.5);
+  });
+
+  it('un faltante de una cienmilésima de gramo también se compra', () => {
+    // Fija la tolerancia de verdad: la propiedad de abajo solo genera faltantes
+    // múltiplos de 0,001, así que con un corte a 3, 4 o 5 decimales pasaba igual.
+    // Este caso cae con cualquier corte por debajo de 5 decimales.
+    const semanaX = [
+      { receta: receta({ ingredientes: [ingrediente('sal', 1.00001)] }), porciones: 1 },
+    ];
+    const lineas = listaDeMercado(semanaX, [item({ ingredienteId: 'sal', cantidad: 1 })]);
+    expect(lineas[0]?.cantidadAComprar).toBe(0.5);
+  });
+
+  it('1,003 g necesarios se compran como 1,5, no como 1', () => {
+    // El contraejemplo de la segunda vuelta del revisor: 0,17 g × 5,9 porciones.
+    // Con el corte a dos decimales compraba 1 y faltaban 0,003 g.
+    const semanaX = [
+      {
+        receta: receta({ ingredientes: [ingrediente('sal', 0.17)] }),
+        porciones: 2.6 + 1.7 + 1.6,
+      },
+    ];
+    expect(listaDeMercado(semanaX, [])[0]?.cantidadAComprar).toBe(1.5);
+  });
+
+  it('PROPIEDAD · con cantidades decimales, nunca compra menos de lo que falta (tolerancia 1e-6)', () => {
+    // El otro lado del arreglo: quitar el ruido no puede comerse faltantes reales.
+    // Con `toFixed(2)` esta propiedad caía (1,003 g necesarios, compraba 1).
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 50_000 }).map((n) => n / 100),
+        fc.array(fc.constantFrom(0.7, 1, 1.4, 1.8, 2.6, 1.7, 1.6), {
+          minLength: 1,
+          maxLength: 4,
+        }),
+        fc.integer({ min: 0, max: 50_000 }).map((n) => n / 100),
+        (porPorcion, comensales, tiene) => {
+          const porciones = comensales.reduce((t, f) => t + f, 0);
+          const semanaX = [
+            {
+              receta: receta({ ingredientes: [ingrediente('arroz', porPorcion)] }),
+              porciones,
+            },
+          ];
+          const necesita = porPorcion * porciones;
+          const linea = listaDeMercado(semanaX, [
+            item({ ingredienteId: 'arroz', cantidad: tiene }),
+          ])[0];
+          const compra = linea?.cantidadAComprar ?? 0;
+          return tiene + compra >= necesita - 1e-6;
+        }
+      )
+    );
+  });
+});
+
+describe('BUG-11 · ARREGLADO · una confianza que no es un número no cuenta como confiable', () => {
+  // Dónde: groceries.ts, el filtro del inventario confiable.
+  // Qué pasa: el arreglo de BUG-4 cambió `.filter(i => i.confianza >= UMBRAL)` por
+  // `if (i.confianza < UMBRAL) continue`. No es lo mismo: `NaN < 0,6` es falso, así
+  // que una fila con confianza `NaN` ya no se descarta y resta de la lista.
+  // Por qué importa: falla hacia el lado caro, comprar de menos, que es lo que la
+  // decisión #50 prohíbe. Un dato roto tiene que contar como «no sé», no como «sí».
+  // Lo encontró la revisión retroactiva del PR #5, el 2026-09-23.
+  // Arreglo: el filtro se escribe en positivo, `!(confianza >= UMBRAL)`.
+  it('una confianza exactamente en el umbral sí cuenta', () => {
+    // La frontera de `>=`: sin este caso, cambiarlo por `>` no lo vería nadie.
+    const semana = [
+      { receta: receta({ ingredientes: [ingrediente('arroz', 500)] }), porciones: 1 },
+    ];
+    const lineas = listaDeMercado(semana, [
+      item({ ingredienteId: 'arroz', cantidad: 500, confianza: 0.6 }),
+    ]);
+    expect(lineas).toEqual([]);
+  });
+
+  it('una fila con confianza NaN no resta de la lista', () => {
+    const semana = [
+      { receta: receta({ ingredientes: [ingrediente('arroz', 500)] }), porciones: 1 },
+    ];
+    const lineas = listaDeMercado(semana, [
+      item({ ingredienteId: 'arroz', cantidad: 500, confianza: Number.NaN }),
+    ]);
+    expect(lineas[0]?.cantidadAComprar).toBe(500);
+  });
+});
+
+describe('BUG-12 · lo mismo visto dos veces en una foto se pisa', () => {
+  // Dónde: inventory.ts, `fusionarEscaneo`, el bucle sobre `detectado`.
+  // Qué pasa: si la misma foto trae el huevo dos veces (6 en una balda, 4 en la
+  // puerta), la segunda detección pisa a la primera: quedan 4. Y el resultado
+  // depende del orden: seguro y luego posible deja el huevo por debajo del umbral;
+  // al revés, por encima.
+  // Por qué importa: el inventario no puede depender de en qué orden devuelva el
+  // modelo lo que vio.
+  // Lo encontró la revisión retroactiva del PR #4, el 2026-09-23.
+  //
+  // CONDICIÓN PARA ARREGLARLO (decisión #49): hay que decidir si las detecciones
+  // repetidas se suman o se deduplican en la frontera (con zod, en la Fase 1), y
+  // conviene decidirlo junto con BUG-8. Por eso el test afirma solo lo que
+  // cualquier arreglo correcto cumple: **el orden no cambia el resultado**.
+  const huevos = (a: ItemDetectado, b: ItemDetectado) =>
+    fusionarEscaneo([], [a, b], AHORA).map((i) => [i.cantidad, i.confianza]);
+
+  it.failing('seis y cuatro huevos dan lo mismo en cualquier orden', () => {
+    const seis = detectado({ cantidad: 6 });
+    const cuatro = detectado({ cantidad: 4 });
+    expect(huevos(seis, cuatro)).toEqual(huevos(cuatro, seis));
+  });
+
+  it.failing('seguro y posible dan la misma confianza en cualquier orden', () => {
+    const seguro = detectado({ cantidad: 6 });
+    const posible = detectado({ cantidad: undefined, certeza: 'posible' });
+    expect(huevos(seguro, posible)).toEqual(huevos(posible, seguro));
   });
 });

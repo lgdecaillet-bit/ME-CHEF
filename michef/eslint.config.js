@@ -41,8 +41,14 @@ const MOTOR_NO_IA = {
 
 const MOTOR_NO_ENTORNO = {
   group: [
+    // Sin 'react-native/*': los patrones siguen la sintaxis de .gitignore y
+    // 'react-native' ya cubre las subrutas (comprobado: quitarlo no cambiaba nada,
+    // y una alternativa que no puede fallar sola no puede tener control, #47).
     'react-native',
-    'react-native/*',
+    // Los módulos nativos de la comunidad (Reanimated, Gesture Handler…). Sin
+    // estas dos líneas pasaban dentro del motor (revisión retroactiva, 2026-09-23).
+    'react-native-*',
+    '@react-native*/*',
     'react',
     'expo',
     'expo-*',
