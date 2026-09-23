@@ -5,15 +5,15 @@
 > Historial completo en [`bitacora.md`](bitacora.md). Por qué se decidió cada cosa en
 > [`decisiones.md`](decisiones.md). Qué hay que construir en [`fases/`](fases/).
 
-Actualizado: 2026-09-22 · por sesión S-20260916-a
+Actualizado: 2026-09-23 · por sesión S-20260923-a
 
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D7 y la #62 en `main`** (PRs #21 y #23). **La #63 también** (PR #26, `a1ecff4`, 2026-09-22). Después, **D8, el README**, que cierra la Fase 0: se presenta y espera «adelante» |
+| **Paso actual** | **D8, el README: construido** (2026-09-23), gates en verde y revisor. Falta el PR y el merge, que cierra la Fase 0 |
 | **Decisiones vigentes** | hasta **#63** (y la #64 propuesta, pendiente de «adelante») |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | ninguna de código. `docs/F0-cierre-sesion-22` para el cierre de esta sesión |
+| **Rama de trabajo** | `claude/next-steps-963d09` para D8 (la asignó el entorno de la sesión en la nube; no sigue `tipo/ID-descripcion`) |
 | **Licencia de Apple** | no, y **no se saca hasta que el producto funcione en Expo Go** (decisión #62, la fija Luciano; anula la #28). El alta se inicia en la **semana 12**, una antes de TestFlight interno (paso 5.9) |
 
 ---
@@ -39,7 +39,13 @@ aprueba el siguiente.
 Cada sesión anota su ID aquí **antes de hacer nada** (letra siguiente a la última).
 Se vacía al cambiar de día.
 
-**2026-09-16**
+**2026-09-23**
+
+| Sesión | Ventana / propósito | Estado |
+|---|---|---|
+| S-20260923-a | sesión en la nube: `/init`, siguientes pasos y D8 · README | abierta |
+
+**2026-09-16** (días anteriores, se conservan por trazabilidad)
 
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
@@ -83,9 +89,10 @@ Se vacía al cambiar de día.
 | Parches de Expo del SDK 57 | `chore/deps-expo-57-parches` | S-20260910-a | 2026-09-11 | **mergeada** (PR #19, `61b80f7`) |
 | D6.5b · componentes base | `feat/F0-D6.5b-componentes` | S-20260910-a | 2026-09-10 | **mergeada** (PR #18, `966de64`) |
 | D7 · smoke de iOS | `chore/F0-D7-smoke-ios` | S-20260914-a | 2026-09-15 | **mergeada** (PR #21, `6216995`) |
-| Decisión #62 · la licencia espera a Expo Go | `docs/F0-licencia-expo-go` | S-20260916-a | 2026-09-16 | **abierta** · revisor APROBADO, PR por abrir |
+| Decisión #62 · la licencia espera a Expo Go | `docs/F0-licencia-expo-go` | S-20260916-a | 2026-09-16 | **mergeada** (PR #23, `b3716f7`, 2026-09-22) |
 | Parche 57.0.24 de Expo | `chore/deps-expo-57-0-23` | S-20260916-a | 2026-09-17 | **mergeada** (PR #24, `d1b8a32`, 2026-09-21) |
 | Decisión #63 · `expo-doctor` perdona el tercer número | `chore/F0-doctor-parches` | S-20260916-a | 2026-09-21 | **mergeada** (PR #26, `a1ecff4`, 2026-09-22) |
+| D8 · README | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **construida** · PR por abrir |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -109,7 +116,7 @@ desde el primer PR de código.
 | D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | ✅ mergeado (PR #17, `e66df6d`), visto en el iPhone |
 | D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | ✅ mergeado (PR #18, `966de64`), visto en el iPhone |
 | D7 | Smoke de iOS con Maestro, en GitHub Actions (#61) | Claude + Luciano | ✅ mergeado (PR #21, `6216995`), probado en verde y en rojo |
-| D8 | README | Claude | ⏳ **siguiente**. Cierra la Fase 0 |
+| D8 | README | Claude | 🔨 construido el 2026-09-23, espera PR y merge. Cierra la Fase 0 |
 
 ### D0 · avances de Luciano
 
@@ -443,7 +450,13 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    perdona el tercer número y solo eso. Probada en verde (los parches de hoy, con aviso) y
    en rojo (PR #25, `expo-haptics` de otro SDK). CI del #26 verde en los cuatro checks el
    2026-09-22 y **mergeado** (PR #26, `a1ecff4`). D8 ya presentado, espera «adelante».
-20. Después, **D8**: el README. Cierra la Fase 0. Se presenta y espera «adelante».
+20. **D8 construido** (2026-09-23, S-20260923-a, con el «adelante» de Luciano):
+   `README.md` reescrito — qué documento manda, Expo Go hasta la Fase 5 con las cinco
+   piezas aplazadas, puesta en marcha real en Windows desde `michef/` (con la salida de
+   `better-sqlite3` y el `npm run prepare`), cómo se verifica y el mapa del repo. Sin
+   comandos nuevos para `COMANDOS.md`. Falta el PR y el merge de Luciano.
+21. Con D8 en `main`, **repasar el criterio de salida de la Fase 0**
+   (`fase-0-fundaciones.md`) punto por punto y marcarlo, antes de abrir la Fase 1.
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
 

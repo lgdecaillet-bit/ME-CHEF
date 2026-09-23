@@ -2483,3 +2483,45 @@ tocar nada. La Fase 0 está a un paso (D8) de cerrarse.
 
 ---
 
+## 2026-09-23 · S-20260923-a · D8: el README, que cierra la Fase 0
+
+Tarea: D8 · Rama: `claude/next-steps-963d09` · Resultado: **`README.md` reescrito**,
+gates en verde. Falta el PR y el merge.
+
+Tocado: `README.md`, `docs/estado.md` (tablero, D8, la fila de la #62 que seguía como
+«abierta» aunque se mergeó en el PR #23), este archivo.
+
+Corrido: `npm ci --ignore-scripts` en Linux (sesión en la nube, no la máquina de
+Luciano). `npm run gates` — typecheck, lint, arquitectura y reglas limpios, **655 tests
+en 36 suites**, cobertura 100 %. Cada afirmación del README se contrastó con el
+archivo que la sostiene (`package.json`, `.node-version`, `.husky/`, los workflows,
+`.env.example`, `app.config.ts`, `src/config/`); de ahí salió una corrección antes del
+commit: `flags.ts` no usa zod, solo `env.ts`.
+
+Decisiones nuevas: ninguna.
+
+Avances de Luciano: pidió `/init` y los siguientes pasos; eligió hacer solo D8 por ahora
+y dio el «adelante». Las mejoras a `CLAUDE.md` que salieron del `/init` quedan sin
+aplicar, a la espera de su «adelante».
+
+---
+
+**Qué cambió en el README.** El anterior era la guía del starter: crear el proyecto
+con `create-expo-app`, copiar archivos encima, `npm install` de paquetes que no son los
+que hay, y un primer build a TestFlight que la #62 aplazó. El nuevo describe el repo que
+existe: qué documento manda, Expo Go hasta la Fase 5 con las cinco piezas aplazadas y la
+barrera de la #62, la instalación real en Windows (`npm ci --ignore-scripts` y después
+`npm run prepare`, con la comprobación de `core.hooksPath`), las capas de verificación y
+los cuatro checks del CI, y el mapa de `src/` al día (`app/`, `ui/`, `config/`, `lib/`,
+`i18n/`). No añade comandos nuevos, así que `COMANDOS.md` no cambia.
+
+**La rama no sigue la convención.** El entorno de la sesión en la nube asignó
+`claude/next-steps-963d09` y no deja empujar a otra sin permiso explícito. El contenido
+es el de `docs/F0-D8-readme`.
+
+Pendiente: **Luciano:** abrir o pedir el PR y mergearlo con los checks en verde; el
+«adelante» a las mejoras de `CLAUDE.md` si las quiere; la #64; rotar la contraseña de
+TESO. La rutina de parches, la semana del 2026-10-05.
+
+Para la siguiente sesión: con D8 en `main`, repasar el criterio de salida de la Fase 0
+punto por punto y marcarlo en `fase-0-fundaciones.md`. Solo entonces se abre la Fase 1.
