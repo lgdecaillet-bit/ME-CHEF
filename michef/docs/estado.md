@@ -10,10 +10,10 @@ Actualizado: 2026-09-23 · por sesión S-20260923-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D8, el README: construido** (2026-09-23), gates en verde, revisor CAMBIOS en la primera vuelta (corregidos) y **APROBADO** en la segunda. Falta el PR y el merge, que cierra la Fase 0 |
-| **Decisiones vigentes** | hasta **#63** (y la #64 propuesta, pendiente de «adelante») |
+| **Paso actual** | D8 en `main` (PR #28). **Repaso del criterio de salida hecho: 11 de 13.** El 8 espera a registrar BUG-10, 11 y 12; el 13 (APROBADO en cada PR) no se cumplía; la revisión retroactiva encontró tres bugs del motor y dos protecciones que no existían. **La Fase 0 sigue abierta** hasta los cinco PRs de arreglo (bitácora del 2026-09-23) |
+| **Decisiones vigentes** | hasta **#65** (la #64 sigue propuesta, pendiente de «adelante») |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
-| **Rama de trabajo** | `claude/next-steps-963d09` para D8 (la asignó el entorno de la sesión en la nube; no sigue `tipo/ID-descripcion`) |
+| **Rama de trabajo** | `claude/next-steps-963d09` (la asigna el entorno de la sesión en la nube; Luciano la dio por buena) |
 | **Licencia de Apple** | no, y **no se saca hasta que el producto funcione en Expo Go** (decisión #62, la fija Luciano; anula la #28). El alta se inicia en la **semana 12**, una antes de TestFlight interno (paso 5.9) |
 
 ---
@@ -43,7 +43,7 @@ Se vacía al cambiar de día.
 
 | Sesión | Ventana / propósito | Estado |
 |---|---|---|
-| S-20260923-a | sesión en la nube: `/init`, siguientes pasos y D8 · README | abierta |
+| S-20260923-a | sesión en la nube: `/init`, D8 · README, repaso del criterio de salida y revisión retroactiva | abierta |
 
 **2026-09-16** (días anteriores, se conservan por trazabilidad)
 
@@ -92,7 +92,8 @@ Se vacía al cambiar de día.
 | Decisión #62 · la licencia espera a Expo Go | `docs/F0-licencia-expo-go` | S-20260916-a | 2026-09-16 | **mergeada** (PR #23, `b3716f7`, 2026-09-22) |
 | Parche 57.0.24 de Expo | `chore/deps-expo-57-0-23` | S-20260916-a | 2026-09-17 | **mergeada** (PR #24, `d1b8a32`, 2026-09-21) |
 | Decisión #63 · `expo-doctor` perdona el tercer número | `chore/F0-doctor-parches` | S-20260916-a | 2026-09-21 | **mergeada** (PR #26, `a1ecff4`, 2026-09-22) |
-| D8 · README | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **construida** · revisor APROBADO (el README de la raíz, sin revisor por excepción de Luciano), PR abierto |
+| D8 · README | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **mergeada** (PR #28, `4afc294`) |
+| Repaso del criterio de salida de la Fase 0 y revisión retroactiva | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **construida** · revisor APROBADO (vuelta 2) · PR #29 |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -116,7 +117,8 @@ desde el primer PR de código.
 | D6.5a | Base del sistema de diseño: tokens, tema, `Texto`, `es.ts`, galería, reglas de interfaz (decisión #58) | Claude + Luciano | ✅ mergeado (PR #17, `e66df6d`), visto en el iPhone |
 | D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | ✅ mergeado (PR #18, `966de64`), visto en el iPhone |
 | D7 | Smoke de iOS con Maestro, en GitHub Actions (#61) | Claude + Luciano | ✅ mergeado (PR #21, `6216995`), probado en verde y en rojo |
-| D8 | README | Claude | 🔨 construido el 2026-09-23, espera PR y merge. Cierra la Fase 0 |
+| D8 | README | Claude | ✅ mergeado (PR #28, `4afc294`) |
+| — | Repaso del criterio de salida y revisión retroactiva (#65) | Claude | 11 de 13. **Faltan los cinco PRs de arreglo** (bitácora del 2026-09-23) |
 
 ### D0 · avances de Luciano
 
@@ -284,6 +286,13 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
   `npm run supabase:stop`. No hace falta para nada que no sea `supabase:test`.
 - **`deno` no está instalado** y no hace falta: `scripts/probar-supabase.js` lo corre en
   un contenedor si no lo encuentra. En D5, el CI sí usará `denoland/setup-deno`.
+- **⚠️ Antes de la primera tarea del proxy (Fase 2), dos cosas más que encontró la
+  revisión retroactiva del #8** (2026-09-23, APROBADO igual porque hoy el proxy no hace
+  nada): el verificador acepta **cualquier** JWT HS256 bien firmado sin mirar `role`, `aud`
+  ni `sub` — la llave anónima que va en el bundle pasa —, y `handler.ts:78` dice en un
+  comentario que «quien llama está identificado»; y un token **sin `exp` vale para
+  siempre**, con un test (`ai-proxy.test.ts:271`) que lo fija. Hay que exigir
+  `role`/`aud`/`sub` y `exp`, y decidir qué pasa con `is_anonymous` y el límite por `sub`.
 - **⚠️ Antes de escribir la primera tarea del proxy (Fase 2), comprobar cómo firma
   Supabase los JWT del proyecto.** `jwt.ts` verifica HS256 con un secreto compartido.
   Supabase emite JWT con **claves asimétricas** (ECC/RSA) en los proyectos nuevos, y si
@@ -455,8 +464,21 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    piezas aplazadas, puesta en marcha real en Windows desde `michef/` (con la salida de
    `better-sqlite3` y el `npm run prepare`), cómo se verifica y el mapa del repo. Sin
    comandos nuevos para `COMANDOS.md`. Falta el PR y el merge de Luciano.
-21. Con D8 en `main`, **repasar el criterio de salida de la Fase 0**
-   (`fase-0-fundaciones.md`) punto por punto y marcarlo, antes de abrir la Fase 1.
+21. **D8 mergeado** (PR #28, `4afc294`, 2026-09-23).
+22. **Repaso del criterio de salida hecho** (2026-09-23): 11 de 13 (el 8, con el PR 1). El punto 13 no se
+   cumplía (7 de 24 PRs mergeados con APROBADO escrito); Luciano eligió la revisión retroactiva
+   (opción A) y la **#65**: la línea `Revisor:` obligatoria en cada entrada de la bitácora.
+   La revisión encontró **BUG-10** (la coma flotante pide comprar de más), **BUG-11** (una
+   confianza `NaN` cuenta como confiable), **BUG-12** (detecciones repetidas en la foto se
+   pisan), que **el motor puede importar módulos nativos sin que salte nada**, que ningún
+   gate corre `npm audit`, y documentos que dan por comprobado lo que la #62 no comprobó.
+   Todo en la bitácora del 2026-09-23, con el registro de revisión PR por PR.
+23. **Siguiente: los cinco PRs de arreglo**, en este orden y cada uno con su «adelante»:
+   (1) `fix/F0-motor-bug10-11-12` · (2) `fix/F0-reglas-motor` · (3)
+   `chore/F0-gates-auditoria` (toca `gates`, decide Luciano) · (4)
+   `chore/deps-expo-updates-exacto` · (5) `docs/F0-62-afirmaciones`. Después, segunda
+   vuelta del revisor sobre los PRs retroactivos con CAMBIOS, punto 13 marcado, y **la
+   Fase 0 se cierra**.
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
 

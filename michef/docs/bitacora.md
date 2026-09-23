@@ -1,14 +1,16 @@
 # Bitácora · ME CHEF
 
-> **El historial.** Una entrada por sesión de trabajo, en orden cronológico, siempre con
+> **El historial.** Una entrada por PR (#65), en orden cronológico, siempre con
 > los mismos campos. Solo se añade al final; lo anterior no se edita. Una sesión nueva lee
 > las últimas 3 entradas y sabe qué se hizo, qué salió y qué toca.
 >
-> Formato de cada entrada:
+> Formato de cada entrada (desde la #65, una por PR; una sesión que no cierra ningún PR
+> escribe la suya con `Revisor: — (sin PR)`):
 >
 > ```
 > ## AAAA-MM-DD · S-AAAAMMDD-x · título corto
-> Tarea: ID o «—» · Rama: nombre o «—» · Resultado: una frase
+> Tarea: ID o «—» · Rama: nombre o «—» · PR: #N · Resultado: una frase
+> Revisor: APROBADO en la vuelta N (antes, CAMBIOS en 1…N-1) · o · no pasó — motivo — excepción de Luciano · o · — (sin PR)
 > Tocado: archivos
 > Corrido: comandos y qué salió, tal cual
 > Decisiones nuevas: #N título · #N título (o «ninguna»)
@@ -16,6 +18,10 @@
 > Pendiente: lo que quedó abierto
 > Para la siguiente sesión: qué hacer primero
 > ```
+>
+> La línea `Revisor:` es obligatoria desde la decisión #65 (2026-09-23). Las entradas
+> anteriores no la tienen: el veredicto de cada PR de la Fase 0 está en el registro de la
+> entrada del 2026-09-23.
 
 ---
 
@@ -2541,3 +2547,160 @@ TESO. La rutina de parches, la semana del 2026-10-05.
 
 Para la siguiente sesión: con D8 en `main`, repasar el criterio de salida de la Fase 0
 punto por punto y marcarlo en `fase-0-fundaciones.md`. Solo entonces se abre la Fase 1.
+
+---
+
+## 2026-09-23 · S-20260923-a · Repaso del criterio de salida de la Fase 0 y revisión retroactiva
+
+Tarea: cierre de la Fase 0 · Rama: `claude/next-steps-963d09` (desde `main` tras el #28) ·
+PR: #29 · Resultado: **la Fase 0 no se cierra todavía.** Once de los trece puntos del
+criterio se cumplen con evidencia; el 8 se cumple cuando BUG-10, 11 y 12 estén registrados; el decimotercero (cada PR con APROBADO y entrada en la bitácora)
+no se cumplía, se hizo la revisión retroactiva que eligió Luciano (opción A), y esa
+revisión encontró cosas reales que hay que arreglar antes de cerrar.
+Revisor: APROBADO en la vuelta 2 (antes, CAMBIOS en la 1: cifras del punto 13, dos filas del
+registro, citas de línea, el punto 8 marcado sin cumplirse y dos huecos de la #65).
+
+Tocado: `docs/fases/fase-0-fundaciones.md` (criterio de salida marcado punto por punto),
+`docs/estado.md`, `docs/decisiones.md` (#65), `docs/protocolos-calidad.md` (§ 4, punto 9),
+`CLAUDE.md` (protocolo de cierre, paso 3), este archivo (formato con la línea `Revisor:`).
+
+Corrido: `npm run gates` sobre `main` (`4afc294`): 655 tests, 36 suites, verde. CI de
+`main` sobre `4afc294` en GitHub: `ci` (gates + supabase) y `gitleaks` en verde; el último
+`smoke-ios` de `main` (`a1ecff4`, 2026-09-22) en verde. Cuatro revisiones retroactivas en
+paralelo (tooling y CI, motor, Supabase, dependencias y #62), cada una con el método de
+`.claude/agents/revisor.md`, sobre el código **tal como está hoy en `main`**. Los hallazgos
+graves se comprobaron otra vez a mano antes de escribirlos aquí (el de la coma flotante y
+el del patrón de dependency-cruiser, ejecutándolos).
+
+Decisiones nuevas: **#65** · el veredicto del revisor se escribe en la bitácora, siempre.
+
+Avances de Luciano: dio «adelante» al repaso; ante el punto 13 eligió la **opción A**
+(revisión retroactiva) y pidió «doble asegurar lo de la bitácora, que es de lo más
+importante para darle continuidad real al trabajo sin errores». Dio por buenas las
+propuestas de los puntos 5 y 7.
+
+---
+
+### El criterio de salida, punto por punto
+
+| # | Punto | Estado | Evidencia |
+|---|---|---|---|
+| 1 | `gates` verde; `pre-push` lo corre | ✅ | hoy sobre `main`; `.husky/pre-push` |
+| 2 | PR roto bloqueado; `main` sin push directo | ✅ | `protocolos-calidad.md` § 8, PRs #10 y #13 |
+| 3 | `supabase:test` verde | ✅ | job `supabase` del CI en `main`; no se corrió en local (sin Docker en la sesión) |
+| 4 | proxy 401 / 200 | ✅ | `deno test` en el CI |
+| 5 | smoke al tocar `app.config.ts` | ✅ | corregido a GitHub Actions (#61); verde y rojo probados (#21, #22) |
+| 6 | la app en Expo Go en el iPhone | ✅ | D6, D6.5a, D6.5b |
+| 7 | un error provocado llega a Sentry | ✅ | D6 (2026-09-10), un error de JavaScript; Luciano lo aceptó hoy. El crash nativo, en «Avisos» del tablero |
+| 8 | bugs como `failing`; motor ≥ 95 % | ⏳ | cobertura sí (umbral 100/95, exigido por `gates`); BUG-10, 11 y 12 aún sin registrar: se marca con el PR 1 |
+| 9 | sistema de diseño | ✅ | D6.5a y D6.5b |
+| 10 | starter borrado; `CLAUDE.md`, `decisiones.md`, README | ✅ | README en el #28 |
+| 11 | protocolos, roadmap y fases en el repo | ✅ | |
+| 12 | memoria del proyecto | ✅ | ya estaba |
+| 13 | cada PR con APROBADO y bitácora | ❌ | abajo |
+
+### El registro de revisión de la Fase 0
+
+**Esta tabla es la fuente única** del veredicto de cada PR de la fase: **24 mergeados, 7 con
+APROBADO escrito** (#1, #16, #17, #18, #21, #26, #28). Se buscó en la
+bitácora, en `estado.md`, en los commits y en la descripción de cada PR en GitHub. Las
+pruebas del rojo cerradas sin mergear (#10, #13, #22, #25) no cuentan.
+
+| PR | Qué | Entrada en bitácora | Veredicto |
+|---|---|---|---|
+| #1 | D1 bootstrap | 2026-09-09 | APROBADO (bitácora y commit) |
+| #2 | D2 tooling | 2026-09-09 (dos) | original: solo CAMBIOS · **retroactivo: CAMBIOS** |
+| #3 | mensaje del pre-commit | **ninguna propia**: esta fila la suple | original: no consta · **retroactivo: CAMBIOS** (menor) |
+| #4 | D3 tests del motor | 2026-09-09 (dos) | original: solo CAMBIOS · **retroactivo: CAMBIOS** |
+| #5 | BUG-1, 4, 5 y 7 | 2026-09-09 (dos) | original: solo CAMBIOS · **retroactivo: CAMBIOS** |
+| #6 | causa del aviso de gitleaks | **ninguna propia**: esta fila la suple | exento declarado en el PR («solo documentos») |
+| #7 | BUG-9 | 2026-09-09 | original: no consta · **retroactivo: CAMBIOS** |
+| #8 | D4 Supabase | 2026-09-09 (dos) | original: solo CAMBIOS · **retroactivo: APROBADO** |
+| #9 | D5 CI | 2026-09-10 | original: no consta · **retroactivo: CAMBIOS** |
+| #11 | evidencia del gate rojo | **ninguna propia**: esta fila la suple | solo documentos, no consta |
+| #12 | tablero tras D4 y D5 | **ninguna propia**: esta fila la suple | solo documentos, no consta |
+| #14 | cierre de D5 | 2026-09-10 | solo documentos, no consta |
+| #15 | regla #55 | 2026-09-10 | solo documentos, no consta |
+| #16 | D6 app base | 2026-09-10 | APROBADO en la cuarta vuelta (descripción del PR y commit) |
+| #17 | D6.5a | 2026-09-10 | APROBADO en la tercera (PR, commit y `estado.md`) |
+| #18 | D6.5b | 2026-09-10, 11 y 14 | APROBADO (bitácora) |
+| #19 | parches de Expo | 2026-09-11 | original: no consta · **retroactivo: APROBADO** |
+| #20 | cierre de D6.5b | 2026-09-14 | solo documentos, no consta |
+| #21 | D7 smoke | 2026-09-15 | APROBADO (bitácora) |
+| #23 | #62, licencia | 2026-09-16 | original: solo CAMBIOS (cuatro) · **retroactivo: CAMBIOS** |
+| #24 | parche 57.0.24 | 2026-09-17 | original: no consta · **retroactivo: CAMBIOS** |
+| #26 | #63 doctor | 2026-09-21 y 22 | APROBADO (bitácora) |
+| #27 | cierre del 22 | 2026-09-22 | solo documentos, no consta |
+| #28 | D8 README | 2026-09-23 | APROBADO; el README de la raíz, sin revisor por excepción de Luciano |
+
+Los PRs de solo documentos sin veredicto (#11, #12, #14, #15, #20, #27) **no se revisan
+retroactivamente**: su contenido lo cubre la revisión de hoy de los documentos que
+sostienen (la del #23 leyó `CLAUDE.md`, el roadmap y las fases enteras). Desde la #65 dejan
+de ser una zona gris: llevan revisor como cualquier otro.
+
+### Lo que encontró la revisión retroactiva
+
+**Bloqueante, porque es un bug o una protección que no existe:**
+
+- **BUG-10 · la coma flotante pide comprar de más** (#7, `groceries.ts:62`). Un hogar de
+  1,4 + 1,8 + 1 + 0,7 da 4,9 porciones; 100 g × 4,9 = 490,00000000000006; con 490 g en casa
+  la lista dice «compra 0,5 g», y con la casa vacía pide 500 en vez de 490. Comprobado a
+  mano. Lo introdujo el `Math.ceil` de BUG-9: el `Math.round` anterior lo tapaba. Tiene una
+  sola respuesta correcta (#49): se arregla en cuanto se registra.
+- **BUG-11 · una confianza `NaN` cuenta como confiable** (#5, `groceries.ts:49`). El filtro
+  pasó de `>= UMBRAL` a `< UMBRAL → continue`, y `NaN < 0,6` es falso: la fila entra y resta
+  de la lista. Antes del #5 se descartaba. Una sola respuesta correcta.
+- **BUG-12 · detecciones repetidas en una misma foto se pisan** (#4, `inventory.ts:27-35`):
+  6 huevos + 4 huevos da 4, y el resultado depende del orden. Necesita decisión (sumar o
+  deduplicar en la frontera), junto con BUG-8: se registra como `it.failing`.
+- **El motor puede importar módulos nativos y los gates siguen en verde** (#2).
+  `.dependency-cruiser.cjs:34` exige `/` tras el nombre y no casa con `expo-*` ni
+  `react-native-*` (comprobado: `expo-haptics` y `react-native-reanimated` dan `false`);
+  ESLint caza los `expo-*` pero no `react-native-reanimated` ni `-gesture-handler`.
+- **El control positivo no ve morir dos reglas de ESLint** (#2, `probar-reglas.js:76-81`),
+  y **`no-circular` no tiene fixture** (#47).
+- **`npm audit --audit-level=high` no lo corre ningún gate**, aunque la #46 dice que sí (#2).
+  Hoy no hay altas ni críticas. Toca `gates`: lo decide Luciano (#55).
+- **El paso «secretos en el bundle» del CI no ve las `EXPO_PUBLIC_*` reales** (#9): el job
+  no tiene `.env`, así que escanea un bundle sin ellas.
+- **`expo-updates` perdió el fijado exacto** (#24): `~57.0.23` sin excepción registrada.
+- **Tres afirmaciones de Expo Go dadas por comprobadas y una promesa de Apple en la Fase 1**
+  (#23; líneas de `4afc294`): notificaciones locales (`fase-0:469`, cabecera de la #27), correo de Supabase
+  (`roadmap:95`, `fase-1:143`), timers y entitlement (`fase-4:3-5`, `:44`), y
+  `fase-0:76` («Sign in with Apple … Fase 1»).
+
+**Menor (continuidad y documentos):** la cabecera de `bugs.test.ts` y `fase-1:64` siguen
+contando cuatro arreglados; un comentario de `bugs.test.ts:254` dice «sexto parámetro» y es
+el cuarto; `protocolos-calidad.md` nombra scripts que no existen (`branch-rules.sh`,
+`secrets-bundle.sh`, `test:coverage`, `db:generate`…); el comentario de `ci.yml:15-16` dice
+que las acciones de terceros van con versión exacta y van por etiqueta mayor; el #3 no
+tiene test del arreglo.
+
+**Para antes de la primera tarea del proxy (Fase 2), del #8, que salió APROBADO:** el
+verificador acepta cualquier JWT HS256 bien firmado sin mirar `role`, `aud` ni `sub` — la
+llave anónima del bundle pasa — y `handler.ts:78` dice lo contrario en un comentario; y un
+token sin `exp` vale para siempre, con un test que lo fija. Hoy no es un agujero porque el
+proxy no hace nada (responde 501). Anotado en «Avisos» del tablero.
+
+### Cómo se arregla
+
+En PRs separados, cada uno con su «adelante» (#34), su revisor y su línea `Revisor:` aquí:
+
+1. **`fix/F0-motor-bug10-11-12`**: test en rojo y arreglo de BUG-10 y BUG-11, BUG-12 como
+   `it.failing`, y los comentarios desfasados de `bugs.test.ts` y `fase-1`.
+2. **`fix/F0-reglas-motor`**: el patrón de dependency-cruiser y ESLint, sus fixtures,
+   el control positivo por mensaje y `no-circular` con fixture.
+3. **`chore/F0-gates-auditoria`**: `npm audit --audit-level=high` y el bundle con las
+   variables de EAS en el CI. Toca `gates` → lo decide Luciano (#55).
+4. **`chore/deps-expo-updates-exacto`**: `expo-updates` exacto.
+5. **`docs/F0-62-afirmaciones`**: las correcciones del #23 y de `protocolos-calidad.md`.
+
+Cuando los cinco estén en `main`, cada PR retroactivo con CAMBIOS pasa a APROBADO con una
+segunda vuelta, se anota aquí y se marca el punto 13. **Solo entonces se cierra la Fase 0.**
+
+Pendiente: los cinco PRs de arriba, cada uno con «adelante»; lo de antes (#64, contraseña de
+TESO, rutina de parches la semana del 2026-10-05).
+
+Para la siguiente sesión: leer esta entrada entera. La Fase 0 **sigue abierta** hasta que el
+punto 13 esté marcado. Empezar por el PR 1 (el motor), que es el que afecta a lo que ve el
+usuario, cuando Luciano dé «adelante».
