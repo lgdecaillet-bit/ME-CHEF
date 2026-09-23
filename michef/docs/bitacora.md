@@ -4,12 +4,13 @@
 > los mismos campos. Solo se añade al final; lo anterior no se edita. Una sesión nueva lee
 > las últimas 3 entradas y sabe qué se hizo, qué salió y qué toca.
 >
-> Formato de cada entrada:
+> Formato de cada entrada (desde la #65, una por PR; una sesión que no cierra ningún PR
+> escribe la suya con `Revisor: — (sin PR)`):
 >
 > ```
 > ## AAAA-MM-DD · S-AAAAMMDD-x · título corto
 > Tarea: ID o «—» · Rama: nombre o «—» · PR: #N · Resultado: una frase
-> Revisor: APROBADO en la vuelta N (antes, CAMBIOS en 1…N-1) · o · no pasó — motivo — excepción de Luciano
+> Revisor: APROBADO en la vuelta N (antes, CAMBIOS en 1…N-1) · o · no pasó — motivo — excepción de Luciano · o · — (sin PR)
 > Tocado: archivos
 > Corrido: comandos y qué salió, tal cual
 > Decisiones nuevas: #N título · #N título (o «ninguna»)
@@ -2552,11 +2553,12 @@ punto por punto y marcarlo en `fase-0-fundaciones.md`. Solo entonces se abre la 
 ## 2026-09-23 · S-20260923-a · Repaso del criterio de salida de la Fase 0 y revisión retroactiva
 
 Tarea: cierre de la Fase 0 · Rama: `claude/next-steps-963d09` (desde `main` tras el #28) ·
-Resultado: **la Fase 0 no se cierra todavía.** Doce de los trece puntos del criterio se
-cumplen con evidencia; el decimotercero (cada PR con APROBADO y entrada en la bitácora)
+PR: por abrir · Resultado: **la Fase 0 no se cierra todavía.** Once de los trece puntos del
+criterio se cumplen con evidencia; el 8 se cumple cuando BUG-10, 11 y 12 estén registrados; el decimotercero (cada PR con APROBADO y entrada en la bitácora)
 no se cumplía, se hizo la revisión retroactiva que eligió Luciano (opción A), y esa
 revisión encontró cosas reales que hay que arreglar antes de cerrar.
-Revisor: esta entrada y su PR, ver al final.
+Revisor: CAMBIOS en la vuelta 1 (cifras del punto 13, dos filas del registro, citas de línea,
+el punto 8 marcado sin cumplirse y dos huecos de la #65), corregidos; vuelta 2 pendiente.
 
 Tocado: `docs/fases/fase-0-fundaciones.md` (criterio de salida marcado punto por punto),
 `docs/estado.md`, `docs/decisiones.md` (#65), `docs/protocolos-calidad.md` (§ 4, punto 9),
@@ -2589,8 +2591,8 @@ propuestas de los puntos 5 y 7.
 | 4 | proxy 401 / 200 | ✅ | `deno test` en el CI |
 | 5 | smoke al tocar `app.config.ts` | ✅ | corregido a GitHub Actions (#61); verde y rojo probados (#21, #22) |
 | 6 | la app en Expo Go en el iPhone | ✅ | D6, D6.5a, D6.5b |
-| 7 | un error provocado llega a Sentry | ✅ | D6 (2026-09-10); el crash nativo, en «Avisos» del tablero |
-| 8 | bugs como `failing`; motor ≥ 95 % | ✅ | umbral 100/95 en `jest.config.js`, exigido por `gates` |
+| 7 | un error provocado llega a Sentry | ✅ | D6 (2026-09-10), un error de JavaScript; Luciano lo aceptó hoy. El crash nativo, en «Avisos» del tablero |
+| 8 | bugs como `failing`; motor ≥ 95 % | ⏳ | cobertura sí (umbral 100/95, exigido por `gates`); BUG-10, 11 y 12 aún sin registrar: se marca con el PR 1 |
 | 9 | sistema de diseño | ✅ | D6.5a y D6.5b |
 | 10 | starter borrado; `CLAUDE.md`, `decisiones.md`, README | ✅ | README en el #28 |
 | 11 | protocolos, roadmap y fases en el repo | ✅ | |
@@ -2599,20 +2601,21 @@ propuestas de los puntos 5 y 7.
 
 ### El registro de revisión de la Fase 0
 
-**Esta tabla es la fuente única** del veredicto de cada PR de la fase. Se buscó en la
+**Esta tabla es la fuente única** del veredicto de cada PR de la fase: **24 mergeados, 7 con
+APROBADO escrito** (#1, #16, #17, #18, #21, #26, #28). Se buscó en la
 bitácora, en `estado.md`, en los commits y en la descripción de cada PR en GitHub. Las
 pruebas del rojo cerradas sin mergear (#10, #13, #22, #25) no cuentan.
 
 | PR | Qué | Entrada en bitácora | Veredicto |
 |---|---|---|---|
 | #1 | D1 bootstrap | 2026-09-09 | APROBADO (bitácora y commit) |
-| #2 | D2 tooling | 2026-09-09 (dos) | original: no consta · **retroactivo: CAMBIOS** |
+| #2 | D2 tooling | 2026-09-09 (dos) | original: solo CAMBIOS · **retroactivo: CAMBIOS** |
 | #3 | mensaje del pre-commit | **ninguna propia**: esta fila la suple | original: no consta · **retroactivo: CAMBIOS** (menor) |
 | #4 | D3 tests del motor | 2026-09-09 (dos) | original: solo CAMBIOS · **retroactivo: CAMBIOS** |
 | #5 | BUG-1, 4, 5 y 7 | 2026-09-09 (dos) | original: solo CAMBIOS · **retroactivo: CAMBIOS** |
 | #6 | causa del aviso de gitleaks | **ninguna propia**: esta fila la suple | exento declarado en el PR («solo documentos») |
 | #7 | BUG-9 | 2026-09-09 | original: no consta · **retroactivo: CAMBIOS** |
-| #8 | D4 Supabase | 2026-09-09 (dos) | original: no consta · **retroactivo: APROBADO** |
+| #8 | D4 Supabase | 2026-09-09 (dos) | original: solo CAMBIOS · **retroactivo: APROBADO** |
 | #9 | D5 CI | 2026-09-10 | original: no consta · **retroactivo: CAMBIOS** |
 | #11 | evidencia del gate rojo | **ninguna propia**: esta fila la suple | solo documentos, no consta |
 | #12 | tablero tras D4 y D5 | **ninguna propia**: esta fila la suple | solo documentos, no consta |
@@ -2662,12 +2665,12 @@ de ser una zona gris: llevan revisor como cualquier otro.
   no tiene `.env`, así que escanea un bundle sin ellas.
 - **`expo-updates` perdió el fijado exacto** (#24): `~57.0.23` sin excepción registrada.
 - **Tres afirmaciones de Expo Go dadas por comprobadas y una promesa de Apple en la Fase 1**
-  (#23): notificaciones locales (`fase-0:469`, cabecera de la #27), correo de Supabase
+  (#23; líneas de `4afc294`): notificaciones locales (`fase-0:469`, cabecera de la #27), correo de Supabase
   (`roadmap:95`, `fase-1:143`), timers y entitlement (`fase-4:3-5`, `:44`), y
   `fase-0:76` («Sign in with Apple … Fase 1»).
 
 **Menor (continuidad y documentos):** la cabecera de `bugs.test.ts` y `fase-1:64` siguen
-contando cuatro arreglados; un comentario de `bugs.test.ts:323` dice «sexto parámetro» y es
+contando cuatro arreglados; un comentario de `bugs.test.ts:254` dice «sexto parámetro» y es
 el cuarto; `protocolos-calidad.md` nombra scripts que no existen (`branch-rules.sh`,
 `secrets-bundle.sh`, `test:coverage`, `db:generate`…); el comentario de `ci.yml:15-16` dice
 que las acciones de terceros van con versión exacta y van por etiqueta mayor; el #3 no
@@ -2675,7 +2678,7 @@ tiene test del arreglo.
 
 **Para antes de la primera tarea del proxy (Fase 2), del #8, que salió APROBADO:** el
 verificador acepta cualquier JWT HS256 bien firmado sin mirar `role`, `aud` ni `sub` — la
-llave anónima del bundle pasa — y `handler.ts:85` dice lo contrario en un comentario; y un
+llave anónima del bundle pasa — y `handler.ts:78` dice lo contrario en un comentario; y un
 token sin `exp` vale para siempre, con un test que lo fija. Hoy no es un agujero porque el
 proxy no hace nada (responde 501). Anotado en «Avisos» del tablero.
 

@@ -1304,7 +1304,7 @@ de lo más importante para darle continuidad real al trabajo sin errores»); la 
 la propuso Claude al hacer el repaso de la Fase 0. Si la forma no le sirve, se reemplaza.
 
 **El problema.** El criterio de salida de la Fase 0 pide que cada PR tenga APROBADO del
-revisor y su entrada en la bitácora. Al repasarlo, de 27 PRs mergeados solo 8 tenían un
+revisor y su entrada en la bitácora. Al repasarlo, de 24 PRs mergeados solo 7 tenían un
 APROBADO escrito en algún sitio, repartido entre la bitácora, `estado.md`, los commits y la
 descripción de los PRs en GitHub. Cuatro no tenían entrada propia. Varios dejaban constancia
 de las vueltas con CAMBIOS pero no del APROBADO final, así que una sesión nueva no podía
@@ -1314,10 +1314,13 @@ Luciano) encontró tres bugs del motor y dos protecciones que no existían.
 **Qué cambia.**
 1. **Cada entrada de la bitácora lleva una línea `Revisor:`**, justo después de la de
    `Tarea`: `Revisor: APROBADO en la vuelta N (antes, CAMBIOS en las vueltas 1…N-1)`, o
-   `Revisor: no pasó — <motivo> — excepción de Luciano`. **No hay otro valor válido.** Un
+   `Revisor: no pasó — <motivo> — excepción de Luciano`, o `Revisor: — (sin PR)` en una
+   entrada que no cierra ningún PR (una prueba en el iPhone, un cierre de sesión).
+   **No hay otro valor válido.** Un
    PR que no la tenga no cumple la Definition of Done (`protocolos-calidad.md` § 4, punto 9).
 2. **Un PR, una entrada.** Si una sesión mergea varios PRs, cada uno tiene su entrada o su
-   fila en una tabla de la entrada, con su `Revisor:`.
+   fila en una tabla de la entrada, con su `Revisor:`. La cabecera de la bitácora pasa de
+   «una entrada por sesión» a «una por PR».
 3. **Los PRs de solo documentos no están exentos.** Luciano eligió la opción A y no la C.
    Solo Luciano puede eximir un PR, por escrito y para ese PR (como el README de la raíz en
    el #28).

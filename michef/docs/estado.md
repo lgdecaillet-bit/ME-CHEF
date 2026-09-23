@@ -10,7 +10,7 @@ Actualizado: 2026-09-23 · por sesión S-20260923-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | D8 en `main` (PR #28). **Repaso del criterio de salida hecho: 12 de 13.** El 13 (APROBADO en cada PR) no se cumplía; la revisión retroactiva encontró tres bugs del motor y dos protecciones que no existían. **La Fase 0 sigue abierta** hasta los cinco PRs de arreglo (bitácora del 2026-09-23) |
+| **Paso actual** | D8 en `main` (PR #28). **Repaso del criterio de salida hecho: 11 de 13.** El 8 espera a registrar BUG-10, 11 y 12; el 13 (APROBADO en cada PR) no se cumplía; la revisión retroactiva encontró tres bugs del motor y dos protecciones que no existían. **La Fase 0 sigue abierta** hasta los cinco PRs de arreglo (bitácora del 2026-09-23) |
 | **Decisiones vigentes** | hasta **#65** (la #64 sigue propuesta, pendiente de «adelante») |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | `claude/next-steps-963d09` (la asigna el entorno de la sesión en la nube; Luciano la dio por buena) |
@@ -118,7 +118,7 @@ desde el primer PR de código.
 | D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | ✅ mergeado (PR #18, `966de64`), visto en el iPhone |
 | D7 | Smoke de iOS con Maestro, en GitHub Actions (#61) | Claude + Luciano | ✅ mergeado (PR #21, `6216995`), probado en verde y en rojo |
 | D8 | README | Claude | ✅ mergeado (PR #28, `4afc294`) |
-| — | Repaso del criterio de salida y revisión retroactiva (#65) | Claude | 12 de 13. **Faltan los cinco PRs de arreglo** (bitácora del 2026-09-23) |
+| — | Repaso del criterio de salida y revisión retroactiva (#65) | Claude | 11 de 13. **Faltan los cinco PRs de arreglo** (bitácora del 2026-09-23) |
 
 ### D0 · avances de Luciano
 
@@ -289,7 +289,7 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
 - **⚠️ Antes de la primera tarea del proxy (Fase 2), dos cosas más que encontró la
   revisión retroactiva del #8** (2026-09-23, APROBADO igual porque hoy el proxy no hace
   nada): el verificador acepta **cualquier** JWT HS256 bien firmado sin mirar `role`, `aud`
-  ni `sub` — la llave anónima que va en el bundle pasa —, y `handler.ts:85` dice en un
+  ni `sub` — la llave anónima que va en el bundle pasa —, y `handler.ts:78` dice en un
   comentario que «quien llama está identificado»; y un token **sin `exp` vale para
   siempre**, con un test (`ai-proxy.test.ts:271`) que lo fija. Hay que exigir
   `role`/`aud`/`sub` y `exp`, y decidir qué pasa con `is_anonymous` y el límite por `sub`.
@@ -465,8 +465,8 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    `better-sqlite3` y el `npm run prepare`), cómo se verifica y el mapa del repo. Sin
    comandos nuevos para `COMANDOS.md`. Falta el PR y el merge de Luciano.
 21. **D8 mergeado** (PR #28, `4afc294`, 2026-09-23).
-22. **Repaso del criterio de salida hecho** (2026-09-23): 12 de 13. El punto 13 no se
-   cumplía (8 de 27 PRs con APROBADO escrito); Luciano eligió la revisión retroactiva
+22. **Repaso del criterio de salida hecho** (2026-09-23): 11 de 13 (el 8, con el PR 1). El punto 13 no se
+   cumplía (7 de 24 PRs mergeados con APROBADO escrito); Luciano eligió la revisión retroactiva
    (opción A) y la **#65**: la línea `Revisor:` obligatoria en cada entrada de la bitácora.
    La revisión encontró **BUG-10** (la coma flotante pide comprar de más), **BUG-11** (una
    confianza `NaN` cuenta como confiable), **BUG-12** (detecciones repetidas en la foto se
