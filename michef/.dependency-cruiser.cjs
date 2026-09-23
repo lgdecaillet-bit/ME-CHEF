@@ -35,8 +35,11 @@ module.exports = {
         // Las familias van con `[^/]*` (revisión retroactiva del 2026-09-23): con
         // `expo` a secas seguido de `(/|$)`, `expo-haptics` y
         // `react-native-reanimated` no casaban y el motor podía importarlos con
-        // los gates en verde. Hay un fixture por familia.
-        path: '(^|node_modules/)(@?react-native[^/]*|react|expo[^/]*|@expo|@supabase|@sentry|posthog[^/]*)(/|$)',
+        // los gates en verde. Cada alternativa del patrón tiene su import en
+        // src/engine/__fixtures__/violacion.ts, y scripts/probar-reglas.js comprueba
+        // cada una por separado. `expo` y `expo-[^/]*` por separado, y no `expo[^/]*`, para no atrapar
+        // paquetes que solo empiezan por «expo» (`exponential-backoff`).
+        path: '(^|node_modules/)(@?react-native[^/]*|react|expo|expo-[^/]*|@expo|@supabase|@sentry|posthog[^/]*)(/|$)',
       },
     },
     {
@@ -83,7 +86,14 @@ module.exports = {
     doNotFollow: { path: 'node_modules' },
     // __fixtures__ viola las reglas a propósito: scripts/probar-reglas.js levanta
     // esta exclusión y comprueba que cada regla dispara de verdad.
-    exclude: { path: '(^|/)(coverage|dist|\\.expo|__fixtures__)(/|$)' },
+    //
+    // `coverage`, `dist` y `.expo` se anclan a la RAÍZ del proyecto (`^`). Con
+    // `(^|/)dist/` se excluía también todo paquete que publica en `dist/`
+    // (`node_modules/@sentry/react-native/dist/js/…`, y el SDK de Supabase o el
+    // de un modelo en cuanto se instalen): la arista desaparecía del grafo y ni
+    // engine-no-native ni ai-only-proxy la veían. Lo destapó el fixture de
+    // `@sentry/*` el 2026-09-23.
+    exclude: { path: '^(coverage|dist|\\.expo)(/|$)|(^|/)__fixtures__(/|$)' },
     tsConfig: { fileName: 'tsconfig.json' },
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {

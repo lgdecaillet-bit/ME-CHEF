@@ -47,7 +47,7 @@ function debeAparecer(salida, marca, comoSeLlama) {
 
 console.log('\ndependency-cruiser · con la exclusión de fixtures levantada');
 const dep = correr(
-  'npx depcruise src --config .dependency-cruiser.cjs --exclude "(^|/)(coverage|dist)(/|$)"'
+  'npx depcruise src --config .dependency-cruiser.cjs --exclude "^(coverage|dist)(/|$)"'
 );
 if (dep.trim() === '') {
   console.error(
@@ -100,6 +100,44 @@ debeAparecerJuntos(
   'engine-no-db',
   'src/db/',
   'engine-no-db detecta un import de src/db/'
+);
+// Una comprobación por alternativa del patrón de engine-no-native: cada una puede
+// morir sola (segunda vuelta del revisor, 2026-09-23).
+debeAparecerJuntos(
+  dep,
+  'engine-no-native',
+  '@react-native/assets-registry',
+  'engine-no-native detecta @react-native/*'
+);
+debeAparecerJuntos(
+  dep,
+  'engine-no-native',
+  'node_modules/react/',
+  'engine-no-native detecta react'
+);
+debeAparecerJuntos(
+  dep,
+  'engine-no-native',
+  'node_modules/@expo/',
+  'engine-no-native detecta @expo/*'
+);
+debeAparecerJuntos(
+  dep,
+  'engine-no-native',
+  '@supabase/supabase-js',
+  'engine-no-native detecta @supabase/*'
+);
+debeAparecerJuntos(
+  dep,
+  'engine-no-native',
+  'node_modules/@sentry/',
+  'engine-no-native detecta @sentry/*'
+);
+debeAparecerJuntos(
+  dep,
+  'engine-no-native',
+  'posthog-react-native',
+  'engine-no-native detecta posthog*'
 );
 debeAparecerJuntos(dep, 'no-circular', 'ciclo-a', 'no-circular detecta un ciclo');
 
