@@ -10,7 +10,7 @@ Actualizado: 2026-09-23 · por sesión S-20260923-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D8, el README: construido** (2026-09-23), gates en verde, revisor CAMBIOS en la primera vuelta (corregidos). Falta el PR y el merge, que cierra la Fase 0 |
+| **Paso actual** | **D8, el README: construido** (2026-09-23), gates en verde, revisor CAMBIOS en la primera vuelta (corregidos) y **APROBADO** en la segunda. Falta el PR y el merge, que cierra la Fase 0 |
 | **Decisiones vigentes** | hasta **#63** (y la #64 propuesta, pendiente de «adelante») |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | `claude/next-steps-963d09` para D8 (la asignó el entorno de la sesión en la nube; no sigue `tipo/ID-descripcion`) |
@@ -92,7 +92,7 @@ Se vacía al cambiar de día.
 | Decisión #62 · la licencia espera a Expo Go | `docs/F0-licencia-expo-go` | S-20260916-a | 2026-09-16 | **mergeada** (PR #23, `b3716f7`, 2026-09-22) |
 | Parche 57.0.24 de Expo | `chore/deps-expo-57-0-23` | S-20260916-a | 2026-09-17 | **mergeada** (PR #24, `d1b8a32`, 2026-09-21) |
 | Decisión #63 · `expo-doctor` perdona el tercer número | `chore/F0-doctor-parches` | S-20260916-a | 2026-09-21 | **mergeada** (PR #26, `a1ecff4`, 2026-09-22) |
-| D8 · README | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **construida** · PR por abrir |
+| D8 · README | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **construida** · revisor APROBADO, PR por abrir |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican

@@ -2521,7 +2521,7 @@ el grave, que `git config core.hooksPath` dice `michef/.husky/_` y no `michef/.h
 de `better-sqlite3` de `estado.md`, que se corrige aquí también. Los menores: la raíz no
 guarda solo `COMANDOS.md` y los workflows, commitlint corre en `commit-msg` y no en
 `pre-commit`, en `bugs.test.ts` solo los pendientes son `it.failing`, y el tablero daba
-la revisión por hecha antes del veredicto.
+la revisión por hecha antes del veredicto. **Segunda vuelta: APROBADO.**
 
 **La rama no sigue la convención.** El entorno de la sesión en la nube asignó
 `claude/next-steps-963d09` y no deja empujar a otra sin permiso explícito. El contenido
