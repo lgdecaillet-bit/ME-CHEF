@@ -1156,7 +1156,8 @@ tenga que salir de Expo Go, y no antes.
 
 **Qué se construye y se prueba entero en Expo Go:** el motor determinista, el inventario,
 la cámara y la foto de la nevera, el proxy y los modelos, las recetas, el ciclo del mercado
-con la factura y los precios, los timers de cocina como notificaciones locales, el catálogo
+con la factura y los precios, los timers de cocina como notificaciones locales (por comprobar:
+ver «Queda por comprobar» abajo; nota del 2026-09-23), el catálogo
 y el asistente. Es decir, **la función central de ME CHEF de punta a punta**.
 
 **Qué no existe en Expo Go, y cómo se aplaza.** Son cinco piezas, comprobadas una por una
@@ -1166,7 +1167,7 @@ contra `docs.expo.dev` el 2026-09-16:
 |---|---|---|
 | **SQLCipher**, el cifrado del archivo de la base de datos | 1 | El código se escribe entero detrás del flag `EXPO_PUBLIC_FLAG_CIFRADO`. En Expo Go los datos quedan **sin cifrar** |
 | **Sign in with Apple contra Supabase** | 2 | La librería corre en Expo Go, pero los identificadores que devuelve son los de Expo Go y no los del bundle de ME CHEF, así que Supabase no puede validarlos. Mientras tanto, la cuenta se hace **por correo** vía Supabase, que es JavaScript puro. Apple se añade con la licencia. Ojo con la regla 4.8 de Apple: obliga a ofrecer Sign in with Apple cuando hay **logins sociales de terceros**, no cuando solo hay correo propio; con una hoja de solo correo probablemente no aplique |
-| **Live Activity** (el timer en la pantalla bloqueada y el Dynamic Island) | 4 | Los timers funcionan igual: son notificaciones locales. La Live Activity ya es su propio paso (4.3) y se aparca ahí hasta que haya licencia |
+| **Live Activity** (el timer en la pantalla bloqueada y el Dynamic Island) | 4 | Los timers no la necesitan: son notificaciones locales (que funcionen en Expo Go, por comprobar; nota del 2026-09-23). La Live Activity ya es su propio paso (4.3) y se aparca ahí hasta que haya licencia |
 | **Ejecución en segundo plano** (bajar el índice del catálogo cada 24 h) | 5 | El índice se baja **al abrir la app**. `expo-background-task` aparece listada en Expo Go, pero `expo-task-manager`, de la que depende, dice que en Expo Go **no hay ejecución en segundo plano en iOS**. Ver abajo |
 | **TestFlight y la App Store** | 5–6 | Nada. Aquí la licencia deja de ser aplazable |
 

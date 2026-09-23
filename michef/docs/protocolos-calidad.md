@@ -18,8 +18,8 @@ Ordenadas de la más rápida a la más lenta. Cada una atrapa lo que la anterior
 |---|---|---|---|---|---|
 | 0 | Editor | al guardar | ESLint + Prettier + TypeScript (VS Code) | inmediato | nada — solo avisa |
 | 1 | `pre-commit` | cada commit | `lint-staged`: eslint --fix, prettier, gitleaks sobre lo staged | < 5 s | el commit |
-| 2 | `pre-push` | cada push | `npm run gates` = typecheck + lint + tests + depcruise | < 60 s | el push |
-| 3 | CI · GitHub Actions | cada PR | capa 2 + Supabase local (migraciones, pgTAP, `db lint`, `deno test`) + `expo-doctor` vía `scripts/doctor.js` (perdona solo el tercer número, #63) + `expo export` + grep de secretos en el bundle + cobertura + knip | < 8 min | el merge |
+| 2 | `pre-push` | cada push | `npm run gates` = typecheck + lint + arquitectura (depcruise) + reglas (#47) + tests | < 60 s | el push |
+| 3 | CI · GitHub Actions | cada PR | capa 2 + Supabase local (migraciones, pgTAP, `db lint`, `deno test`) + `expo-doctor` vía `scripts/doctor.js` (perdona solo el tercer número, #63) + `npm audit --audit-level=high` (#46) + las `EXPO_PUBLIC_*` de producción bajadas de EAS + `expo export` + grep de secretos en el bundle + cobertura + knip | < 8 min | el merge |
 | 4 | CI · smoke de iOS (GitHub Actions, `macos-26`) | cada PR que no sea solo documentos | `expo prebuild` → build Release de simulador → Maestro `smoke.yaml` (#61). En EAS no: el plan gratuito no permite Maestro | ~28 min | todavía nada: no es obligatorio (#61.6) |
 | 5 | `main` post-merge | cada merge | hoy, el smoke de iOS. El `update` al canal preview y los mapas a Sentry esperan a la licencia de Apple, que trae el primer build instalado (#61) | ~28 min | — |
 | 6 | Release | tag `v*` | build `production` → TestFlight interno → **aprobación manual** → TestFlight externo | manual | TestFlight externo |
@@ -28,8 +28,8 @@ Ordenadas de la más rápida a la más lenta. Cada una atrapa lo que la anterior
 
 - **Capa 1 (pre-commit) roja:** casi siempre es formato. `npm run lint -- --fix` y vuelve a hacer commit. Si es gitleaks: **no** hagas commit; el secreto va a un `.env` o a EAS/GitHub secrets.
 - **Capa 2 (pre-push) roja:** `npm run gates` te dice cuál. Arregla en local. **Nunca `--no-verify`.**
-- **Capa 3 (CI) roja y local verde:** casi siempre es Supabase (Docker) o una dependencia que no está en `package-lock.json`. Corre `npm run supabase:test` en local con Docker levantado.
-- **Capa 4 (EAS) roja:** abre el log del build. Si falla el build: es `app.config.ts` o un plugin. Si falla Maestro: es la app que no arrancó — mira Sentry.
+- **Capa 3 (CI) roja y local verde:** casi siempre es Supabase (Docker), una dependencia que no está en `package-lock.json`, una alerta alta nueva de `npm audit` (la ves con `npm audit`), o el paso de EAS: el `EXPO_TOKEN` caducado o revocado, o EAS caído. Corre `npm run supabase:test` en local con Docker levantado; lo de EAS se ve en el log del paso «variables de entorno desde EAS».
+- **Capa 4 (smoke de iOS) roja:** abre el log del build. Si falla el build: es `app.config.ts` o un plugin. Si falla Maestro: es la app que no arrancó — mira Sentry.
 - **Capa 6 roja:** no hay capa 6 roja. Si algo falló antes, no llegas aquí.
 
 ---

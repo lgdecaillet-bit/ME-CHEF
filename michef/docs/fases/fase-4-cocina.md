@@ -41,7 +41,7 @@ quien sabe, necesita que no le estorben. Las dos cosas, sin modelo, sin internet
 
 | Capa | Herramienta | Para qué | Nota |
 |---|---|---|---|
-| Notificaciones | `expo-notifications` (SDK 57) | Timers y recordatorios **locales** | Local funciona en Expo Go, y es como corre esta fase (#62). Por comprobar el día 1: la página lo afirma en el texto pero no lista `expo-go` en `platforms` |
+| Notificaciones | `expo-notifications` (SDK 57) | Timers y recordatorios **locales** | Esta fase cuenta con que lo local funcione en Expo Go (#62), **por comprobar el día 1**: la página lo afirma en el texto pero no lista `expo-go` en `platforms` |
 | Live Activities | `expo-live-activity` o módulo propio con `expo-modules` + ActivityKit | Timer en pantalla bloqueada / Dynamic Island | Requiere licencia; el entitlement exacto (`com.apple.developer.ActivityKit` u otro) está por comprobar (#62). Widget extension en Swift: se escribe una vez, se compila en EAS |
 | Hápticos | `expo-haptics` | Al avanzar paso, al terminar timer | |
 | Pantalla | `expo-keep-awake` | La pantalla no se apaga mientras cocinas | |

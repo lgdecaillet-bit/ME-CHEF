@@ -80,7 +80,7 @@ jobs:
       - name: reglas de arquitectura
         run: npm run arquitectura
 
-      # El control positivo: comprueba que las nueve reglas DISPARAN de verdad
+      # El control positivo: comprueba que cada regla de arquitectura DISPARA de verdad
       # sobre fixtures que las violan a propósito. Sin esto, una regla muerta se
       # ve igual que una que funciona (decisión #47).
       - name: las reglas disparan
@@ -100,6 +100,10 @@ jobs:
       # de abajo no veía nada que entrara por una EXPO_PUBLIC_ (revisión
       # retroactiva del PR #9). Se usa el entorno `production`, que es el que
       # llega a las personas. Mismo robot y misma versión de eas-cli que el smoke.
+      # Sin `EXPO_TOKEN` (un PR desde un fork o de Dependabot) este paso falla y
+      # `gates` sale en rojo, a propósito: saltárselo dejaría escanear un bundle
+      # sin variables, que es justo el agujero que este paso cierra. Esos PRs los
+      # rehace Luciano en una rama propia. Si EAS está caído, también rojo.
       - name: variables de entorno desde EAS
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
