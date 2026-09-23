@@ -9,8 +9,8 @@ Actualizado: 2026-09-23 · por sesión S-20260923-a
 
 | | |
 |---|---|
-| **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | D8 en `main` (PR #28). **Repaso del criterio de salida hecho: 11 de 13.** El 8 espera a registrar BUG-10, 11 y 12; el 13 (APROBADO en cada PR) no se cumplía; la revisión retroactiva encontró tres bugs del motor y dos protecciones que no existían. **La Fase 0 sigue abierta** hasta los cinco PRs de arreglo (bitácora del 2026-09-23) |
+| **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) — **criterio de salida 13 de 13; se cierra al mergear el PR #30.** Siguiente: Fase 1 ([fase-1-motor-y-datos.md](fases/fase-1-motor-y-datos.md)) |
+| **Paso actual** | **Los arreglos de la revisión retroactiva, en un solo PR (#30, decisión de Luciano).** Los ocho PRs retroactivos pasan a APROBADO y el criterio de salida queda 13 de 13. Al mergear el #30, la Fase 0 está cerrada y lo siguiente es presentar el primer paso de la Fase 1 |
 | **Decisiones vigentes** | hasta **#65** (la #64 sigue propuesta, pendiente de «adelante») |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | `claude/next-steps-963d09` (la asigna el entorno de la sesión en la nube; Luciano la dio por buena) |
@@ -93,7 +93,8 @@ Se vacía al cambiar de día.
 | Parche 57.0.24 de Expo | `chore/deps-expo-57-0-23` | S-20260916-a | 2026-09-17 | **mergeada** (PR #24, `d1b8a32`, 2026-09-21) |
 | Decisión #63 · `expo-doctor` perdona el tercer número | `chore/F0-doctor-parches` | S-20260916-a | 2026-09-21 | **mergeada** (PR #26, `a1ecff4`, 2026-09-22) |
 | D8 · README | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **mergeada** (PR #28, `4afc294`) |
-| Repaso del criterio de salida de la Fase 0 y revisión retroactiva | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **construida** · revisor APROBADO (vuelta 2) · PR #29 |
+| Repaso del criterio de salida de la Fase 0 y revisión retroactiva | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **mergeada** (PR #29) |
+| Los arreglos de la revisión retroactiva (los cinco del plan, en uno) | `claude/next-steps-963d09` | S-20260923-a | 2026-09-23 | **construida** · PR #30 |
 
 **Hasta D1** no hay ramas, gates ni PRs: los cambios de solo documentos van directo a
 `main`, commiteados, con entrada en `bitacora.md`. Revisor y `npm run gates` aplican
@@ -118,7 +119,8 @@ desde el primer PR de código.
 | D6.5b | Los 11 componentes base, con `expo-symbols` y `expo-haptics` (decisiones #58, #59 y #60) | Claude + Luciano | ✅ mergeado (PR #18, `966de64`), visto en el iPhone |
 | D7 | Smoke de iOS con Maestro, en GitHub Actions (#61) | Claude + Luciano | ✅ mergeado (PR #21, `6216995`), probado en verde y en rojo |
 | D8 | README | Claude | ✅ mergeado (PR #28, `4afc294`) |
-| — | Repaso del criterio de salida y revisión retroactiva (#65) | Claude | 11 de 13. **Faltan los cinco PRs de arreglo** (bitácora del 2026-09-23) |
+| — | Repaso del criterio de salida y revisión retroactiva (#65) | Claude | ✅ mergeado (PR #29) |
+| — | Los arreglos de la revisión retroactiva | Claude | 🔨 PR #30. **Cierra la Fase 0: 13 de 13** |
 
 ### D0 · avances de Luciano
 
@@ -476,12 +478,15 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
    pisan), que **el motor puede importar módulos nativos sin que salte nada**, que ningún
    gate corre `npm audit`, y documentos que dan por comprobado lo que la #62 no comprobó.
    Todo en la bitácora del 2026-09-23, con el registro de revisión PR por PR.
-23. **Siguiente: los cinco PRs de arreglo**, en este orden y cada uno con su «adelante»:
-   (1) `fix/F0-motor-bug10-11-12` · (2) `fix/F0-reglas-motor` · (3)
-   `chore/F0-gates-auditoria` (toca `gates`, decide Luciano) · (4)
-   `chore/deps-expo-updates-exacto` · (5) `docs/F0-62-afirmaciones`. Después, segunda
-   vuelta del revisor sobre los PRs retroactivos con CAMBIOS, punto 13 marcado, y **la
-   Fase 0 se cierra**.
+23. **Los arreglos, en un solo PR** (#30, porque Luciano lo pidió así): BUG-10 y BUG-11
+   arreglados y BUG-12 registrado; las reglas del motor cubren cada familia, y al hacerlo
+   apareció que la exclusión de dependency-cruiser ocultaba todo paquete que publica en
+   `dist/` (arreglado: de 227 a 252 dependencias vigiladas); `npm audit` y el bundle con las
+   variables de EAS en `gates`, probados en el CI; acciones por SHA; `expo-updates` exacto;
+   los documentos de la #62; el control de secretos del `pre-commit` con test. Los ocho PRs
+   retroactivos, APROBADO entre la segunda y la cuarta vuelta. **Criterio de salida: 13 de 13.**
+24. **Siguiente: mergear el #30, y con eso la Fase 0 queda cerrada.** Después, leer
+   `fases/fase-1-motor-y-datos.md` y presentar a Luciano el primer paso de la Fase 1.
 
 **Lo que tiene que hacer Luciano para cerrar D2:**
 

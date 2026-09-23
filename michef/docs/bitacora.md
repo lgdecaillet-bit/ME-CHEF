@@ -2776,7 +2776,7 @@ tienen su veredicto escrito**.
 | #8, #19 | APROBADO (retroactivo, primera vuelta) |
 | #3, #4, #5, #24 | APROBADO (retroactivo, segunda vuelta) |
 | #9, #23 | APROBADO (retroactivo, tercera vuelta) |
-| #2, #7 | VEREDICTO_2_7 |
+| #2, #7 | APROBADO (retroactivo, cuarta vuelta) |
 | #6 | exento declarado en el PR (solo documentos, antes de la #65) |
 | #11, #12, #14, #15, #20, #27 | solo documentos, antes de la #65; su contenido lo cubre la revisión del #23 y la de hoy de `protocolos-calidad.md` |
 | #29 | APROBADO en la vuelta 2 |
