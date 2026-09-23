@@ -57,8 +57,8 @@ en las máquinas Mac de GitHub (decisión #61).
 
 ## Puesta en marcha en Windows
 
-Todo se corre desde **`michef/`**, que es donde vive la app. La raíz del repo solo
-guarda `COMANDOS.md` y los workflows de GitHub. Los comandos son de PowerShell.
+Todo se corre desde **`michef/`**, que es donde vive la app. En la raíz del repo están
+`COMANDOS.md` y los workflows de GitHub. Los comandos son de PowerShell.
 
 ### 0 · Requisitos
 
@@ -84,7 +84,7 @@ npm run prepare
 binario para esta versión e intenta compilarse, y en Windows sin Visual Studio falla.
 `--ignore-scripts` lo evita, pero también se salta los enganches de git; por eso va
 `npm run prepare` después. Sin ese paso, el `pre-commit` y el `pre-push` no existen y
-nada avisa. Se comprueba así, y debe decir `michef/.husky`:
+nada avisa. Se comprueba así, y debe decir `michef/.husky/_`:
 
 ```powershell
 git config core.hooksPath
@@ -152,7 +152,8 @@ Las barreras, de la más rápida a la más lenta (detalle en
 
 | Capa | Cuándo | Qué |
 |---|---|---|
-| `pre-commit` | cada commit | lint-staged (ESLint y Prettier) y gitleaks sobre lo staged; commitlint valida el mensaje |
+| `pre-commit` | cada commit | lint-staged (ESLint y Prettier) y gitleaks sobre lo staged |
+| `commit-msg` | cada commit | commitlint valida el formato del mensaje |
 | `pre-push` | cada push | `npm run gates` |
 | CI · `gates` | cada PR | lo anterior, más expo-doctor, secretos en el bundle y knip (este solo avisa) |
 | CI · `supabase` | cada PR | migraciones desde cero, pgTAP, `db lint` y `deno test` del proxy |
@@ -172,6 +173,7 @@ El mensaje de commit sigue el formato `tipo: qué hiciste` (`feat`, `fix`, `docs
 
 ```
 ME-CHEF/
+  README.md                  una línea; el README de verdad es este
   COMANDOS.md                la chuleta de comandos de Luciano
   .github/workflows/         ci (gates + supabase), gitleaks, smoke-ios, eval (vacío hasta Fase 2)
   michef/                    la app: todo se corre desde aquí
@@ -186,7 +188,7 @@ ME-CHEF/
         groceries.ts         lista de mercado = necesario − inventario
         inventory.ts         fusión de escaneo y factura con el inventario
         coverage.ts          tres recetas con lo que hay
-        __tests__/bugs.test.ts   los bugs conocidos, registrados como test.failing
+        __tests__/bugs.test.ts   los bugs conocidos: pendientes como it.failing, arreglados como regresión
       ai/                    cliente que llama al proxy, nunca a los modelos
       db/schema.ts           datos personales (SQLite en el teléfono)
       config/                env.ts (zod) y flags.ts: se validan al arrancar

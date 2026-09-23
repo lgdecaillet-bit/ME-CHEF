@@ -10,7 +10,7 @@ Actualizado: 2026-09-23 · por sesión S-20260923-a
 | | |
 |---|---|
 | **Fase actual** | 0 · Fundaciones y barreras ([fase-0-fundaciones.md](fases/fase-0-fundaciones.md)) |
-| **Paso actual** | **D8, el README: construido** (2026-09-23), gates en verde y revisor. Falta el PR y el merge, que cierra la Fase 0 |
+| **Paso actual** | **D8, el README: construido** (2026-09-23), gates en verde, revisor CAMBIOS en la primera vuelta (corregidos). Falta el PR y el merge, que cierra la Fase 0 |
 | **Decisiones vigentes** | hasta **#63** (y la #64 propuesta, pendiente de «adelante») |
 | **Modo de trabajo** | **un solo agente** hasta cerrar Fase 0 (decisión #38) |
 | **Rama de trabajo** | `claude/next-steps-963d09` para D8 (la asignó el entorno de la sesión en la nube; no sigue `tipo/ID-descripcion`) |
@@ -266,7 +266,7 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
   --ignore-scripts` **y después `npm run prepare`**, porque `--ignore-scripts` también se
   salta el `prepare` que instala los enganches de husky, y un clon sin `pre-commit` ni
   `pre-push` no avisa de nada (se comprueba con `git config core.hooksPath`, que debe
-  decir `michef/.husky`). Los 655 tests pasan igual: `schema.test.ts`
+  decir `michef/.husky/_`). Los 655 tests pasan igual: `schema.test.ts`
   no llega a cargar el binario. En el CI (Ubuntu) se compila solo. Si un día un test
   necesita el binario de verdad, hay que decidir: Visual Studio Build Tools (lo instala
   Luciano) o cambiar de driver para los tests en Node.

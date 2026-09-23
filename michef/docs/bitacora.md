@@ -2515,6 +2515,14 @@ barrera de la #62, la instalación real en Windows (`npm ci --ignore-scripts` y 
 los cuatro checks del CI, y el mapa de `src/` al día (`app/`, `ui/`, `config/`, `lib/`,
 `i18n/`). No añade comandos nuevos, así que `COMANDOS.md` no cambia.
 
+**El revisor, primera vuelta: CAMBIOS, con razón.** Cinco puntos, todos corregidos:
+el grave, que `git config core.hooksPath` dice `michef/.husky/_` y no `michef/.husky`
+(husky 9 añade `/_`; lo comprobó en un clon desechable). El mismo error estaba en el aviso
+de `better-sqlite3` de `estado.md`, que se corrige aquí también. Los menores: la raíz no
+guarda solo `COMANDOS.md` y los workflows, commitlint corre en `commit-msg` y no en
+`pre-commit`, en `bugs.test.ts` solo los pendientes son `it.failing`, y el tablero daba
+la revisión por hecha antes del veredicto.
+
 **La rama no sigue la convención.** El entorno de la sesión en la nube asignó
 `claude/next-steps-963d09` y no deja empujar a otra sin permiso explícito. El contenido
 es el de `docs/F0-D8-readme`.
