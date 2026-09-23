@@ -65,10 +65,13 @@ export function listaDeMercado(
     //
     // Arreglo de BUG-10: el ruido de la coma flotante se quita ANTES del `ceil`.
     // 100 g × 4,9 porciones es 490,00000000000006, y `Math.ceil` convertía ese
-    // ruido en medio gramo o en diez. Se corta a la misma precisión
-    // con la que se muestra `cantidadNecesaria`, así que lo que se compra es el
-    // redondeo de la resta que ve el usuario.
-    const falta = Math.max(0, +(cantidad - tengo).toFixed(2));
+    // ruido en medio gramo o en diez. Se corta a seis decimales: el ruido de una
+    // suma de doubles de este tamaño está muy por debajo (del orden de 1e-13), y
+    // un faltante real de una millonésima de gramo es la única cantidad que se
+    // deja de comprar. Esa es la tolerancia, y la fija un test. Con dos
+    // decimales se dejaban de comprar faltantes de hasta 0,005 g, y la regla de
+    // BUG-9 («nunca menos de lo que falta») dejaba de cumplirse.
+    const falta = Math.max(0, +(cantidad - tengo).toFixed(6));
     const comprar = redondearParaComprar(falta, unidad);
     if (comprar === 0) continue;
 

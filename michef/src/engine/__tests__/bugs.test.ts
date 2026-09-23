@@ -528,8 +528,8 @@ describe('BUG-10 · ARREGLADO · la coma flotante ya no pide comprar de más', (
   // Por qué importa: una línea fantasma en la lista («necesitas 490, tienes 490,
   // compra 0,5») es una lista en la que ya no se puede confiar.
   // Lo encontró la revisión retroactiva del PR #7, el 2026-09-23.
-  // Arreglo: la resta se corta a dos decimales antes del `ceil`, la misma
-  // precisión con la que se muestra `cantidadNecesaria`.
+  // Arreglo: la resta se corta a seis decimales antes del `ceil`. La
+  // tolerancia (menos de una millonésima de gramo) la fijan los dos últimos tests.
   const hogar = 1.4 + 1.8 + 1 + 0.7;
   const semana = () => [
     { receta: receta({ ingredientes: [ingrediente('arroz', 100)] }), porciones: hogar },
@@ -572,6 +572,56 @@ describe('BUG-10 · ARREGLADO · la coma flotante ya no pide comprar de más', (
       )
     );
   });
+
+  it('un faltante de 0,3 g se compra: el arreglo no se come lo que de verdad falta', () => {
+    const semanaX = [
+      { receta: receta({ ingredientes: [ingrediente('sal', 1.3)] }), porciones: 1 },
+    ];
+    const lineas = listaDeMercado(semanaX, [item({ ingredienteId: 'sal', cantidad: 1 })]);
+    expect(lineas[0]?.cantidadAComprar).toBe(0.5);
+  });
+
+  it('1,003 g necesarios se compran como 1,5, no como 1', () => {
+    // El contraejemplo de la segunda vuelta del revisor: 0,17 g × 5,9 porciones.
+    // Con el corte a dos decimales compraba 1 y faltaban 0,003 g.
+    const semanaX = [
+      {
+        receta: receta({ ingredientes: [ingrediente('sal', 0.17)] }),
+        porciones: 2.6 + 1.7 + 1.6,
+      },
+    ];
+    expect(listaDeMercado(semanaX, [])[0]?.cantidadAComprar).toBe(1.5);
+  });
+
+  it('PROPIEDAD · con cantidades decimales, nunca compra menos de lo que falta (tolerancia 1e-6)', () => {
+    // El otro lado del arreglo: quitar el ruido no puede comerse faltantes reales.
+    // Con `toFixed(2)` esta propiedad caía (1,003 g necesarios, compraba 1).
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 50_000 }).map((n) => n / 100),
+        fc.array(fc.constantFrom(0.7, 1, 1.4, 1.8, 2.6, 1.7, 1.6), {
+          minLength: 1,
+          maxLength: 4,
+        }),
+        fc.integer({ min: 0, max: 50_000 }).map((n) => n / 100),
+        (porPorcion, comensales, tiene) => {
+          const porciones = comensales.reduce((t, f) => t + f, 0);
+          const semanaX = [
+            {
+              receta: receta({ ingredientes: [ingrediente('arroz', porPorcion)] }),
+              porciones,
+            },
+          ];
+          const necesita = porPorcion * porciones;
+          const linea = listaDeMercado(semanaX, [
+            item({ ingredienteId: 'arroz', cantidad: tiene }),
+          ])[0];
+          const compra = linea?.cantidadAComprar ?? 0;
+          return tiene + compra >= necesita - 1e-6;
+        }
+      )
+    );
+  });
 });
 
 describe('BUG-11 · ARREGLADO · una confianza que no es un número no cuenta como confiable', () => {
@@ -583,6 +633,17 @@ describe('BUG-11 · ARREGLADO · una confianza que no es un número no cuenta co
   // decisión #50 prohíbe. Un dato roto tiene que contar como «no sé», no como «sí».
   // Lo encontró la revisión retroactiva del PR #5, el 2026-09-23.
   // Arreglo: el filtro se escribe en positivo, `!(confianza >= UMBRAL)`.
+  it('una confianza exactamente en el umbral sí cuenta', () => {
+    // La frontera de `>=`: sin este caso, cambiarlo por `>` no lo vería nadie.
+    const semana = [
+      { receta: receta({ ingredientes: [ingrediente('arroz', 500)] }), porciones: 1 },
+    ];
+    const lineas = listaDeMercado(semana, [
+      item({ ingredienteId: 'arroz', cantidad: 500, confianza: 0.6 }),
+    ]);
+    expect(lineas).toEqual([]);
+  });
+
   it('una fila con confianza NaN no resta de la lista', () => {
     const semana = [
       { receta: receta({ ingredientes: [ingrediente('arroz', 500)] }), porciones: 1 },
