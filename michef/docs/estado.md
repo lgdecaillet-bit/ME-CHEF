@@ -256,7 +256,10 @@ DSN Sentry, slugs de org y proyecto Sentry). Los tokens no se mandan nunca.
   hacerlo obligatorio tras unas semanas en verde, y hay que quitarle el `paths-ignore`
   antes o se quedará «pendiente» para siempre en los PRs de documentos.
 - **⏰ Rutina quincenal: poner al día los parches del SDK** (#63). Cada dos semanas, en una
-  rama `chore/deps-expo-parches-AAAAMMDD`: `npx expo install --fix`, `npm run doctor`
+  rama `chore/deps-expo-parches-AAAAMMDD`: `npx expo install --fix` (**y después volver a
+  fijar exactos** `expo-dev-client`, `expo-secure-store`, `expo-updates`, `expo-symbols`,
+  `expo-haptics` y `expo-localization`: `--fix` les pone `~`, y así se perdió el de
+  `expo-updates` en el #24; los que vienen del scaffold se quedan con `~`), `npm run doctor`
   (esperado: 21/21 y ningún aviso), `npm run gates`, PR aparte. `expo-doctor` ya no bloquea
   por un tercer número, así que nada nos avisará en rojo: hay que mirarlo. **Próxima: la
   semana del 2026-10-05.** La abre la sesión de Claude que esté activa esa semana, y como
