@@ -2712,7 +2712,8 @@ usuario, cuando Luciano dé «adelante».
 Tarea: cierre de la Fase 0 (los cinco arreglos del plan) · Rama: `claude/next-steps-963d09` ·
 PR: #30 · Resultado: **los ocho PRs retroactivos con CAMBIOS pasan a APROBADO, los puntos 8
 y 13 del criterio se marcan, y la Fase 0 queda cerrada al mergear este PR.**
-Revisor: VEREDICTO_FINAL
+Revisor: APROBADO en la vuelta 2 del PR entero (antes, CAMBIOS en la 1 por cuatro erratas de
+texto; el código, en las vueltas retroactivas de la tabla de abajo).
 
 Tocado: `src/engine/groceries.ts` y `__tests__/bugs.test.ts` (BUG-10, 11 y 12);
 `.dependency-cruiser.cjs`, `eslint.config.js`, `scripts/probar-reglas.js` y
@@ -2725,9 +2726,11 @@ Tocado: `src/engine/groceries.ts` y `__tests__/bugs.test.ts` (BUG-10, 11 y 12);
 Corrido: `npm run gates` en cada commit (el `pre-push` lo repite): de 655 a **669 tests**,
 37 suites, cobertura 100 %; `npm run reglas`, todas disparan. Mutaciones a mano para
 comprobar que cada test y cada control caen cuando deben (abajo). CI del PR sobre
-`46eb131`: `gates` (con `npm audit`, las variables de producción bajadas de EAS y el bundle
-escaneado con ellas), `supabase` y `secretos` **en verde**: los pasos nuevos probados en
-Actions, no solo en local. `smoke-ios`: ver el PR.
+`46eb131`: `gates` (con `npm audit`: 19 moderadas, ninguna alta; las tres `EXPO_PUBLIC_*`
+de producción bajadas de EAS; y el bundle escaneado con ellas: 25 archivos, 0 secretos),
+`supabase` y `secretos` **en verde**: los pasos nuevos probados en Actions, no solo en
+local. Sobre `481637f`, que ya lleva las reglas nuevas, `gates`, `supabase` y `secretos`
+también en verde. `smoke-ios`: no obligatorio (#61.6), ver el PR.
 
 Decisiones nuevas: ninguna. **Dos cosas que decidió Luciano, anotadas aquí:** que todo fuera
 en **un solo PR** en vez de los cinco del plan (los arreglos van en commits separados por
@@ -2742,7 +2745,7 @@ Avances de Luciano: mergeó el PR #29. Pidió «arregla todos, de pronto podría
 
 | PR retroactivo | Arreglo | Cómo se comprobó |
 |---|---|---|
-| #7 · BUG-10 | la resta se corta a 6 decimales antes del `ceil` | 4 tests caen sin el arreglo; con `toFixed(2)`, `(3)` o `(4)` cae uno de los de tolerancia (1,003 g y 1e-5 g) |
+| #7 · BUG-10 | la resta se corta a 6 decimales antes del `ceil` | 3 tests caen sin el arreglo; con `toFixed(2)`, `(3)` o `(4)` cae uno de los de tolerancia (1,003 g y 1e-5 g) |
 | #5 · BUG-11 | filtro de confianza en positivo | el test del `NaN` cae sin el arreglo; `>` en vez de `>=` hace caer el del umbral exacto |
 | #4 · BUG-12 | registrado como `it.failing` (decisión pendiente, con BUG-8) | falla por la aserción, no por una excepción |
 | #2 · reglas del motor | patrón por familias en dependency-cruiser y ESLint; un import y una comprobación por familia; control por línea; `no-circular` con fixture | quitada cada familia, una a una, en las dos herramientas: cae su comprobación y solo esa |
@@ -2759,16 +2762,18 @@ y el SDK de Supabase o de un modelo en cuanto se instalen. Ni `engine-no-native`
 `ai-only-proxy` podían verlos. Se ancló a la raíz; el grafo pasa de 227 a 252
 dependencias, sin ninguna violación. Lo destapó el fixture de `@sentry/*`.
 
-**Dos desviaciones, dichas.** En la segunda vuelta de BUG-10 (commit `02e545d`) el test y
+**Tres desviaciones, dichas.** En la segunda vuelta de BUG-10 (commit `02e545d`) el test y
 el arreglo van en el mismo commit: no hubo commit en rojo antes. Lo compensa la mutación
-(con el corte viejo el test cae), pero no cumple la regla al pie de la letra. Y
-`'react-native/*'` salió de ESLint porque `'react-native'` ya lo cubría y no podía tener
-control propio.
+(con el corte viejo el test cae), pero no cumple la regla al pie de la letra. El commit
+`4284929` arregla BUG-10 y BUG-11 juntos, y `fase-1` § 1.1 dice «nunca dos bugs en un
+commit»; lo cubre la salvedad de la #49 (con squash los commits se funden), pero queda
+dicho. Y `'react-native/*'` salió de ESLint porque `'react-native'` ya lo cubría y no podía
+tener control propio.
 
 ### El registro de revisión de la Fase 0, cerrado
 
-Actualiza la tabla de la entrada anterior. Con esto, **los 24 PRs mergeados de la fase y este
-tienen su veredicto escrito**.
+Actualiza la tabla de la entrada anterior. Con esto, **los 25 PRs mergeados de la fase (los 24 del
+registro anterior más el #29) y este tienen su veredicto escrito**.
 
 | PR | Veredicto final |
 |---|---|
@@ -2780,7 +2785,7 @@ tienen su veredicto escrito**.
 | #6 | exento declarado en el PR (solo documentos, antes de la #65) |
 | #11, #12, #14, #15, #20, #27 | solo documentos, antes de la #65; su contenido lo cubre la revisión del #23 y la de hoy de `protocolos-calidad.md` |
 | #29 | APROBADO en la vuelta 2 |
-| #30 (este) | VEREDICTO_FINAL |
+| #30 (este) | APROBADO en la vuelta 2 del PR entero |
 
 ### Para después (no bloquea el cierre)
 

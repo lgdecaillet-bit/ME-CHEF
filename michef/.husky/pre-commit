@@ -2,11 +2,9 @@
 # Formatea, arregla lo que puede, y busca secretos en lo staged.
 #
 # OJO: husky ejecuta este archivo con `sh -e`, que aborta en el primer comando
-# que devuelve distinto de cero. Sin el `|| CODIGO=$?` de abajo, el script moría
-# justo después de que gitleaks encontrara algo y **nunca llegaba a explicar por
-# qué**: el commit quedaba bloqueado con un escueto «script failed (code 1)».
-# Bloquear sin decir por qué es media protección: la otra media es que sepas
-# qué hacer. Comprobado con un secreto de prueba.
+# que devuelve distinto de cero. Por qué eso importa para gitleaks, y cómo se
+# evita que el enganche bloquee sin decir por qué, está en
+# scripts/revisar-secretos.sh, que tiene su test.
 
 cd michef && npx lint-staged || exit 1
 cd ..
