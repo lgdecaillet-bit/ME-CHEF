@@ -176,7 +176,8 @@ Architecture obligatoria, sin opción legacy. `CLAUDE.md` se corrige en D1.
 Fecha: 2026-09-09 · **ampliada por la #62** (el título es el original; lo vigente es esto):
 Expo Go sirve hasta la Fase 5, y las cinco piezas que no caben ahí se aplazan en vez de
 abandonar Expo Go. La lista exacta y comprobada está en la #62. Sigue vigente todo lo que
-esta decisión verificó, y su última frase: Expo Go nunca es el destino final
+esta decisión verificó **salvo las notificaciones locales, que la #62 deja por comprobar**
+(nota del 2026-09-23, revisión retroactiva del #23), y su última frase: Expo Go nunca es el destino final
 Verificado contra la documentación del SDK 57: cámara, SQLite sin cifrar, Supabase
 (sesión anónima, Edge Functions), notificaciones locales y Secure Store funcionan en Expo
 Go. SQLCipher, Sign in with Apple real y Live Activities no. Se abandona Expo Go al entrar

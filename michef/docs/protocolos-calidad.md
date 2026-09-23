@@ -36,7 +36,7 @@ Ordenadas de la más rápida a la más lenta. Cada una atrapa lo que la anterior
 
 ## 2 · Reglas de rama
 
-Configuradas como **GitHub Rulesets** sobre `main` (vía `gh api`, script en `scripts/branch-rules.sh`).
+Configuradas como **GitHub Rulesets** sobre `main` (vía `gh api`, script en `scripts/reglas-de-rama.js`, #53).
 
 - **Nada entra a `main` sin PR.** Aunque el autor sea el único desarrollador. El PR es donde corren las capas 3 y 4; sin PR no hay barrera.
 - **Nada entra a `main` en rojo, y `--admin` no es una salida** (decisión #55). La protección de rama no puede impedirlo — un administrador se salta sus propias reglas — así que a partir de ahí la barrera es esta regla. Ningún agente mergea en rojo, ni desactiva un check, ni relaja el ruleset para dejar pasar algo: **para y avisa**. El día que haya que hacerlo, lo hace Luciano y escribe por qué en el PR.
@@ -56,7 +56,7 @@ Configuradas como **GitHub Rulesets** sobre `main` (vía `gh api`, script en `sc
 | **Unit · datos** | `jest` + `better-sqlite3` en Node contra el SQL que genera Drizzle | migraciones, round-trip por tabla, export y borrado total | migraciones aplican sobre DB vacía **y** sobre DB con datos de la versión anterior |
 | **Componentes** | React Native Testing Library | pantallas críticas | una prueba por estado: vacío, cargando, error, ok |
 | **Arquitectura** | `dependency-cruiser` + ESLint `no-restricted-imports` | `src/engine` no importa `src/ai`, `react-native`, `expo-*`, `@supabase/*`. `src/ai` solo habla con el proxy | 0 violaciones |
-| **Secretos** | `gitleaks` + `scripts/secrets-bundle.sh` (`expo export` y grep del bundle) | repo y bundle final | 0 hallazgos de `sk-ant-`, `AIza`, `service_role`, JWT que no sea la anon key |
+| **Secretos** | `gitleaks` + `scripts/secrets-bundle.js` (`expo export` con las variables de EAS y grep del bundle) | repo y bundle final | 0 hallazgos de `sk-ant-`, `AIza`, `service_role`, JWT que no sea la anon key |
 | **Backend · DB** | `supabase test db` (pgTAP) | migraciones, RLS, vistas | `anon` no escribe `precio`; nadie lee `cache_modelo` desde el cliente; el catálogo publicado sí se lee |
 | **Backend · proxy** | `deno test` en `supabase/functions/tests/` | `ai-proxy` con proveedores mockeados | rechaza sin JWT; aplica rate limit; enruta cada tarea a su modelo; **nunca persiste la imagen** |
 | **Smoke E2E** | Maestro 2.10.0 en GitHub Actions (`smoke-ios.yml`, simulador iOS, #61) | `maestro/flows/smoke.yaml` y un flujo por función central | pasa en cada PR que no sea solo documentos y en cada merge a `main` |
@@ -170,18 +170,18 @@ Todos en `package.json`. Los que empiezan por `supabase:` necesitan Docker levan
 
 | Comando | Qué hace |
 |---|---|
-| `npm run gates` | typecheck + lint + test + depcruise. **El que corres antes de decir "listo".** |
+| `npm run gates` | typecheck + lint + arquitectura + reglas + test. **El que corres antes de decir "listo".** |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint. `-- --fix` para arreglar formato |
-| `npm run test` / `test:watch` | Jest. El watch se deja abierto todo el día |
-| `npm run test:coverage` | Jest con cobertura; falla si el engine baja de 100/95 |
+| `npm run test` / `test:watch` | Jest con cobertura; falla si el engine baja de 100/95. El watch se deja abierto todo el día |
+| `npm run reglas` | El control positivo: que cada regla de arquitectura dispara sobre su fixture (#47) |
+| `npm run doctor` | `expo-doctor`, que perdona solo el tercer número (#63) |
 | `npm run arquitectura` | Reglas de arquitectura (era `depcruise`, ver #53) |
 | `npm run codigo-muerto` | Código y dependencias muertas (era `knip`, ver #53) |
 | `npm run secrets:bundle` | `expo export` + grep de secretos en el bundle |
-| `npm run db:generate` | Drizzle genera la migración SQL desde `src/db/schema.ts` |
-| `npm run db:test` | Aplica migraciones en `better-sqlite3` y corre los tests de datos |
+| `npm run db:generate` · `db:test` | **Todavía no existen**: llegan con la capa de datos de la Fase 1 (migraciones con Drizzle y sus tests en `better-sqlite3`) |
 | `npm run supabase:test` | `supabase start` + `db reset` + `test db` + `db lint` + `deno test` |
-| `npm run eval` | Promptfoo contra las 200 fotos (Fase 2+; cuesta dinero, pide confirmación) |
+| `npm run eval` | **Todavía no existe**: Promptfoo contra las 200 fotos, en la Fase 2 (cuesta dinero, pide confirmación) |
 
 ---
 

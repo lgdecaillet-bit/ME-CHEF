@@ -65,8 +65,8 @@ Versiones verificadas el 2026-09-09 contra el proyecto real y la documentación 
 | | Deno | 2.x (lo trae el CLI) | Edge Functions y sus tests |
 | | pgTAP | (incluido) | Tests de la base de datos y de RLS |
 | CI | GitHub Actions | ubuntu-latest | Capa 3 |
-| | EAS Build + EAS Workflows | eas-cli 23.2.0 | Capa 4, 5, 6. Builds en la nube sobre Macs de Expo |
-| | Maestro (job `maestro` de EAS, alpha) | — | Smoke E2E en simulador iOS, en la nube, **sin cuenta de Apple** |
+| | ~~EAS Build + EAS Workflows~~ **GitHub Actions en `macos-26` (#61)** | eas-cli 24.3.0 | Capa 4: build de simulador y smoke. Las capas 5 y 6 esperan a la licencia (#62) |
+| | Maestro 2.10.0 (en GitHub Actions, no en EAS: el plan gratuito no lo permite, #61) | — | Smoke E2E en simulador iOS, **sin cuenta de Apple** |
 | Observabilidad | Sentry (`@sentry/react-native`) | 7.x | Crashes desde el primer día |
 | Dispositivo | **Expo Go** | App Store | Ver la app en el iPhone. Gratis |
 
@@ -74,8 +74,8 @@ Versiones verificadas el 2026-09-09 contra el proyecto real y la documentación 
 
 | | Por qué no |
 |---|---|
-| SQLCipher | Necesita development build → licencia. Fase 1, detrás de flag |
-| Sign in with Apple | Igual. Fase 1, al final |
+| SQLCipher | Necesita development build → licencia. El código en la Fase 1, detrás de `flags.cifrado`; encendido y verificado al cerrar la Fase 5 (#62) |
+| Sign in with Apple | Igual. El código en la Fase 1, detrás de `flags.auth_apple`; contra Supabase real, con la licencia, al cerrar la Fase 5 (#62) |
 | PostHog | No hay eventos que medir. Fase 1 |
 | expo-camera, expo-notifications | Se instalan en su fase; cada dependencia nativa cambia el fingerprint |
 | Promptfoo | No hay prompts. Fase 2 |
@@ -468,7 +468,7 @@ resumen; la autoridad es `docs/decisiones.md`. Todas fechadas 2026-09-08 o 2026-
 - **Layout del repo:** todo dentro de `michef/`. `research/` al lado, fuera de CI.
 - **SDK 57.** No 54. New Architecture, sin opción de legacy.
 - **Onboarding sin cuenta.** Foto y 3 recetas con sesión anónima; **login al tocar «Cocinar», obligatorio para cocinar**. Es el momento con una acción concreta que lo justifica («para guardar tu nevera y lo que cocinas»): ver es anónimo, cocinar recuerda. Motivo: el informe de research (P1, ⚠ CONTRADICE) — cuenta antes del valor no baja el rating pero genera un flujo constante de 1★ evitables. Coste: una sesión anónima que se migra con `linkIdentity`.
-- **Expo Go como entorno de desarrollo hasta Fase 5** (#27, ampliada por la #62). Verificado: cámara, SQLite sin cifrar, Supabase, notificaciones locales funcionan en Expo Go SDK 57. SQLCipher, Apple auth y Live Activities no: se aplazan.
+- **Expo Go como entorno de desarrollo hasta Fase 5** (#27, ampliada por la #62). Verificado: cámara, SQLite sin cifrar y Supabase funcionan en Expo Go SDK 57; las notificaciones locales, **por comprobar el día 1 de la Fase 4** (#62). SQLCipher, Apple auth y Live Activities no: se aplazan.
 - ~~Licencia de Apple: recomendada semana 3–4~~ **anulado por la #62** (2026-09-16): no se saca hasta que el producto funcione en Expo Go. Los builds de simulador para E2E nunca la necesitaron.
 - **Jest-expo como único runner.** No Vitest. Un solo runner, un solo mock de lo nativo.
 - **dependency-cruiser** para la regla «engine no importa ai», además de ESLint. Dos herramientas, una regla: el editor avisa, CI bloquea.
