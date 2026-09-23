@@ -35,7 +35,7 @@ module.exports = {
         // Las familias van con `[^/]*` (revisión retroactiva del 2026-09-23): con
         // `expo` a secas seguido de `(/|$)`, `expo-haptics` y
         // `react-native-reanimated` no casaban y el motor podía importarlos con
-        // los gates en verde. Cada alternativa del patrón tiene su import en
+        // los gates en verde. Cada familia del patrón tiene su import en
         // src/engine/__fixtures__/violacion.ts, y scripts/probar-reglas.js comprueba
         // cada una por separado. `expo` y `expo-[^/]*` por separado, y no `expo[^/]*`, para no atrapar
         // paquetes que solo empiezan por «expo» (`exponential-backoff`).

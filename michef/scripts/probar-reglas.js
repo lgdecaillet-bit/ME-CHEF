@@ -101,6 +101,18 @@ debeAparecerJuntos(
   'src/db/',
   'engine-no-db detecta un import de src/db/'
 );
+debeAparecerJuntos(
+  dep,
+  'engine-no-native',
+  'node_modules/expo/',
+  'engine-no-native detecta expo'
+);
+debeAparecerJuntos(
+  dep,
+  'engine-no-native',
+  'react-native/Libraries',
+  'engine-no-native detecta react-native/*'
+);
 // Una comprobación por alternativa del patrón de engine-no-native: cada una puede
 // morir sola (segunda vuelta del revisor, 2026-09-23).
 debeAparecerJuntos(

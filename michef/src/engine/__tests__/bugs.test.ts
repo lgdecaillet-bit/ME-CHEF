@@ -529,7 +529,8 @@ describe('BUG-10 · ARREGLADO · la coma flotante ya no pide comprar de más', (
   // compra 0,5») es una lista en la que ya no se puede confiar.
   // Lo encontró la revisión retroactiva del PR #7, el 2026-09-23.
   // Arreglo: la resta se corta a seis decimales antes del `ceil`. La
-  // tolerancia (menos de una millonésima de gramo) la fijan los dos últimos tests.
+  // tolerancia la fijan los tests de 1,003 g y de 1e-5 g: cualquier corte por
+  // debajo de cinco decimales hace caer uno de los dos.
   const hogar = 1.4 + 1.8 + 1 + 0.7;
   const semana = () => [
     { receta: receta({ ingredientes: [ingrediente('arroz', 100)] }), porciones: hogar },
@@ -576,6 +577,17 @@ describe('BUG-10 · ARREGLADO · la coma flotante ya no pide comprar de más', (
   it('un faltante de 0,3 g se compra: el arreglo no se come lo que de verdad falta', () => {
     const semanaX = [
       { receta: receta({ ingredientes: [ingrediente('sal', 1.3)] }), porciones: 1 },
+    ];
+    const lineas = listaDeMercado(semanaX, [item({ ingredienteId: 'sal', cantidad: 1 })]);
+    expect(lineas[0]?.cantidadAComprar).toBe(0.5);
+  });
+
+  it('un faltante de una cienmilésima de gramo también se compra', () => {
+    // Fija la tolerancia de verdad: la propiedad de abajo solo genera faltantes
+    // múltiplos de 0,001, así que con un corte a 3, 4 o 5 decimales pasaba igual.
+    // Este caso cae con cualquier corte por debajo de 5 decimales.
+    const semanaX = [
+      { receta: receta({ ingredientes: [ingrediente('sal', 1.00001)] }), porciones: 1 },
     ];
     const lineas = listaDeMercado(semanaX, [item({ ingredienteId: 'sal', cantidad: 1 })]);
     expect(lineas[0]?.cantidadAComprar).toBe(0.5);
